@@ -367,7 +367,7 @@
                   this.lantext.words.upload[this.$store.state.lanType] +
                   this.lantext.words.fail[this.$store.state.lanType])
               }
-            }).catch(function (error) {
+            }.bind(this)).catch(function (error) {
             console.log(error)
           })
 

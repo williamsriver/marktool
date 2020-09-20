@@ -116,6 +116,7 @@
         </v-col>
 
         <v-spacer></v-spacer>
+        {{comment_pointer}}
         <v-col cols="2">
           <v-btn :disabled="comment_pointer===-1" @click="sendView(comment_pointer,tagmark)" text>
             <v-icon large>mdi-pen-plus</v-icon>
@@ -208,6 +209,7 @@
         },
 
         refreshCurrentCmt(comment_id){
+          this.comment_pointer = comment_id
           this.currentCmt = []
           this.currentCmt.push(this.findCmt(comment_id))
            if (this.currentCmt===-1) this.currentCmt = []

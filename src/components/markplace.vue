@@ -23,23 +23,23 @@
             <span>{{lantext.words.previous[$store.state.lanType]}}</span>
           </v-btn>
         </v-col>
-
+        {{ptr}} {{maxptr}}
         <v-col cols="2">
-          <v-btn text @click="ptr=ptr+1" :disabled="ptr>=viewnum || issave ">
+          <v-btn text @click="ptr=ptr+1" :disabled="ptr>=viewnum || ptr===maxptr || !issave">
             <v-icon large>mdi-arrow-right</v-icon>
             <span>{{lantext.words.next[$store.state.lanType]}}</span>
           </v-btn>
         </v-col>
 
         <v-col cols="2">
-          <v-btn text @click="saveMark" :disabled="issave || !tagmark">
+          <v-btn text @click="saveMark" :disabled="issave">
             <v-icon large>mdi-content-save</v-icon>
             <span>{{lantext.words.save[$store.state.lanType]}}</span>
           </v-btn>
         </v-col>
 
         <v-col cols="3">
-          <v-icon large>mdi-content-save</v-icon>
+          <v-icon large>mdi-clock</v-icon>
           <span>{{lantext.words.total[$store.state.lanType]}}{{lantext.words.time[$store.state.lanType]}}</span>
           {{Math.floor(totalStartTime/3600)}}:{{Math.floor(totalStartTime%3600/60)}}:{{Math.floor(totalStartTime%60)}}
         </v-col>
@@ -298,6 +298,7 @@
         this.issave = true
         this.trustRating = 4
         this.remark = []
+        this.maxptr = this.maxptr > this.ptr ? this.maxptr : this.ptr
         //refresh current comment and tag info
         this.getcmt(this.app_info.comments_id_list[value])
 
@@ -467,7 +468,7 @@
           .then(function (response) {
             console.log(response)
             if (!response.data.msg){
-              this.issave = true;
+              this.issave = false;
               this.ptr++;
               this.$message.success(
                 lantext.words.save[this.$store.state.lanType] +
@@ -516,7 +517,7 @@
             .then(function (response) {
               console.log(response)
               if (response.data.Msg === "OK") {
-                this.issave = true;
+                this.issave = false;
                 this.ptr++;
                 this.$message.success(
                   lantext.words.save[this.$store.state.lanType] +
