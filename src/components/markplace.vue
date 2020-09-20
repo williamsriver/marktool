@@ -311,7 +311,7 @@
 
 
         let config1 = { params:{comment_id:comment_id} };
-        this.axios.get('http://tonycoder.ziqiang.net.cn:8080/comments/',config1)
+        this.axios.get('localhost:8080/comments/',config1)
           .then(function (response) {
             console.log(response)
 
@@ -331,7 +331,7 @@
             //refresh the only tag mark of the current user in this comment
             for (var i=0;i<this.current_tag_id_list.length;i++) {
               if (this.current_tag_id_list[i]){
-                this.axios.get('http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: this.current_tag_id_list[i]}})
+                this.axios.get('localhost:8080/tag/', {params: {tag_id: this.current_tag_id_list[i]}})
                   .then(function (response) {
 
                     //if response successfully
@@ -463,7 +463,7 @@
         formData3.append('comment_id',this.app_info.comments_id_list[this.ptr])
         formData3.append('tag_id',new_list)
 
-        this.axios.put('http://tonycoder.ziqiang.net.cn:8080/comments/',formData3)
+        this.axios.put('localhost:8080/comments/',formData3)
           .then(function (response) {
             console.log(response)
             if (!response.data.msg){
@@ -494,7 +494,7 @@
         formData1.append('confidence', this.trustRating) //confidence
 
         if (this.current_tag === "") {
-          this.axios.post('http://tonycoder.ziqiang.net.cn:8080/tag/', formData1)
+          this.axios.post('localhost:8080/tag/', formData1)
             .then(function (response) {
               console.log(response)
               if (response.data.Msg === 'OK') {
@@ -512,7 +512,7 @@
           var formData2= formData1
           formData2.append('tag_id',this.current_tag.tag_id)
 
-          this.axios.put('http://tonycoder.ziqiang.net.cn:8080/tag/', formData2)
+          this.axios.put('localhost:8080/tag/', formData2)
             .then(function (response) {
               console.log(response)
               if (response.data.Msg === "OK") {
