@@ -100,7 +100,7 @@
           }
         };
 
-        this.axios.get('localhost:8080/register/',config1)
+        this.axios.get('http://localhost:8080/register/',config1)
           .then(function (response) {
             console.log(response)
            this.isUserNameDuplicated = response.data.is_duplicated
@@ -108,7 +108,7 @@
               let formData1 = new FormData()
               formData1.append('username', this.username)
               formData1.append('password', this.userpassword)
-              this.axios.post('localhost:8080/register/', formData1)
+              this.axios.post('http://localhost:8080/register/', formData1)
                 .then(function (response) {
                   console.log(response);
                   if (response.data.Msg === 'Register Succeeded.') {
