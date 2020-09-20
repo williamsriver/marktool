@@ -172,7 +172,7 @@
           for (var i = 0; i < list.length; i++) {
             if (!!list[i]) {
               this.tag_need ++;
-              this.axios.get('http://localhost:8080/tag/', {params: {tag_id: list[i]}})
+              this.axios.get('http://http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: list[i]}})
                 .then(function (response) {
                   if (response.data.Msg === "OK") {
                     this.tag_got ++;
