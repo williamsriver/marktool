@@ -172,7 +172,7 @@
           for (var i = 0; i < list.length; i++) {
             if (!!list[i]) {
               this.tag_need ++;
-              this.axios.get('api/tag/', {params: {tag_id: list[i]}})
+              this.axios.get('/tag/', {params: {tag_id: list[i]}})
                 .then(function (response) {
                   if (response.data.Msg === "OK") {
                     this.tag_got ++;

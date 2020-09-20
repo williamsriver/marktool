@@ -231,7 +231,7 @@
           for (var i = 0; i < list.length; i++) {
             if (!!list[i]) {
               this.tag_need ++;
-              this.axios.get('api/tag/', {params: {tag_id: list[i]}})
+              this.axios.get('/tag/', {params: {tag_id: list[i]}})
                 .then(function (response) {
                   if (response.data.Msg === "OK") {
                     this.tag_got ++;
@@ -281,7 +281,7 @@
           formData3.append('comment_id',this.app_info.comments_id_list[this.ptr])
           formData3.append('tag_result',tag_choose)
 
-          this.axios.put('api/comments/',formData3)
+          this.axios.put('/comments/',formData3)
             .then(function (response) {
               console.log(response)
               if (!response.data.msg){

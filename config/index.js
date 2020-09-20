@@ -10,20 +10,12 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/apis': {
-        target:'http://t.weather.sojson.com/api',//请求域名
-        //secure: false, // 如果是https接口，需要配置这个参数
-        changeOrigin:true,//如果是跨域访问，需要配置这个参数
-        pathRewrite:{
-          '^/apis': '/'
-        }
-      },
       '/api':{
-        target:'http://tonycoder.ziqiang.net.cn:8080/',//请求域名
+        target:'http://tonycoder.ziqiang.net.cn:8080',//请求域名
         //secure: false, // 如果是https接口，需要配置这个参数
         changeOrigin:true,//如果是跨域访问，需要配置这个参数
         pathRewrite:{
-          '^/api': ''
+          '^/api': '/'
         }
       }
     },

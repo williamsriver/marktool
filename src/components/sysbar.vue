@@ -205,7 +205,7 @@
           let formData1 = new FormData();
           formData1.append('username',this.inputUsername)
           formData1.append('password',this.inputPassword)
-          this.axios.post('/api/login/',formData1)
+          this.axios.post('/login/',formData1)
             .then(function (response) {
               console.log(response)
               if (response.data.Msg === 'Login Succeeded.'){
@@ -244,7 +244,7 @@
         },
         //get comment lists
         getLists(){
-          this.axios.get('api/commentsList/',{params:{username:this.$store.state.currentuser} })
+          this.axios.get('/commentsList/',{params:{username:this.$store.state.currentuser} })
             .then(function (response) {
               console.log('commentslist',response)
               this.$store.state.commentsList = response.data.Details.comment_list_id
@@ -272,7 +272,7 @@
 
         //get comments by the list
         getCommentListByList(listid){
-          this.axios.get('api/commentsList/',{params:{list_id:listid} })
+          this.axios.get('/commentsList/',{params:{list_id:listid} })
             .then(function (response) {
 
               var cmtlist =response.data.comment_id_list;
@@ -288,7 +288,7 @@
         getcmt(cmtid){
           var flag1 =false
           this.comment_need++;
-          this.axios.get('api/comments/',{params:{comment_id:cmtid} })
+          this.axios.get('/comments/',{params:{comment_id:cmtid} })
             .then(function (response) {
               if (!!response.data.Details) {
                 this.comment_got++;
@@ -353,7 +353,7 @@
           formData1.append('files',excelFile)
           formData1.append('username',this.$store.state.currentuser)
           formData1.append('name',excelFile.name)
-          this.axios.post('api/fileoperations/',formData1)
+          this.axios.post('/fileoperations/',formData1)
             .then(function (response) {
               console.log(response)
               if (response.data.msg==="ok"){

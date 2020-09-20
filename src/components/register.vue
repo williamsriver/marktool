@@ -100,7 +100,7 @@
           }
         };
 
-        this.axios.get('/api/register/',config1)
+        this.axios.get('//register/',config1)
           .then(function (response) {
             console.log(response)
            this.isUserNameDuplicated = response.data.is_duplicated
@@ -108,7 +108,7 @@
               let formData1 = new FormData()
               formData1.append('username', this.username)
               formData1.append('password', this.userpassword)
-              this.axios.post('/api/register/', formData1)
+              this.axios.post('//register/', formData1)
                 .then(function (response) {
                   console.log(response);
                   if (response.data.Msg === 'Register Succeeded.') {
