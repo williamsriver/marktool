@@ -20,10 +20,10 @@
 
       <v-row>
         <v-col>
-          <div id="chartshow"></div>
+          <div id="chartshow2"></div>
         </v-col>
         <v-col>
-          <div id="chartshow2"></div>
+          <div id="chartshow"></div>
         </v-col>
       </v-row>
     </v-container>
@@ -41,8 +41,6 @@
   HighchartsMore(Highcharts)
   HighchartsDrilldown(Highcharts);
   Highcharts3D(Highcharts);
-
-  import * as echarts from 'echarts';
   import lantext from "../lib/lantext";
     export default {
         name: "dataplace",

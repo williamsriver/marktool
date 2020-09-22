@@ -101,6 +101,7 @@ const lantext={
   },
 
   words:{
+    non_functional:['nonfunctional','非功能性'],
     upload:['upload','上传'],
     download_data:['download data','下载数据'],
     look:['look','查看'],

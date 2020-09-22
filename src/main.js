@@ -4,7 +4,6 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import Vuetify from 'vuetify';
-import echarts from 'echarts';
 import axios from 'axios'
 import VueAxios from 'vue-axios';
 import store from "./store";
@@ -15,18 +14,12 @@ import 'vuetify/dist/vuetify.min.css'
 import '@mdi/font/css/materialdesignicons.css'
 
 
-
-
-
 Vue.config.productionTip = false
 Vue.use(Vuetify);
-Vue.use(echarts);
 Vue.use(VueAxios, axios)
 Vue.prototype.$message = Message;
 Vue.prototype.lantext = lantext;
 /* eslint-disable no-new */
-
-
 
 
 new Vue({

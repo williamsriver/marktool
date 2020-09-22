@@ -86,7 +86,7 @@
     <v-spacer style="height: 30px"></v-spacer>
 
       <!--comment info -->
-    {{currentCmt}}
+
     <v-data-table
       :headers="lantext.headers.commentHeader[$store.state.lanType]"
       :items="currentCmt"
@@ -97,6 +97,11 @@
     <!--tags-->
     <v-container fluid>
     <v-radio-group v-model="tagmark">
+      <v-row>
+        <v-col cols="3" :style="{backgroundColor: taghelp===7?'#FAFAFA':'transparent' }" @mouseenter="taghelp= 7">
+          <v-radio  :value="7" :label="lantext.tagwords.tags[$store.state.lanType][7]"></v-radio>
+        </v-col>
+      </v-row>
 
       <v-row>
           <!--tags-->
@@ -111,12 +116,8 @@
           <v-radio  :value="6" :label="lantext.tagwords.tags[$store.state.lanType][6]"></v-radio>
         </v-col>
 
-        <v-col cols="3" :style="{backgroundColor: taghelp===7?'#FAFAFA':'transparent' }" @mouseenter="taghelp= 7">
-          <v-radio  :value="7" :label="lantext.tagwords.tags[$store.state.lanType][7]"></v-radio>
-        </v-col>
-
         <v-spacer></v-spacer>
-        {{comment_pointer}}
+
         <v-col cols="2">
           <v-btn :disabled="comment_pointer===-1" @click="sendView(comment_pointer,tagmark)" text>
             <v-icon large>mdi-pen-plus</v-icon>
@@ -302,10 +303,13 @@
 
       },
       beforeRouteLeave (to, from, next) {
-        if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ){
-          this.$store.state.workstatus = false;
-          next()
+        if (this.comment_pointer!==-1){
+          if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ) {
+            this.$store.state.workstatus = false;
+            next()
+          }
         }
+        else next()
       }
     }
 </script>

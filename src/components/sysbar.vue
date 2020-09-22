@@ -160,7 +160,7 @@
       data:()=>({
         lantext:lantext,
         lanValue:'中文',
-        lanlist:['english','中文'],
+        lanlist:['English','中文'],
 
         inputUsername:'',
         inputPassword:'',
@@ -174,8 +174,9 @@
       computed:{
         lanPointer(){
           switch (this.lanValue) {
-            case "english":return 0;
+            case "English":return 0;
             case "中文":return 1;
+            default : return  1;
           }
         }
       },

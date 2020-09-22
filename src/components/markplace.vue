@@ -23,7 +23,7 @@
             <span>{{lantext.words.previous[$store.state.lanType]}}</span>
           </v-btn>
         </v-col>
-        {{ptr}} {{maxptr}}
+
         <v-col cols="2">
           <v-btn text @click="ptr=ptr+1" :disabled="ptr>=viewnum || ptr===maxptr || !issave">
             <v-icon large>mdi-arrow-right</v-icon>
@@ -54,6 +54,11 @@
 
       <!--tags-->
       <v-radio-group v-model="tagmark" @change="issave = false">
+        <v-row>
+          <v-col cols="3" :style="{backgroundColor: taghelp===7?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 7">
+            <v-radio  :value="7" :label="lantext.tagwords.tags[$store.state.lanType][7]"></v-radio>
+          </v-col>
+        </v-row>
 
         <v-row>
           <!--tags-->
@@ -64,14 +69,12 @@
 
         <v-row>
 
-          <v-col cols="2" :style="{backgroundColor: taghelp===6?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 6">
-            <v-radio  :value="6" :label="lantext.tagwords.tags[$store.state.lanType][6]"></v-radio>
-          </v-col>
+            <v-col cols="2" :style="{backgroundColor: taghelp===6?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 6">
+              <v-radio  :value="6" :label="lantext.tagwords.tags[$store.state.lanType][6]"></v-radio>
+            </v-col>
 
-          <v-col cols="3" :style="{backgroundColor: taghelp===7?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 7">
-            <v-radio  :value="7" :label="lantext.tagwords.tags[$store.state.lanType][7]"></v-radio>
-          </v-col>
-
+          </v-row>
+        <v-row>
           <v-spacer></v-spacer>
 
           <!-- confidence-->
@@ -83,8 +86,10 @@
           <v-col cols="4">
             <v-rating hover v-model="trustRating"></v-rating>
           </v-col>
-
         </v-row>
+
+
+
 
       </v-radio-group>
 
@@ -104,13 +109,14 @@
 
       <v-row>
 
-        <v-col cols="4">
+        <v-col cols="5">
           <v-simple-table>
             <thead>
               <tr>
                 <th class="text-left">{{lantext.words.title[$store.state.lanType]}}</th>
                 <th class="text-left">{{lantext.words.version_info[$store.state.lanType]}}</th>
                 <th class="text-left">{{lantext.words.date_info[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.rating[$store.state.lanType]}}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,6 +124,7 @@
                 <td>{{currentCmt.title}}</td>
                 <td>{{currentCmt.version_info}}</td>
                 <td>{{currentCmt.datetime_info}}</td>
+                <td>{{currentCmt.rank_level}}</td>
               </tr>
             </tbody>
           </v-simple-table>
@@ -125,7 +132,7 @@
 
         </v-col>
 
-        <v-col cols="8">
+        <v-col cols="7">
           <v-card flat>
             <v-card-text v-html="cmtShowString" class="text-h5 font-weight-regular"></v-card-text>
           </v-card>
@@ -137,14 +144,33 @@
 
 
     <!--selection area-->
-    <v-container v-show="makingNewNoteStatus" fluid>
+    <v-container  fluid>
 
-      <v-main class="text-left text-h5">
-        {{lantext.words.selection[$store.state.lanType]}}
-        {{lantext.words.area[$store.state.lanType]}}
-      </v-main>
+      <v-row>
+        <v-col>
+          <v-main v-show="makingNewNoteStatus" class="text-left text-h5">
+            {{lantext.words.selection[$store.state.lanType]}}
+            {{lantext.words.area[$store.state.lanType]}}
+          </v-main>
+        </v-col>
+        <v-col cols="3">
+          <v-row justify="space-around">
+            <v-btn @click="makingNewNoteStatus=true" v-show="!makingNewNoteStatus">
+              {{lantext.words.start[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
+            </v-btn>
 
+            <v-btn @click="finishNewNote" v-show="makingNewNoteStatus"
+                   :disabled="!newNoteContent||!selectionValid">
+              {{lantext.words.finish[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
+            </v-btn>
+            <v-btn @click="makingNewNoteStatus=false" v-show="makingNewNoteStatus">
+              {{lantext.words.cancel[$store.state.lanType]}}
+            </v-btn>
+          </v-row>
+        </v-col>
+      </v-row>
       <v-textarea
+        v-show="makingNewNoteStatus"
         outlined readonly hide-details
         id="cmtselect" class="text-h5"
         :value="cmtOriginalString"
@@ -164,18 +190,7 @@
           hide-default-footer>
         </v-data-table>
 
-      <v-btn @click="makingNewNoteStatus=true" v-show="!makingNewNoteStatus">
-        {{lantext.words.start[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
-      </v-btn>
 
-      <v-btn @click="finishNewNote" v-show="makingNewNoteStatus"
-             :disabled="!newNoteContent||!selectionValid">
-        {{lantext.words.finish[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
-      </v-btn>
-
-      <v-btn @click="makingNewNoteStatus=false" v-show="makingNewNoteStatus">
-        {{lantext.words.cancel[$store.state.lanType]}}
-      </v-btn>
 
         <!--buttons list-->
           <v-row v-show="makingNewNoteStatus">
@@ -536,10 +551,13 @@
     },
 
     beforeRouteLeave (to, from, next) {
-      if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ){
-        this.$store.state.workstatus = false;
-        next()
+      if (!this.issave){
+        if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ) {
+          this.$store.state.workstatus = false;
+          next()
+        }
       }
+      else next()
     }
 
   }

@@ -23,15 +23,7 @@
         name: "homemenu",
       data:()=>({
         lantext:lantext,
-
-
-
       }),
-      created() {
-      },
-      methods:{
-
-      },
     }
 </script>
 

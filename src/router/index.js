@@ -1,14 +1,14 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import sysbar from "../components/sysbar";
-import register from "../components/register";
-import markplace from "../components/markplace";
-import commentlist from "../components/commentlist";
-import viewplace from "../components/viewplace";
+const sysbar = () => import ("../components/sysbar");
+const register = () => import("../components/register");
+const markplace = () => import("../components/markplace");
+const commentlist = () => import("../components/commentlist");
+const viewplace = () => import("../components/viewplace");
 import store from "../store";
-import dataplace from "../components/dataplace";
-import admin from "../components/admin";
-import homemenu from "../components/homemenu";
+const dataplace = () => import("../components/dataplace");
+const admin = () => import("../components/admin");
+const homemenu = () => import("../components/homemenu");
 
 
 Vue.use(Router)
