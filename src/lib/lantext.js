@@ -69,9 +69,10 @@ const lantext={
 
   tagwords:{
     class:[
-      ['Nonfunctional','Functional','Others'],
-      ['非功能性','功能性','其他'],
+      ['Nonfunctional','Others','Functional'],
+      ['非功能性','其他','功能性'],
     ],
+    //不能加非功能，除非改掉标注的循环逻辑
     tags: [
       ['Performance','Compatibility', 'Usability','Security','Maintainability','Portability','Others','Functional_requirements'],
       ['性能', '兼容性', '可用性','安全性', '可维护性', '可移植性','其他','功能类'],

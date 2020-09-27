@@ -352,6 +352,7 @@
 
                     //if response successfully
                     if (!!response.data.Details) {
+                      console.log(response.data.Details)
                       if (response.data.Details.tag_user_info === this.$store.state.currentuser) {
                         //get the tag successfully
                         this.current_tag = response.data.Details
@@ -498,16 +499,16 @@
       },
 
 
-      saveMark(key) {
+      saveMark(){
         var formData1 = new FormData()
 
         formData1.append('token', this.$store.state.token)
         for (let i = 0; i < this.lantext.tagwords.tags[0].length; i++) {
-          formData1.append(this.lantext.tagwords.tags[0][i], this.tagmark === i ? "True" : "False")
+          formData1.append(this.lantext.tagwords.tags[0][i], this.tagmark === i?"True":"")
         }
         formData1.append('remarks', JSON.stringify(this.remark) )//备注
         formData1.append('tag_user_info', this.$store.state.currentuser)//用户信息
-        formData1.append('confidence', this.trustRating) //confidence
+        formData1.append('confidence', this.trustRating+"" ) //confidence
 
         if (this.current_tag === "") {
           this.axios.post('http://tonycoder.ziqiang.net.cn:8080/tag/', formData1)

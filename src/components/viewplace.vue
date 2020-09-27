@@ -26,6 +26,7 @@
 
     </v-container>
 
+    {{$store.state.tags}}
     <!--mode radio & search tab-->
     <v-container fluid>
       <v-row>
@@ -260,6 +261,7 @@
                       this.contradict_list['cmt'+comment_id] = "contradict"
                     }
 
+                    console.log(response.data.Details)
                     this.$store.state.tags.push({
                       comment_id:comment_id,
                       tag_id: response.data.Details.tag_id,

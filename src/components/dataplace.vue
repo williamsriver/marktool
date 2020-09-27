@@ -42,6 +42,7 @@
   HighchartsDrilldown(Highcharts);
   Highcharts3D(Highcharts);
   import lantext from "../lib/lantext";
+  import store from "../store";
     export default {
         name: "dataplace",
       data:()=>({
@@ -112,9 +113,9 @@
             colorByPoint: true,
 
             data: [
-              {name:'Others',y:0},
-              {name:'Functional_requirements',y:0},
               {name:'Non_Functional_requirements',y:0},
+              {name:'Functional_requirements',y:0},
+              {name:'Others',y:0},
             ]
           }]
         },
@@ -129,19 +130,28 @@
       methods:{
         setChart(app){
           this.current_app_name = app.name
-          for (var j=0;j<this.chart1_config.series[0].data.length;j++){
+
+          for (let j=0;j<this.chart1_config.series[0].data.length;j++){
+            this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[store.state.lanType][j];
             this.chart1_config.series[0].data[j].y = 0
           }
+          for (let j=0;j<this.chart2_config.series[0].data.length;j++){
+            this.chart2_config.series[0].data[j].y = 0
+            this.chart2_config.series[0].data[j].name = lantext.tagwords.class[store.state.lanType][j];
+          }
+
           this.chart2_config.title.text = lantext.words.tag_type[this.$store.state.lanType]
+
+
           for (var i=0;i< this.$store.state.tags.length;i++){
             if ( app.comments_id_list.indexOf(this.$store.state.tags[i].comment_id) !==-1 ){
               let result = this.$store.state.tags[i].tag_choose
               if (result <= 5) {
-                this.chart2_config.series[0].data[2].y++;
+                this.chart2_config.series[0].data[0].y++;
                 this.chart1_config.series[0].data[ result ].y++;
               }
               else {
-                this.chart2_config.series[0].data[ result-6 ].y++;
+                this.chart2_config.series[0].data[ result-5 ].y++;
               }
             }
           }
