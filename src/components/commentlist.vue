@@ -149,7 +149,7 @@
               if (!flag1) {
                 this.$store.state.apps.push({
                   name: response.data.Details.app_name,
-                  datetime_info: "",
+                  datetime_info: response.data.Details.date_info,
                   comments_id_list: [cmtid],
                 })
               }

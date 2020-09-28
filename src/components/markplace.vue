@@ -14,7 +14,7 @@
 
         <v-col cols="1">
           <v-icon large>mdi-pen</v-icon>
-          <span>{{ptr}}/{{viewnum}}</span>
+          <span>{{ptr+1}}/{{viewnum}}</span>
         </v-col>
 
         <v-col cols="2">
@@ -32,7 +32,7 @@
         </v-col>
 
         <v-col cols="2">
-          <v-btn text @click="saveMark" :disabled="issave">
+          <v-btn text @click="saveMark" :disabled="issave || ptr>=viewnum">
             <v-icon large>mdi-content-save</v-icon>
             <span>{{lantext.words.save[$store.state.lanType]}}</span>
           </v-btn>
@@ -311,13 +311,14 @@
         //reset
         this.current_tag = ""
         this.issave = true
-        this.trustRating = 4
+        //this.trustRating = 4;
         this.remark = []
+        this.tagmark = -1;
         this.maxptr = this.maxptr > this.ptr ? this.maxptr : this.ptr
         //refresh current comment and tag info
         this.getcmt(this.app_info.comments_id_list[value])
 
-      }
+      },
     },
 
     methods: {
@@ -356,9 +357,12 @@
                       if (response.data.Details.tag_user_info === this.$store.state.currentuser) {
                         //get the tag successfully
                         this.current_tag = response.data.Details
+                        console.log(!!this.current_tag,this.issave)
+                        this.trustRating = response.data.Details.confidence !== 0 ? response.data.Details.confidence : 4;
                         this.remark = []
                         try {
                           this.remark = JSON.parse(this.current_tag.remarks)
+                          this.createCmtShowString()
                         }
                         catch (e) {}
 

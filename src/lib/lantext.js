@@ -22,6 +22,7 @@ const lantext={
         {text:'tag ID',value:'tag_id'},
         {text: 'comment ID',value: 'comment_id'},
         {text: 'marker',value: 'tag_user_info'},
+
         {text:'confidence',value:'confidence'},
         {text: 'mark value',value: 'tag_choose'},
         {text: 'view',value: 'view'},
@@ -31,6 +32,7 @@ const lantext={
         {text:'标注ID',value:'tag_id'},
         {text: '所属评论ID',value: 'comment_id'},
         {text: '标注者',value: 'tag_user_info'},
+
         {text:'自信度',value:'confidence'},
         {text: '标记值',value: 'tag_choose'},
         {text: '审阅',value: 'view'},
@@ -53,12 +55,15 @@ const lantext={
       [
         {text:'comment id',value:'comment_id'},
         {text: 'title',value: 'title'},
+        {text: 'result',value: 'tag_result'},
+
         {text: 'content',value: 'content'},
         {text: 'rating',value: 'rank_level'},
       ],
       [
         {text:'评论ID',value:'comment_id'},
         {text: '标题',value: 'title'},
+        {text: '审阅结果',value: 'tag_result'},
         {text: '内容',value: 'content'},
         {text: '评分',value: 'rank_level'},
       ]

@@ -1,6 +1,14 @@
 <template>
   <v-app>
     <v-container fluid>
+      <v-row>
+        <v-col>
+          <v-btn text @click="reget">
+            <v-icon>mdi-refresh</v-icon>
+            {{lantext.sentences.reload_data[$store.state.lanType]}}
+          </v-btn>
+        </v-col>
+      </v-row>
       <v-data-table
         :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
         :items="$store.state.apps"
@@ -27,7 +35,6 @@
         </v-col>
       </v-row>
     </v-container>
-
 
   </v-app>
 </template>
@@ -83,6 +90,8 @@
               {name:'Security',y:0},
               {name:'Maintainability',y:0},
               {name:'Portability',y:0},
+              {name:'Others',y:0},
+              {name:'Functional_requirements',y:0},
             ]
           }]
         },
@@ -146,11 +155,14 @@
           for (var i=0;i< this.$store.state.tags.length;i++){
             if ( app.comments_id_list.indexOf(this.$store.state.tags[i].comment_id) !==-1 ){
               let result = this.$store.state.tags[i].tag_choose
+              console.log(result)
+
               if (result <= 5) {
                 this.chart2_config.series[0].data[0].y++;
                 this.chart1_config.series[0].data[ result ].y++;
               }
               else {
+                this.chart1_config.series[0].data[ result ].y++;
                 this.chart2_config.series[0].data[ result-5 ].y++;
               }
             }
@@ -161,6 +173,7 @@
 
 
         reget(){
+          this.$store.state.tags = []
           for (var i = 0; i < this.$store.state.comments.length; i++) {
             this.getTags( this.$store.state.comments[i].tag_id_list.split(','), this.$store.state.comments[i].comment_id )
           }
@@ -185,18 +198,20 @@
                   if (response.data.Msg === "OK") {
                     this.tag_got ++;
                     //judge which tag is marked
-                    let tag_choose = -1
+                    var k = -1
+
                     for (var i = 0; i < lantext.tagwords.tags[0].length; i++) {
                       if (response.data.Details[lantext.tagwords.tags[0][i]]) {
-                        tag_choose = i;
+                        k = i;
                         break;
                       }
                     }
+                    if (k === -1) console.log('tag-1',response.data.Detail)
 
                     this.$store.state.tags.push({
                       comment_id:comment_id,
                       tag_id: response.data.Details.tag_id,
-                      tag_choose: tag_choose,
+                      tag_choose: k,
                     })
 
                   }

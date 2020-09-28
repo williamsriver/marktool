@@ -26,7 +26,6 @@
 
     </v-container>
 
-    {{$store.state.tags}}
     <!--mode radio & search tab-->
     <v-container fluid>
       <v-row>
@@ -92,7 +91,9 @@
       :headers="lantext.headers.commentHeader[$store.state.lanType]"
       :items="currentCmt"
       hide-default-footer>
-
+      <template v-slot:item.tag_result="{item}">
+        {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||'--'}}
+      </template>
     </v-data-table>
 
     <!--tags-->
@@ -181,7 +182,7 @@
         for (let i=0;i<this.singletimelist.length;i++) this.singletimelist[i]=0//评注时间列表初始化
 
         //all the tags in all comments
-        if (this.$store.state.tags.length===0) this.reget()
+        this.reget()
 
       },
       mounted() {
@@ -196,6 +197,7 @@
       methods:{
 
         reget(){
+          this.$store.state.tags = []
           for (var i = 0; i < this.app_info.comments_id_list.length; i++) {
             this.getTagsByCmt(this.app_info.comments_id_list[i])
           }
