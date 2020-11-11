@@ -1,7 +1,6 @@
 <template>
   <v-app>
     <!--顶栏-->
-
     <v-row v-if="currentComment">
 
       <v-col cols="10">
@@ -17,7 +16,8 @@
                     class="pa-0"
                     :active-class="tagsInfo.colors[index-1]+' white--text'">
                     <template>
-                      <v-list-item-content :class="tagValue===(index-1)?'':tagsInfo.colors[index-1]+'--text'" v-text="tagsInfo.text[index-1]"></v-list-item-content>
+                      {{index}}
+                      <v-list-item-content :class="tagValue===index-1?'':tagsInfo.colors[index-1]+'--text'" v-text="tagsInfo.text[index-1]"></v-list-item-content>
                     </template>
                   </v-list-item>
 
@@ -333,6 +333,7 @@
               this.currentTag = this.currentComment.tagList.tags[0];
               this.tagValue = this.currentTag.tag_value;
             }
+            else this.tagValue = -1;
           }
           else this.tagValue = -1;
           if (this.currentComment) this.displayComment = this.currentComment.content;
@@ -467,14 +468,6 @@
           .then(response => {
             if (response.data.Msg === "OK") {
               this.$message.success("create new tag succeed");
-              let temp = null;
-              temp["tag_value"] = this.tagValue;
-              temp["tag_id"] = tagId;
-              temp["dataSetIndex"] = comment.dataSetIndex;
-              temp["tagIndex"] = comment.tagList.tagIdList.length;
-              temp["remark"] = this.remark;
-              comment.tagList.tagIdList.push(tagId);
-              comment.tagList.tags.push(temp);
               this.isSaved = true;
               if (this.ptr<this.commentsTotalNum-1) this.ptr++;
             }
@@ -502,10 +495,24 @@
           .catch(error => console.log(error));
       },
 
-      createTag(data) {
+      createTag(data, comment) {
         this.axios.post('http://tonycoder.ziqiang.net.cn:8080/tag/', data)
           .then(response => {
-            if (response.data.Msg === 'OK') this.addNewTagForComment();
+            if (response.data.Details) {
+              console.log(response);
+              let temp ={};
+              temp["tag_value"] = this.tagValue;
+              temp["tag_id"] = response.data.Details.tag_id;
+              temp["dataSetIndex"] = comment.dataSetIndex;
+              temp["tagIndex"] = comment.tagList.tagIdList.length;
+              temp["remark"] = this.remark;
+              this.$store.state.dataTree[this.dataSetIndex].commentList.comments[comment.commentIndex].tagList.tagIdList.push(response.data.Details.tag_id);
+              if (this.$store.state.dataTree[this.dataSetIndex].commentList.comments[comment.commentIndex].tagList.tags.length===0)
+                this.$store.state.dataTree[this.dataSetIndex].commentList.comments[comment.commentIndex].tagList.tags = [];
+              this.$store.state.dataTree[this.dataSetIndex].commentList.comments[comment.commentIndex].tagList.tags.push(temp);
+              this.currentTag = temp;
+              this.addNewTagForComment();
+            }
             else this.$message.error("create tag Failed");
           })
           .catch(error => console.log(error))
