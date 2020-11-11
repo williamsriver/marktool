@@ -459,6 +459,7 @@
       addNewTagForComment() {
         let comment_id = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[this.ptr].comment_id;
         let formData3 = new FormData()
+        let date = new Date();
         formData3.append("datetime_info", date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
         formData3.append('comment_id', comment_id)
         formData3.append('tag_id', this.currentTag.tag_id)
