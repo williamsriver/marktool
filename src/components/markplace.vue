@@ -1,561 +1,517 @@
 <template>
   <v-app>
+    <!--顶栏-->
 
-      <!--顶栏-->
-    <v-container fluid>
-      <v-row dense>
-        <v-col cols="2">
-          <router-link to="/marklist" class="text-decoration-none">
-            <v-btn text>
-              <v-icon>mdi-arrow-left</v-icon> {{lantext.words.back[$store.state.lanType]}}
-            </v-btn>
-          </router-link>
-        </v-col>
+    <v-row v-if="currentComment">
 
-        <v-col cols="1">
-          <v-icon large>mdi-pen</v-icon>
-          <span>{{ptr+1}}/{{viewnum}}</span>
-        </v-col>
+      <v-col cols="10">
+        <v-progress-linear height="6" :value="((ptr+1)/commentsTotalNum)*100"></v-progress-linear>
+        <v-row v-if="!lookMode">
+          <v-col class="pa-0" cols="3">
+            <v-card tile outlined>
+              <v-list class="pa-0" dense>
+              <v-list-item-group v-model="tagValue">
+                <template v-for="index in 8">
+                  <v-list-item
+                    @click="isSaved = false"
+                    class="pa-0"
+                    :active-class="tagsInfo.colors[index-1]+' white--text'">
+                    <template>
+                      <v-list-item-content :class="tagValue===(index-1)?'':tagsInfo.colors[index-1]+'--text'" v-text="tagsInfo.text[index-1]"></v-list-item-content>
+                    </template>
+                  </v-list-item>
 
-        <v-col cols="2">
-          <v-btn text :disabled="ptr===0" @click="ptr=ptr-1">
+                  <v-divider
+                    v-if="index < 8"
+                    :key="index"
+                  ></v-divider>
+                </template>
+              </v-list-item-group>
+            </v-list>
+            </v-card>
+          </v-col>
+          <v-col class="pa-1">
+            <v-card tile flat>
+              <v-col>
+                <v-chip
+                  class="ma-2"
+                  :color="tagsInfo.colors[tagValue]"
+                  text-color="white">
+                  <v-avatar left>
+                    <v-icon>mdi-checkbox-marked-circle</v-icon>
+                  </v-avatar>
+                  {{tagsInfo.text[tagValue]}}
+                </v-chip>
+                <v-row align="baseline" v-show="tagValue>=0">
+                  <v-col>
+                    {{lantext.words.confidence[$store.state.lanType]}}
+                    <span class="text-h5 font-italic">{{trustRating}}</span>
+                  </v-col>
+                  <v-col>
+                    <v-rating :color="tagValue>=0?tagsInfo.colors[tagValue]:''" hover v-model="trustRating"></v-rating>
+                  </v-col>
+
+                </v-row>
+
+              </v-col>
+                <v-row>
+                  <v-col>
+                    <v-main>{{lantext.tagwords.taghelpwords[ $store.state.lanType ][ taghelp ] || ''}}</v-main>
+                  </v-col>
+                </v-row>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-container>
+
+
+          <v-divider></v-divider>
+
+          <!--comment-->
+          <v-container v-if="currentComment" fluid>
+            <v-row>
+              <v-col cols="5">
+                <v-simple-table >
+                  <thead>
+                  <tr>
+                    <th class="text-left">{{lantext.words.title[$store.state.lanType]}}</th>
+                    <th class="text-left">{{lantext.words.version_info[$store.state.lanType]}}</th>
+                    <th class="text-left">{{lantext.words.date_info[$store.state.lanType]}}</th>
+                    <th class="text-left">{{lantext.words.rating[$store.state.lanType]}}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr>
+                    <td>{{currentComment.title}}</td>
+                    <td>{{currentComment.version_info}}</td>
+                    <td>{{currentComment.datetime_info}}</td>
+                    <td>{{currentComment.rank_level}}</td>
+                  </tr>
+                  </tbody>
+                </v-simple-table>
+              </v-col>
+              <v-col cols="7">
+                <v-card flat>
+                  <v-card-text
+                    v-html="displayComment"
+                    class="text-h5 font-weight-regular">
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-container>
+
+          <v-container v-if="currentComment && !lookMode" fluid>
+            <v-row>
+              <v-col>
+                <v-main v-show="remarkEnable" class="text-left text-h5">
+                  {{lantext.words.selection[$store.state.lanType]}}
+                  {{lantext.words.area[$store.state.lanType]}}
+                </v-main>
+              </v-col>
+              <v-col cols="3">
+                <v-row justify="space-around">
+                  <v-btn @click="remarkEnable=true" v-show="!remarkEnable">
+                    {{lantext.words.start[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
+                  </v-btn>
+                  <v-btn @click="finishNewNote" v-show="remarkEnable" :disabled="!remarkContent||!selectValid">
+                    {{lantext.words.finish[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
+                  </v-btn>
+                  <v-btn @click="remarkEnable=false" v-show="remarkEnable">{{lantext.words.cancel[$store.state.lanType]}}</v-btn>
+                </v-row>
+              </v-col>
+            </v-row>
+
+            <v-textarea
+              v-show="remarkEnable"
+              outlined readonly hide-details
+              id="cmtselect" class="text-h5"
+              :value="currentComment.content"
+              @click="getMouseSelection($event)">
+            </v-textarea>
+          </v-container>
+
+          <v-container v-if="currentComment" fluid>
+            <v-data-table
+              v-if="isListAlive"
+              :headers="lantext.headers.remarkHeader[$store.state.lanType]"
+              :items="remark"
+              hide-default-footer>
+            </v-data-table>
+
+            <v-row v-show="remarkEnable">
+              <v-col>
+                <v-textarea
+                  :label="lantext.words.original_reference[$store.state.lanType]"
+                  :placeholder="lantext.words.no[$store.state.lanType]+' '+lantext.words.original_reference[$store.state.lanType]"
+                  v-model="selectContent"
+                  height="150"
+                  readonly outlined
+                ></v-textarea>
+              </v-col>
+              <v-col>
+                <v-textarea
+                  :label="lantext.words.remark[$store.state.lanType]"
+                  :rules="makingNewNoteRules"
+                  v-model="remarkContent"
+                  height="150"
+                  outlined
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-container>
+
+        </v-container>
+      </v-col>
+      <v-col cols="2">
+        <v-row> <v-icon large>mdi-pen</v-icon> </v-row>
+        <v-row> {{ptr+1}}/{{commentsTotalNum}} </v-row>
+        <v-row>
+          <v-btn text :disabled="ptr===0" @click="ptr--, isSaved = true">
             <v-icon large>mdi-arrow-left</v-icon>
-            <span>{{lantext.words.previous[$store.state.lanType]}}</span>
-          </v-btn>
-        </v-col>
 
-        <v-col cols="2">
-          <v-btn text @click="ptr=ptr+1" :disabled="ptr>=viewnum || ptr===maxptr || !issave">
-            <v-icon large>mdi-arrow-right</v-icon>
-            <span>{{lantext.words.next[$store.state.lanType]}}</span>
-          </v-btn>
-        </v-col>
+              </v-btn>
+        </v-row>
+        <v-row>{{lantext.words.previous[$store.state.lanType]}}</v-row>
+        <v-row>
+          <v-btn text @click="ptr++"
+                 :disabled="ptr>=commentsTotalNum || (ptr===maxPtr && currentComment.tag_value===-1)
+                 || !isSaved || ptr===commentsTotalNum-1">
 
-        <v-col cols="2">
-          <v-btn text @click="saveMark" :disabled="issave || ptr>=viewnum">
+                <v-icon large>mdi-arrow-right</v-icon>
+
+              </v-btn>
+          </v-row>
+        <v-row>{{lantext.words.next[$store.state.lanType]}}</v-row>
+        <v-row>
+          <v-btn text v-if="!lookMode" @click="saveMark" :disabled="isSaved || ptr>=commentsTotalNum ||tagValue===-1">
             <v-icon large>mdi-content-save</v-icon>
-            <span>{{lantext.words.save[$store.state.lanType]}}</span>
           </v-btn>
-        </v-col>
-
-        <v-col cols="3">
-          <v-icon large>mdi-clock</v-icon>
-          <span>{{lantext.words.total[$store.state.lanType]}}{{lantext.words.time[$store.state.lanType]}}</span>
-          {{Math.floor(totalStartTime/3600)}}:{{Math.floor(totalStartTime%3600/60)}}:{{Math.floor(totalStartTime%60)}}
-        </v-col>
-
-      </v-row>
-
-      <v-progress-linear :value="(ptr/viewnum)*100"></v-progress-linear>
-    </v-container>
-
-    <!--tags and rating-->
-    <v-container fluid>
-
-      <!--tags-->
-      <v-radio-group v-model="tagmark" @change="issave = false">
+        </v-row>
+        <v-row>{{lantext.words.save[$store.state.lanType]}}</v-row>
         <v-row>
-          <v-col cols="3" :style="{backgroundColor: taghelp===7?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 7">
-            <v-radio  :value="7" :label="lantext.tagwords.tags[$store.state.lanType][7]"></v-radio>
-          </v-col>
+              <v-main>
+                <v-icon large>mdi-clock</v-icon>
+                {{Math.floor(totalStartTime/3600)}}:{{Math.floor(totalStartTime%3600/60)}}:{{Math.floor(totalStartTime%60)}}
+              </v-main>
         </v-row>
 
-        <v-row>
-          <!--tags-->
-          <v-col v-for="n in 6" :key="n" :style="{backgroundColor: taghelp===n?'#FAFAFA':'transparent' }" @mouseenter="taghelp = n">
-            <v-radio  :value="n-1" :label="lantext.tagwords.tags[$store.state.lanType][n-1]" :key="n"></v-radio>
-          </v-col>
-        </v-row>
-
-        <v-row>
-
-            <v-col cols="2" :style="{backgroundColor: taghelp===6?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 6">
-              <v-radio  :value="6" :label="lantext.tagwords.tags[$store.state.lanType][6]"></v-radio>
-            </v-col>
-
-          </v-row>
-        <v-row>
-          <v-spacer></v-spacer>
-
-          <!-- confidence-->
-          <v-col cols="2">
-            <span>{{lantext.words.confidence[$store.state.lanType]}}</span>
-            <span class="text-h5 font-italic">{{trustRating}}</span>
-          </v-col>
-
-          <v-col cols="4">
-            <v-rating hover v-model="trustRating"></v-rating>
-          </v-col>
-        </v-row>
+      </v-col>
+    </v-row>
 
 
-
-
-      </v-radio-group>
-
-      <!--tag description -->
-      <v-row>
-        <v-col>
-          <v-main>{{lantext.tagwords.taghelpwords[ $store.state.lanType ][ taghelp ] || ''}}</v-main>
-        </v-col>
-
-      </v-row>
-    </v-container>
-
-    <v-divider></v-divider>
-
-    <!-- comment info-->
-    <v-container fluid>
-
-      <v-row>
-
-        <v-col cols="5">
-          <v-simple-table>
-            <thead>
-              <tr>
-                <th class="text-left">{{lantext.words.title[$store.state.lanType]}}</th>
-                <th class="text-left">{{lantext.words.version_info[$store.state.lanType]}}</th>
-                <th class="text-left">{{lantext.words.date_info[$store.state.lanType]}}</th>
-                <th class="text-left">{{lantext.words.rating[$store.state.lanType]}}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{{currentCmt.title}}</td>
-                <td>{{currentCmt.version_info}}</td>
-                <td>{{currentCmt.datetime_info}}</td>
-                <td>{{currentCmt.rank_level}}</td>
-              </tr>
-            </tbody>
-          </v-simple-table>
-
-
-        </v-col>
-
-        <v-col cols="7">
-          <v-card flat>
-            <v-card-text v-html="cmtShowString" class="text-h5 font-weight-regular"></v-card-text>
-          </v-card>
-        </v-col>
-
-      </v-row>
-
-    </v-container>
-
-
-    <!--selection area-->
-    <v-container  fluid>
-
-      <v-row>
-        <v-col>
-          <v-main v-show="makingNewNoteStatus" class="text-left text-h5">
-            {{lantext.words.selection[$store.state.lanType]}}
-            {{lantext.words.area[$store.state.lanType]}}
-          </v-main>
-        </v-col>
-        <v-col cols="3">
-          <v-row justify="space-around">
-            <v-btn @click="makingNewNoteStatus=true" v-show="!makingNewNoteStatus">
-              {{lantext.words.start[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
-            </v-btn>
-
-            <v-btn @click="finishNewNote" v-show="makingNewNoteStatus"
-                   :disabled="!newNoteContent||!selectionValid">
-              {{lantext.words.finish[$store.state.lanType]}} {{lantext.words.remark[$store.state.lanType]}}
-            </v-btn>
-            <v-btn @click="makingNewNoteStatus=false" v-show="makingNewNoteStatus">
-              {{lantext.words.cancel[$store.state.lanType]}}
-            </v-btn>
-          </v-row>
-        </v-col>
-      </v-row>
-      <v-textarea
-        v-show="makingNewNoteStatus"
-        outlined readonly hide-details
-        id="cmtselect" class="text-h5"
-        :value="cmtOriginalString"
-        @click="makingNewNoteStatus?getMouseSelection($event):''">
-      </v-textarea>
-
-    </v-container>
-
-    <!--remark area-->
-    <v-container fluid>
-      <!--remarks table-->
-        <!--其中 islIstAlive 是局部更新data-table-->
-        <v-data-table
-          v-if="isListAlive"
-          :headers="lantext.headers.remarkHeader[$store.state.lanType]"
-          :items="remark"
-          hide-default-footer>
-        </v-data-table>
-
-
-
-        <!--buttons list-->
-          <v-row v-show="makingNewNoteStatus">
-            <v-col>
-              <v-textarea
-                :label="lantext.words.original_reference[$store.state.lanType]"
-                :placeholder="lantext.words.no[$store.state.lanType]+' '+lantext.words.original_reference[$store.state.lanType]"
-                v-model="selectHtml"
-                height="150"
-                readonly outlined
-              ></v-textarea>
-            </v-col>
-
-            <v-col>
-              <v-textarea
-                :label="lantext.words.remark[$store.state.lanType]"
-                :rules="makingNewNoteRules"
-                v-model="newNoteContent"
-                height="150"
-                outlined
-              ></v-textarea>
-            </v-col>
-
-          </v-row>
-
-
-
-    </v-container>
 
   </v-app>
 </template>
 
 <script>
   import lantext from "../lib/lantext";
+
   export default {
     name: "markplace",
+    props: {
+      dataSetIndex:{
+        type:Number,
+        required:true,
+      },
+      lookMode:{
+        type:Boolean,
+        required:true
+      },
+      enable:{
+        type:Boolean,
+        required:true,
+      },
+      loadFinish:{
+        type:Boolean,
+        required:true,
+      }
+    },
     data:()=>({
-
       //static data
-      app_info:'',
       lantext:lantext,
 
-
-
-      //select area
-      textSelectStart:0, textSelectEnd:0,
-      selectHtml:'',// content got from original text
-      newNoteContent:'',// operate on selectHtml
-
+      tagsInfo:{
+        colors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple"],
+        text:lantext.tagwords.tags[0]
+      },
 
       //remark rule
       makingNewNoteRules: [
         value => !!value || '备注不能为空',
       ],
 
+      displaySet:{
+        comment:"",
+      },
+
+      loadingNum:0,
+
+      currentTag:null,
+      currentComment:null,
+      displayComment:null,
+
+      ptr:-1,
+      maxPtr:-1,
+      tagValue:-1,
+      isSaved:true,
+
+      remarkEnable:false,
+      selectValid:true,
+      selectStart:-1,
+      selectEnd:-1,
+      selectContent:"",
+      remarkContent:"",
+
+      commentsTotalNum:0,
 
       //responding data
-        //total
-      currentCmt:"",
-      issave:false,
         //mark
       tagmark:"",
       isCmtNoTag:true,
       trustRating:4,
-      current_tag_id_list:[],
-      current_tag:[],
         //remark
       remark:[],
       selectionValid:true,
-      cmtOriginalString:'',
-      cmtShowString:'',
       makingNewNoteStatus:false,
       isListAlive:true,
 
-      //comment pointer
-      viewnum:0, ptr:-1, maxptr:0,
 
       //time counting
-      singletimelist:[], totalStartTime:0,
+      totalStartTime:0,
 
       //mark helper
       taghelp:'',
-
-      //empty template
-      protoCmt:{
-        app_name:"",
-        content: "",
-        datetime_info: "",
-        rank_level: "",
-        tag_id_list: "",
-        title: "",
-        version_info: "",
-      }
-
-
+      commentPointer:-1,
     }),
-    created() {
-
-      //initialize
-      this.app_info = this.$route.query.app_info
-      this.viewnum = this.app_info.comments_id_list.length
-      this.singletimelist = new Array(this.viewnum + 5)//单个评注的时间
-      for (let i = 0; i < this.singletimelist.length; i++) this.singletimelist[i] = 0//评注时间列表初始化
-      this.ptr = 0
-
-    },
     mounted() {
-
-      //timer
-      var timer = setInterval(function () {
-        this.singletimelist += 1
-        this.totalStartTime += 1
-      }.bind(this),1000)
+      /*
+      window.onkeypress = (function (event) {
+        if (event.key === 'd') {
+          this.tagmark = (this.tagmark+1) % 8;
+          this.issave = false;
+        }
+        if (event.key === 'a') {
+          this.tagmark = this.tagmark>0?this.tagmark-1:7;
+          this.issave = false;
+        }
+        if (event.key === 'Enter') {
+          this.saveMark();
+        }
+      }.bind(this))
+      */
     },
 
     watch:{
-      ptr(value){
-        //reset
-        this.current_tag = ""
-        this.issave = true
-        //this.trustRating = 4;
-        this.remark = []
-        this.tagmark = -1;
-        this.maxptr = this.maxptr > this.ptr ? this.maxptr : this.ptr
-        //refresh current comment and tag info
-        this.getcmt(this.app_info.comments_id_list[value])
 
+      enable: {
+        handler(value) {
+          console.log("enable",value);
+          if (value===true) this.startBoard();
+        },
+        immediate: true,
       },
+
+      ptr:{
+        handler(value){
+          console.log('ptr',value);
+          this.maxPtr = Math.max(this.maxPtr, value);
+          this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
+          if (this.currentComment) {
+            if (this.currentComment.tagList.tags.length > 0) {
+              if (this.currentComment.tagList.tags[0].remarks) {
+                if (typeof (this.currentComment.tagList.tags[0].remarks) === "string")
+                  this.remark = JSON.parse(this.currentComment.tagList.tags[0].remarks);
+                if (typeof (this.currentComment.tagList.tags[0].remarks) === "object")
+                  this.remark = this.currentComment.tagList.tags[0].remarks;
+              }
+            }
+          }
+          else this.remark = [];
+          if (this.currentComment) {
+            if (this.currentComment.tagList.tags.length > 0) {
+              this.currentTag = this.currentComment.tagList.tags[0];
+              this.tagValue = this.currentTag.tag_value;
+            }
+          }
+          else this.tagValue = -1;
+          if (this.currentComment) this.displayComment = this.currentComment.content;
+          this.showContent();
+        },
+        immediate:true,
+      },
+
+      loadFinish:{
+        handler(value){
+          if (value){
+
+          }
+        },
+        immediate:true,
+      }
+
+
     },
+
+
 
     methods: {
 
-      //refresh current comment and tag info
-      getcmt(comment_id){
+      goBack() { this.$emit("goBack", true); },
 
-
-        let config1 = { params:{comment_id:comment_id} };
-        this.axios.get('http://tonycoder.ziqiang.net.cn:8080/comments/',config1)
-          .then(function (response) {
-            console.log(response)
-
-            //refresh comment
-            this.currentCmt = response.data.Details
-            if (!this.currentCmt) this.currentCmt = this.protoCmt
-
-            //refresh corresponding parameters and tag list
-            this.cmtOriginalString = this.currentCmt.content
-            this.cmtShowString = this.cmtOriginalString
-            this.isCmtNoTag = !this.currentCmt.tag_id_list.length
-            this.current_tag_id_list = this.currentCmt.tag_id_list.split(',')
-
-            console.log('tag_list',this.current_tag_id_list)
-
-
-            //refresh the only tag mark of the current user in this comment
-            for (var i=0;i<this.current_tag_id_list.length;i++) {
-              if (this.current_tag_id_list[i]){
-                this.axios.get('http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: this.current_tag_id_list[i]}})
-                  .then(function (response) {
-
-                    //if response successfully
-                    if (!!response.data.Details) {
-                      console.log(response.data.Details)
-                      if (response.data.Details.tag_user_info === this.$store.state.currentuser) {
-                        //get the tag successfully
-                        this.current_tag = response.data.Details
-                        console.log(!!this.current_tag,this.issave)
-                        this.trustRating = response.data.Details.confidence !== 0 ? response.data.Details.confidence : 4;
-                        this.remark = []
-                        try {
-                          this.remark = JSON.parse(this.current_tag.remarks)
-                          this.createCmtShowString()
-                        }
-                        catch (e) {}
-
-                        //judge which tag is marked
-                        for (var i = 0; i < lantext.tagwords.tags[0].length; i++) {
-                          if (this.current_tag[lantext.tagwords.tags[0][i]]) {
-                            this.tagmark = i;
-                            break;
-                          }
-                        }
-
-                      }
-                    }
-                  }.bind(this))
-                }
-            }
-
-        }.bind(this))
+      startBoard(){
+        let timer = setInterval(()=>{this.totalStartTime += 1},1000);
+        this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
+        this.ptr = 0;
       },
 
-      //remark tools
-      getMouseSelection(event) {
-        this.selectionValid = true
+      getMouseSelection() {
+        this.selectValid = true
 
-        var cmtobj = document.getElementById('cmtselect')
+        this.selectStart = document.getElementById('cmtselect').selectionStart
+        this.selectEnd = document.getElementById('cmtselect').selectionEnd
 
-        this.textSelectStart = cmtobj.selectionStart
-        this.textSelectEnd = cmtobj.selectionEnd
-
-        if (cmtobj.selectionStart === cmtobj.selectionEnd) this.$message.error('选择内容为空')
-        else if ( this.checkReplicate(cmtobj.selectionStart,cmtobj.selectionEnd) ) {
-          this.$message.error('选区重复 ' + this.textSelectStart + ' ' + this.textSelectEnd)
-          this.selectionValid = false
+        if (this.selectStart === this.selectEnd) this.$message.error('选择内容为空')
+        else if (this.checkReplicate(this.selectStart, this.selectEnd)) {
+          this.$message.error('选区重复 ' + this.selectStart + ' ' + this.selectEnd)
+          this.selectValid = false
         }
-        else this.$message.success('已选中')
+        else this.$message.success('已选中');
 
-        this.selectHtml = this.cmtOriginalString.substring(cmtobj.selectionStart, cmtobj.selectionEnd)
+        if (this.currentComment) this.selectContent = this.currentComment.content.substring(this.selectStart, this.selectEnd );
       },
 
-      createCmtShowString() {
-        var markNotes = []
+      showContent() {
 
-        //sort the markNotes in descendent order
+        let markNotes = [];
         function compare1(prop) {
-          return function (a, b) {
-            var value1 = a[prop]
-            var value2 = b[prop]
-            return value2 - value1
-          }
+          return (a, b) => b[prop] - a[prop]
         }
+        console.log(this.remark);
+        if (typeof (this.remark) === "string" ) this.remark = JSON.parse(this.remark);
+        this.remark.forEach(item => { if (item.markType === 1) markNotes.push(item) });
+        markNotes.sort(compare1('text_start'));
 
-        //collect Notes
-        for (var i = 0; i < this.remark.length; i++) {
-          if (this.remark[i].marktype === 1) {
-            markNotes.push(this.remark[i])
-          }
-        }
-        markNotes.sort(compare1('text_start'))
+        console.log(markNotes);
 
-        var newShowString = this.cmtOriginalString
-
-        //add HTML elements from the end to the head
-        for (var j = 0; j < markNotes.length; j++) {
-          newShowString = newShowString.slice(0, markNotes[j].text_end)
-            + '</span>' + newShowString.slice(markNotes[j].text_end, newShowString.length - 1)
-          newShowString = newShowString.slice(0, markNotes[j].text_start)
-            + '<span style="background-color: #00b0ff">' + newShowString.slice(markNotes[j].text_start, newShowString.length - 1)
-        }
-
-        this.cmtShowString = newShowString
+        let newShowString = "";
+        if (this.currentComment) newShowString = this.currentComment.content;
+        markNotes.forEach(item => {
+          newShowString = newShowString.slice(0, item.text_end) + '</span>' + newShowString.slice(item.text_end, newShowString.length);
+          console.log(newShowString,newShowString.slice(item.text_start, newShowString.length));
+          newShowString = newShowString.slice(0, item.text_start)
+            + '<span style="background-color: #00b0ff">' + newShowString.slice(item.text_start, newShowString.length);
+        })
+        this.displayComment = newShowString;
+        console.log(newShowString);
       },
 
-      checkReplicate(start,end) {
-        for (var i = 0; i < this.remark.length; i++) {
-          if (this.remark[i].marktype === 1) {
-            return !(start > this.remark[i].text_end || end < this.remark[i].text_start)
-          }
+      checkReplicate(start, end) {
+        for (let i = 0; i < this.remark.length; i++) {
+          if (this.remark[i].marktype === 1 && !(start > this.remark[i].text_end || end < this.remark[i].text_start)) return true
         }
-        return false
+        return false;
       },
 
       finishNewNote() {
         //create new remark object
-        var noteobj = {
-            id: this.remark.length,
-            marktype: this.selectHtml?1:0,
-            reference: this.selectHtml,
-            text_start: this.selectHtml?this.textSelectStart:0,
-            text_end: this.selectHtml?this.textSelectEnd:0,
-            content: this.newNoteContent,
-        }
-        this.remark.push(noteobj)
+        this.remark.push({
+          markType: this.selectContent ? 1 : 0,
+          reference: this.selectContent,
+          text_start: this.selectContent ? this.selectStart : 0,
+          text_end: this.selectContent ? this.selectEnd : 0,
+          content: this.remarkContent,
+        })
 
         //refresh selection info
-        this.selectionValid = true
-        this.selectHtml = ""
-        this.newNoteContent = ""
-        this.makingNewNoteStatus = false
-        this.issave = false
+        this.remarkEnable = false
+        this.isSaved = false
 
-        //redraw the text
-        this.createCmtShowString()
-
-        //reload the table
+        this.showContent();
         this.isListAlive = false
-        this.$nextTick(function () {
-          this.isListAlive = true
-        })
-      },
-
-      updatecmt(comment_id,tag_id){
-        var date = new Date();
-
-        let new_list = !this.current_tag_id_list ? [] : this.current_tag_id_list
-        new_list.push(tag_id)
-
-        let formData3 = new FormData()
-        formData3.append("datetime_info",date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate())
-        formData3.append('comment_id',this.app_info.comments_id_list[this.ptr])
-        formData3.append('tag_id',new_list)
-
-        this.axios.put('http://tonycoder.ziqiang.net.cn:8080/comments/',formData3)
-          .then(function (response) {
-            console.log(response)
-            if (!response.data.msg){
-              this.issave = false;
-              this.ptr++;
-              this.$message.success(
-                lantext.words.save[this.$store.state.lanType] +
-                lantext.sentences.item_success[this.$store.state.lanType]
-              )
-            }
-            else this.$message.error(
-              lantext.words.save[this.$store.state.lanType] +
-              lantext.sentences.item_failed[this.$store.state.lanType]
-            )
-          }.bind(this))
+        this.$nextTick(() => this.isListAlive = true);
       },
 
 
-      saveMark(){
-        var formData1 = new FormData()
 
-        formData1.append('token', this.$store.state.token)
-        for (let i = 0; i < this.lantext.tagwords.tags[0].length; i++) {
-          formData1.append(this.lantext.tagwords.tags[0][i], this.tagmark === i?"True":"")
-        }
-        formData1.append('remarks', JSON.stringify(this.remark) )//备注
+      saveMark() {
+        let formData1 = new FormData()
+        formData1.append('token', this.$store.state.token);
+        this.lantext.tagwords.tags[0].forEach((item,index) => {
+          formData1.append(String(item), index===this.tagValue?"True":"False");
+        })//chosen tag
+        formData1.append('remarks', JSON.stringify(this.remark))
         formData1.append('tag_user_info', this.$store.state.currentuser)//用户信息
-        formData1.append('confidence', this.trustRating+"" ) //confidence
+        formData1.append('confidence', this.trustRating + "") //confidence
 
-        if (this.current_tag === "") {
-          this.axios.post('http://tonycoder.ziqiang.net.cn:8080/tag/', formData1)
-            .then(function (response) {
-              console.log(response)
-              if (response.data.Msg === 'OK') {
-                this.updatecmt(this.app_info.comments_id_list[this.ptr], response.data.Details.tag_id)
-              }
-              else this.$message.error(
-                lantext.words.save[this.$store.state.lanType] +
-                lantext.sentences.item_failed[this.$store.state.lanType]
-              )
-            }.bind(this))
+        console.log(formData1);
+
+        if (this.$store.state.dataTree[this.dataSetIndex].commentList.comments[this.ptr].tagList.tagIdList.length === 0)
+          this.createTag(formData1, this.currentComment);
+        else {
+          let formData2 = formData1;
+          formData2.append('tag_id',this.currentTag.tag_id);
+          this.editTag(formData2);
         }
-        else{
-          console.log('ready to put')
-
-          var formData2= formData1
-          formData2.append('tag_id',this.current_tag.tag_id)
-
-          this.axios.put('http://tonycoder.ziqiang.net.cn:8080/tag/', formData2)
-            .then(function (response) {
-              console.log(response)
-              if (response.data.Msg === "OK") {
-                this.issave = false;
-                this.ptr++;
-                this.$message.success(
-                  lantext.words.save[this.$store.state.lanType] +
-                  lantext.sentences.item_success[this.$store.state.lanType]
-                )
-              }
-              else this.$message.error(
-                lantext.words.save[this.$store.state.lanType] +
-                lantext.sentences.item_failed[this.$store.state.lanType]
-              )
-            }.bind(this))
-        }
-
       },
 
-    },
 
-    beforeRouteLeave (to, from, next) {
+      addNewTagForComment() {
+        let comment_id = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[this.ptr].comment_id;
+        let formData3 = new FormData()
+        formData3.append("datetime_info", date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
+        formData3.append('comment_id', comment_id)
+        formData3.append('tag_id', this.currentTag.tag_id)
+        this.axios.put('http://tonycoder.ziqiang.net.cn:8080/comments/', formData3)
+          .then(response => {
+            if (response.data.Msg === "OK") {
+              this.$message.success("create new tag succeed");
+              let temp = null;
+              temp["tag_value"] = this.tagValue;
+              temp["tag_id"] = tagId;
+              temp["dataSetIndex"] = comment.dataSetIndex;
+              temp["tagIndex"] = comment.tagList.tagIdList.length;
+              temp["remark"] = this.remark;
+              comment.tagList.tagIdList.push(tagId);
+              comment.tagList.tags.push(temp);
+              this.isSaved = true;
+              if (this.ptr<this.commentsTotalNum-1) this.ptr++;
+            }
+            else this.$message.error("create new tag failed");
+          })
+          .catch(error => console.log(error))
+      },
+
+      editTag(data) {
+        this.axios.put('http://tonycoder.ziqiang.net.cn:8080/tag/', data)
+          .then(response => {
+            if (response.data.Msg === "OK") {
+              this.$message.success("tag edit succeed");
+              let temp = {};
+              temp["tag_value"] = this.tagValue;
+              temp["tag_id"] = this.currentTag.tag_id;
+              temp["dataSetIndex"] = this.currentTag.dataSetIndex;
+              temp["tagIndex"] = this.currentTag.tagIndex;
+              temp["remarks"] = this.remark;
+              this.$store.state.dataTree[this.currentTag.dataSetIndex].commentList.comments[this.ptr].tagList.tags[this.currentTag.tagIndex] = temp;
+              this.isSaved = true;
+              if (this.ptr<this.commentsTotalNum-1) this.ptr++;
+            }
+          })
+          .catch(error => console.log(error));
+      },
+
+      createTag(data) {
+        this.axios.post('http://tonycoder.ziqiang.net.cn:8080/tag/', data)
+          .then(response => {
+            if (response.data.Msg === 'OK') this.addNewTagForComment();
+            else this.$message.error("create tag Failed");
+          })
+          .catch(error => console.log(error))
+      },
+
+      beforeRouteLeave(to, from, next) {
+        /*
       if (!this.issave){
         if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ) {
           this.$store.state.workstatus = false;
@@ -563,6 +519,9 @@
         }
       }
       else next()
+
+         */
+      }
     }
 
   }

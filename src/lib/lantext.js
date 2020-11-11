@@ -3,15 +3,13 @@ const lantext={
   headers:{
     ItemListHeader:[
       [
-        {text:'App Name',value:'name'},
-        {text: 'Time',value: 'datetime_info'},
-        {text: 'Comment Number',value: 'comments_id_list.length'},
+        {text:'List ID',value:'dataSetId'},
+        {text: 'Comment Number',value: 'commentList.commentIdList.length'},
         {text: '',sortable:false,value: 'buttons'}
       ],
       [
-        {text:'应用名称',value:'name'},
-        {text: '修改时间',value: 'datetime_info'},
-        {text: '评论数',value: 'comments_id_list.length'},
+        {text:'评论集ID',value:'dataSetId'},
+        {text: '评论数',value: 'commentList.commentIdList.length'},
         {text: '',sortable:false,value: 'buttons'}
       ],
     ],
@@ -20,11 +18,11 @@ const lantext={
     viewHeaders:[
       [
         {text:'tag ID',value:'tag_id'},
-        {text: 'comment ID',value: 'comment_id'},
+        {text: 'comment ID',value: `comment_id`},
         {text: 'marker',value: 'tag_user_info'},
-
         {text:'confidence',value:'confidence'},
-        {text: 'mark value',value: 'tag_choose'},
+        {text: 'mark value',value: 'tag_value'},
+        {text: 'view value',value: 'viewVal'},
         {text: 'view',value: 'view'},
         {text: 'remarks',value: 'data-table-expand',sortable:false},
       ],
@@ -32,9 +30,9 @@ const lantext={
         {text:'标注ID',value:'tag_id'},
         {text: '所属评论ID',value: 'comment_id'},
         {text: '标注者',value: 'tag_user_info'},
-
         {text:'自信度',value:'confidence'},
-        {text: '标记值',value: 'tag_choose'},
+        {text: '标记值',value: 'tag_value'},
+        {text: '审阅值',value: 'viewVal'},
         {text: '审阅',value: 'view'},
         {text: '备注',value: 'data-table-expand',sortable:false},
       ],
@@ -107,6 +105,7 @@ const lantext={
   },
 
   words:{
+    admin:['admin','管理员'],
     non_functional:['nonfunctional','非功能性'],
     upload:['upload','上传'],
     download_data:['download data','下载数据'],

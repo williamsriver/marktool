@@ -1,17 +1,9 @@
 <template>
   <v-app>
     <v-container fluid>
-      <v-row>
-        <v-col>
-          <v-btn text @click="reget">
-            <v-icon>mdi-refresh</v-icon>
-            {{lantext.sentences.reload_data[$store.state.lanType]}}
-          </v-btn>
-        </v-col>
-      </v-row>
       <v-data-table
         :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
-        :items="$store.state.apps"
+        :items="$store.state.dataTree"
         hide-default-footer>
         <template v-slot:item.buttons="{item}">
           <v-btn @click="setChart(item)" text>
@@ -22,10 +14,6 @@
       </v-data-table>
     </v-container>
     <v-container fluid>
-      <v-row justify="center">
-        <span class="text-center text-h4">{{current_app_name}}</span>
-      </v-row>
-
       <v-row>
         <v-col>
           <div id="chartshow2"></div>
@@ -52,8 +40,15 @@
   import store from "../store";
     export default {
         name: "dataplace",
+      props:{
+        enable:{
+          type:Boolean,
+          required:true,
+        }
+      },
       data:()=>({
         lantext:lantext,
+        list_choosen:-1,
         chart1:'',
         chart2:'',
         current_app_name:'',
@@ -75,14 +70,18 @@
               allowPointSelect: true,
               cursor: 'pointer',
               dataLabels: {
-                enabled: false
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                style: {
+                  color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                }
               },
               showInLegend: true
             }
           },
           series: [{
+            name:"Functional",
             colorByPoint: true,
-
             data: [
               {name:'Performance',y:0},
               {name:'Compatibility',y:0},
@@ -113,7 +112,11 @@
               allowPointSelect: true,
               cursor: 'pointer',
               dataLabels: {
-                enabled: false
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                style: {
+                  color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                }
               },
               showInLegend: true
             }
@@ -129,17 +132,21 @@
           }]
         },
       }),
-      created() {
-        if (this.$store.state.tags.length === 0) this.reget()
+      watch:{
+        enable:{
+          handler(value){
+            if (value) console.log(value);
+          },
+          immediate:true
+        }
       },
       mounted() {
         this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
         this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
       },
       methods:{
-        setChart(app){
-          this.current_app_name = app.name
-
+        setChart(dataset){
+          this.list_choosen = dataset.dataSetIndex;
           for (let j=0;j<this.chart1_config.series[0].data.length;j++){
             this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[store.state.lanType][j];
             this.chart1_config.series[0].data[j].y = 0
@@ -149,76 +156,17 @@
             this.chart2_config.series[0].data[j].name = lantext.tagwords.class[store.state.lanType][j];
           }
 
-          this.chart2_config.title.text = lantext.words.tag_type[this.$store.state.lanType]
+          this.chart2_config.title.text = "categories"
 
+          this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
+            this.chart1_config.series[0].data[tag.tag_value].y++;
+            if (tag.tag_value === 0 ) this.chart2_config.series[0].data[0].y++;
+            else if (tag.tag_value === 7) this.chart2_config.series[0].data[2].y++;
+            else this.chart2_config.series[0].data[1].y++;
+          });
 
-          for (var i=0;i< this.$store.state.tags.length;i++){
-            if ( app.comments_id_list.indexOf(this.$store.state.tags[i].comment_id) !==-1 ){
-              let result = this.$store.state.tags[i].tag_choose
-              console.log(result)
-
-              if (result <= 5) {
-                this.chart2_config.series[0].data[0].y++;
-                this.chart1_config.series[0].data[ result ].y++;
-              }
-              else {
-                this.chart1_config.series[0].data[ result ].y++;
-                this.chart2_config.series[0].data[ result-5 ].y++;
-              }
-            }
-          }
           this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
           this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
-        },
-
-
-        reget(){
-          this.$store.state.tags = []
-          for (var i = 0; i < this.$store.state.comments.length; i++) {
-            this.getTags( this.$store.state.comments[i].tag_id_list.split(','), this.$store.state.comments[i].comment_id )
-          }
-        },
-
-        findCmt(comment_id){
-          for (var i=0;i<this.$store.state.comments.length;i++){
-            if (this.$store.state.comments[i].comment_id === comment_id){
-              return this.$store.state.comments[i]
-            }
-          }
-          return -1;
-        },
-
-        getTags(list,comment_id){
-
-          for (var i = 0; i < list.length; i++) {
-            if (!!list[i]) {
-              this.tag_need ++;
-              this.axios.get('http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: list[i]}})
-                .then(function (response) {
-                  if (response.data.Msg === "OK") {
-                    this.tag_got ++;
-                    //judge which tag is marked
-                    var k = -1
-
-                    for (var i = 0; i < lantext.tagwords.tags[0].length; i++) {
-                      if (response.data.Details[lantext.tagwords.tags[0][i]]) {
-                        k = i;
-                        break;
-                      }
-                    }
-                    if (k === -1) console.log('tag-1',response.data.Detail)
-
-                    this.$store.state.tags.push({
-                      comment_id:comment_id,
-                      tag_id: response.data.Details.tag_id,
-                      tag_choose: k,
-                    })
-
-                  }
-                }.bind(this))
-            }
-          }
-
         },
       }
     }

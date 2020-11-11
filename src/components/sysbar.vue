@@ -20,135 +20,12 @@
         </v-col>
 
         <v-col cols="1" align-self="center">
-          <span style="color: white">
-            {{$store.state.loginstatus ? $store.state.currentuser : lantext.words.no_login[this.$store.state.lanType]}}
-          </span>
-        </v-col>
-
-        <v-col cols="1" align-self="center">
           <span style="color: white">{{nowtime}}</span>
         </v-col>
 
       </v-row>
 
     </v-system-bar>
-
-    <!--菜单栏-->
-
-    <v-app-bar dense height="40" v-show=" $route.name!=='markplace' && $route.name !== 'viewplace' ">
-      <v-row>
-
-        <v-col>
-          <router-link to="/" class="text-decoration-none">
-            <v-btn text>
-              <v-icon>mdi-home</v-icon>
-              {{lantext.words.home[$store.state.lanType]}}</v-btn>
-          </router-link>
-        </v-col>
-
-        <v-col v-show="$store.state.user_level===1 && $store.state.loginstatus">
-          <router-link to="/admin" class="text-decoration-none">
-            <v-btn text>
-              <v-icon class="mdi-nature-people">mdi-nature-people</v-icon>
-              {{lantext.words.administrate[$store.state.lanType]}}</v-btn>
-          </router-link>
-        </v-col>
-
-        <v-col v-show="$store.state.user_level===0 && $store.state.loginstatus">
-          <router-link to="/marklist" class="text-decoration-none">
-            <v-btn text>
-              <v-icon>mdi-pen</v-icon>
-              {{lantext.words.mark[$store.state.lanType]}}</v-btn>
-          </router-link>
-        </v-col>
-
-        <v-col v-show="$store.state.user_level===0 && $store.state.loginstatus">
-          <router-link to="/viewlist" class="text-decoration-none">
-            <v-btn text>
-              <v-icon>mdi-pen-plus</v-icon>
-              {{lantext.words.view[$store.state.lanType]}}</v-btn>
-          </router-link>
-        </v-col>
-
-        <v-col v-show="$store.state.user_level===0 && $store.state.loginstatus">
-          <router-link to="/data" class="text-decoration-none">
-            <v-btn text>
-              <v-icon>mdi-database</v-icon>
-              {{lantext.words.data[$store.state.lanType]}}</v-btn>
-          </router-link>
-        </v-col>
-
-
-
-        <v-col>
-          <v-btn text @click="logoutOperation" v-show="$store.state.loginstatus">
-            <v-icon>mdi-logout</v-icon>
-            {{lantext.words.logout[$store.state.lanType]}}
-          </v-btn>
-
-          <v-btn text @click="loginshow = true" v-show="!$store.state.loginstatus">
-            <v-icon v-show="!$store.state.loginstatus">mdi-login</v-icon>
-            {{lantext.words.login[$store.state.lanType]}}
-          </v-btn>
-        </v-col>
-
-        <v-spacer></v-spacer>
-
-        <v-col v-show="$store.state.user_level===0 && $store.state.loginstatus">
-          <v-btn text @click="$refs['upLoadExcel'].click()">
-            <v-icon>mdi-content-save</v-icon>
-            {{lantext.words.import_form[$store.state.lanType]}}
-          </v-btn>
-          <input ref="upLoadExcel" type="file" style="display: none" @change="uploadExcel"></input>
-        </v-col>
-
-      </v-row>
-
-
-    </v-app-bar>
-
-    <v-overlay v-show="loginshow">
-      <v-card width="500" height="300">
-
-        <v-btn icon @click="loginshow = false" absolute right>
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-
-        <v-card-title>{{lantext.words.welcome[$store.state.lanType]}} {{lantext.words.login[$store.state.lanType]}}</v-card-title>
-
-        <v-card-text>
-          <v-text-field
-            v-model="inputUsername" :label="lantext.words.username[$store.state.lanType]"
-            @click:append="showpassword = !showpassword">
-          </v-text-field>
-        </v-card-text>
-
-        <v-card-text>
-          <v-text-field
-            v-model="inputPassword"
-            :append-icon="showpassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showpassword ? 'text' : 'password'"
-            :label="lantext.words.password[$store.state.lanType]"
-            @click:append="showpassword = !showpassword">
-          </v-text-field>
-        </v-card-text>
-
-
-        <v-card-actions>
-          <v-btn @click="loginadmit">{{lantext.words.login[$store.state.lanType]}}</v-btn>
-          <v-spacer></v-spacer>
-          <!--
-          <v-card-text class="text-right">{{lantext.words.forgetpassword[$store.state.lanType]}}</v-card-text>
-          -->
-          <router-link to="/register" class="text-decoration-none">
-            <v-btn @click="loginshow = false">{{lantext.words.register[$store.state.lanType]}}</v-btn>
-          </router-link>
-        </v-card-actions>
-
-      </v-card>
-    </v-overlay>
-
-
     <router-view/>
   </v-app>
 </template>
@@ -162,11 +39,9 @@
         lanValue:'中文',
         lanlist:['English','中文'],
 
-        inputUsername:'',
-        inputPassword:'',
-        showpassword:false,
 
-        loginshow:false,
+
+
         nowtime:'',
         timer:'',//计时器
       }),
@@ -195,50 +70,18 @@
         this.getTime()
         this.timer = setInterval(this.getTime, 10000);
 
+
+
+
+
       },
       beforeDestroy() {
         clearInterval(this.timer);
       },
       methods:{
 
-        loginadmit(){
-          //请求登录
-          let formData1 = new FormData();
-          formData1.append('username',this.inputUsername)
-          formData1.append('password',this.inputPassword)
-          this.axios.post('http://tonycoder.ziqiang.net.cn:8080/login/',formData1)
-            .then(function (response) {
-              console.log(response)
-              if (response.data.Msg === 'Login Succeeded.'){
 
-                this.$message.success({
-                  message:this.lantext.words.login[this.$store.state.lanType] +
-                    this.lantext.words.success[this.$store.state.lanType],
-                  duration:1000
-                  }
-                )
-                this.$store.state.currentuser = response.data.username
-                this.$store.state.token = response.data.token
-                this.$store.state.user_level = response.data.user_level
-                this.$store.state.loginstatus = true
-                this.reget()
 
-                this.loginshow = false
-                this.inputUsername = ''
-                this.inputPassword = ''
-              }
-              else this.$message.error(
-                this.lantext.words.login[this.$store.state.lanType]+' '+
-                this.lantext.words.fail[this.$store.state.lanType]
-              )
-            }.bind(this)).catch(function (error) {
-            console.log(error)
-            this.$message.error(
-              this.lantext.words.login[this.$store.state.lanType]+' '+
-              this.lantext.words.fail[this.$store.state.lanType]
-            )
-          }.bind(this))
-        },
 
         reget(){
           this.getLists()
