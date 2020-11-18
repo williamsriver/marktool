@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-container fluid v-show="!work_status">
+    <v-container fluid v-show="!$store.state.workStatus">
       <v-row>
         <v-col>
           <v-btn text @click="getAllList">
@@ -20,6 +20,7 @@
             :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
             :items="$store.state.dataTree"
             :search="listSrchString"
+            :items-per-page="10"
             v-if="isListAlive"
             hide-default-footer>
             <template v-slot:item.buttons="{item}">
@@ -34,18 +35,9 @@
       </v-row>
     </v-container>
 
-    <v-container fluid v-show="work_status">
-      <v-row>
-
-        <v-col cols="2" v-show="work_status">
-          <v-btn text @click="backToCommentList()">
-            <v-icon>mdi-arrow-left</v-icon>
-            <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
-          </v-btn>
-        </v-col>
-      </v-row>
-      <markplace v-if="work_status" @goBack="backToCommentList()" :look-mode="true"
-                 :data-set-index="dataSetPtr" :loadFinish="$store.state.startLoading===$store.state.endLoading" :enable="$store.state.startLoading===$store.state.endLoading" ></markplace>
+    <v-container fluid v-show="$store.state.workStatus">
+      <markplace v-if="$store.state.workStatus" :look-mode="true" :enable="$store.state.workStatus"
+                 :data-set-index="dataSetPtr" :loadFinish="$store.state.startLoading===$store.state.endLoading"></markplace>
     </v-container>
   </v-app>
 </template>
@@ -63,7 +55,6 @@
       },
       components: {Markplace},
       data:()=>({
-        work_status:false,
         listSrchString:"",
         totalList:[],
         isListAlive:true,
@@ -81,51 +72,57 @@
       methods:{
           commentLoad(item){
             this.dataSetPtr = item.dataSetIndex;
-            this.work_status = true
+            this.$store.state.workStatus = true
+            this.$store.state.dataTree[this.dataSetPtr].commentList.comments = [];
             this.getCommentByCommentIdList(this.$store.state.dataTree[this.dataSetPtr].commentList);
           },
 
         backToCommentList(){
-          this.work_status = false;
+          this.$store.state.workStatus = false;
         },
+
 
         getAllList(){
           this.$store.state.dataTree = [];
           this.$store.state.dataSetIdList = [];
-          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/adminview/')
+          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/adminview/',
+            {params:{username:this.$store.state.currentuser} })
             .then(response =>{
-              console.log(response.data.details.comment_id_list);
               if (response.data.details) {
-                response.data.details.comment_id_list.forEach(id => {
-                  if (this.$store.state.dataSetIdList.indexOf(id) === -1) {
-                    this.$store.state.dataSetIdList.push(id);
+                response.data.details.comment_id_list.forEach(item => {
+                  let new_item = item.replace(/'/g,"\"");
+                  new_item = JSON.parse(new_item);
+                  if (this.$store.state.dataSetIdList.indexOf(new_item.commentList_id_list) === -1) {
+                    this.$store.state.dataSetIdList.push(new_item.commentList_id_list);
                     this.$store.state.dataTree.push({
-                      dataSetId : id,
+                      dataSetId : new_item.commentList_id_list,
+                      fileName : new_item.name,
+                      uploadUserName : new_item.username,
                       dataSetIndex : this.$store.state.dataTree.length,
-                      commentList: {},
+                      commentList: {
+                        dataSetId: new_item.commentList_id_list,
+                        dataSetIndex : this.$store.state.dataTree.length,
+                        commentIdList : [],
+                        comments: [],
+                      },
                     });
                   }
                 });
+
                 this.$store.state.tagsList = new Array(this.$store.state.dataTree.length);
                 this.$store.state.commentTagValueList = new Array(this.$store.state.dataTree.length);
-                this.$store.state.dataTree.forEach(dataset => this.getCommentIdListByDataSet(dataset));
+                this.$store.state.dataTree.forEach(dataset => this.getCommentIdListByDataSet(dataset) );
               }
               else this.$message.error('datasets acquiring error');
-
             })
             .catch(error =>console.log(error))
         },
 
         getCommentIdListByDataSet(dataset){
-          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',{params:{list_id:dataset.dataSetId} })
+          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/', {params: {list_id:dataset.dataSetId}})
             .then(response => {
               if (response.data.comment_id_list) {
-                this.$store.state.dataTree[dataset.dataSetIndex].commentList = {
-                  dataSetIndex : dataset.dataSetIndex,
-                  commentIdList: response.data.comment_id_list,
-                  comments :[],
-                }
-
+                this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
               }
               else this.$message.error('comments id list acquiring error');
             })
@@ -135,7 +132,6 @@
         getCommentByCommentIdList(commentList){
           this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
           commentList.commentIdList.forEach((id) =>{
-            this.$store.state.startLoading++;
             this.axios.get('http://tonycoder.ziqiang.net.cn:8080/comments/', {params: {comment_id: id} } )
               .then(response => {
                 if (response.data.Details){
@@ -160,7 +156,6 @@
                   this.getTagByTagIdList(temp.tagList);
                 }
                 else this.$message.error('comment acquiring error');
-                this.$store.state.endLoading++;
               })
               .catch(error => console.log(error));
           })
@@ -170,7 +165,6 @@
           this.$store.state.tagsList[tagList.dataSetIndex] = [];
           if (tagList.tagIdList.length>0) {
             tagList.tagIdList.forEach(id => {
-              this.$store.state.startLoading++;
               this.axios.get('http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: id}})
                 .then(response => {
                   if (response.data.Details) {
@@ -188,7 +182,6 @@
                     this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
                     this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
                   } else this.$message.error('tag acquiring error');
-                  this.$store.state.endLoading++;
                 })
                 .catch(error => console.log(error))
             })
@@ -197,14 +190,14 @@
 
         getTagValue(item){
           if (!item) return -1;
-          if (item.Functional_requirements) return 0;
-          if (item.Performance) return 1;
-          if (item.Compatibility) return 2;
-          if (item.Usability) return 3;
-          if (item.Security) return 4;
-          if (item.Maintainability) return 5;
-          if (item.Portability) return 6;
-          if (item.Others) return 7;
+          if (item.Performance) return 0;
+          if (item.Compatibility) return 1;
+          if (item.Usability) return 2;
+          if (item.Security) return 3;
+          if (item.Maintainability) return 4;
+          if (item.Portability) return 5;
+          if (item.Others) return 6;
+          if (item.Functional_requirements) return 7;
           return -1;
         },
       }

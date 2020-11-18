@@ -92,58 +92,34 @@
 
   </v-container>
 
-  <v-container v-show="$store.state.loginstatus" style="padding: 0" fluid>
-
+  <v-container v-show="$store.state.loginstatus" fluid>
     <v-row>
-
-      <v-card >
-      <v-navigation-drawer permanent >
-        <v-list-item>
-          <v-list-item-content>
-            <v-list-item-title class="title">
-              {{$store.state.currentuser}}
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              {{UserType}}
-            </v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-divider></v-divider>
-
-        <v-list
-          dense
-          nav>
+      <v-navigation-drawer permanent width="200">
+        <v-list dense nav>
+          <v-list-item-title class="title">{{$store.state.currentuser}}</v-list-item-title>
+          <v-list-item-subtitle>{{UserType}}</v-list-item-subtitle>
+          <v-divider></v-divider>
           <v-list-item
             v-for="(item,index) in items[$store.state.user_level]"
-            :key="item.title"
-            link
-            @click="list_choosen=index">
-
-            <v-list-item-icon>
-              <v-icon>{{ item.icon }}</v-icon>
-            </v-list-item-icon>
-
+            :key="item.title" link
+            @click="list_chosen=index">
+            <v-list-item-icon> <v-icon>{{ item.icon }}</v-icon> </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>{{ item.title }}</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
-      </v-card>
-      <v-col class="ma-0 pa-0">
-        <v-card>
-          <commentlist v-show="list_choosen===0 && $store.state.user_level<2" :enable=" $store.state.loginstatus"></commentlist>
-          <dataplace v-show="(list_choosen===1 && $store.state.user_level<2)" :enable= " $store.state.loginstatus "></dataplace>
-          <admin v-show="list_choosen===0 && $store.state.user_level===2"></admin>
-          <all-list v-show="list_choosen===1 && $store.state.user_level===2"
-                    :enable="$store.state.user_level===2 && list_choosen===1 "></all-list>
-          <upfile v-show="list_choosen===2 && $store.state.user_level<2"></upfile>
-        </v-card>
+      <v-col class="pa-0">
+        <commentlist v-show="list_chosen===0 && $store.state.user_level<2" :enable=" $store.state.loginstatus"></commentlist>
+        <dataplace v-show="(list_chosen===1 && $store.state.user_level<2)" :enable= " $store.state.loginstatus "></dataplace>
+        <admin v-show="list_chosen===0 && $store.state.user_level===2"></admin>
+        <all-list v-show="list_chosen===1 && $store.state.user_level===2"
+                  :enable="$store.state.user_level===2 && list_chosen===1 "></all-list>
+        <upfile v-show="list_chosen===2 && $store.state.user_level<2"></upfile>
+        <get-file v-show="list_chosen===4 && $store.state.user_level<2"></get-file>
       </v-col>
-
     </v-row>
-
   </v-container>
 
 </v-app>
@@ -157,11 +133,13 @@
   import admin from "./admin";
   import AllList from "./allList";
   import upfile from "./upfile";
+  import getFile from "./getFile";
+  import GetFile from "./getFile";
     export default {
         name: "homemenu",
-      components: {AllList, Dataplace, Commentlist,  admin, upfile},
+      components: {GetFile, AllList, Dataplace, Commentlist,  admin, upfile},
       data:()=>({
-        list_choosen:"",
+        list_chosen:"",
         lantext:lantext,
         inputUsername:'',
         inputPassword:'',
@@ -189,12 +167,15 @@
             { title: 'Data', icon: 'mdi-image' },
             { title: 'Upload Data', icon: 'mdi-content-save' },
             { title: 'Log-out', icon: 'mdi-logout'},
+            { title: 'Get DataSet', icon: 'mdi-image'},
+
           ],
           [
             { title: 'Review', icon: 'mdi-pen-plus'},
             { title: 'Data', icon: 'mdi-image' },
             { title: 'Upload Data', icon: 'mdi-content-save' },
             { title: 'Log-out', icon: 'mdi-logout'},
+            { title: 'Get DataSet', icon: 'mdi-image'},
           ],
           [
             { title: 'Upgrade User', icon: 'mdi-pen'},
@@ -219,7 +200,8 @@
         }
       },
       watch:{
-          list_choosen(value){
+          list_chosen(value){
+            this.$store.state.workStatus = false;
             if (this.items[this.$store.state.user_level][value].title==='Log-out') this.logoutOperation();
           }
       },
@@ -243,7 +225,7 @@
                 )
                 this.$store.state.currentuser = response.data.username
                 this.$store.state.token = response.data.token
-                this.$store.state.user_level = response.data.user_level;
+                this.$store.state.user_level = 2;
                 this.$store.state.loginstatus = true
 
                 this.inputUsername = ''

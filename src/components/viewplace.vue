@@ -5,6 +5,10 @@
     <!--mode radio & search tab-->
     <v-container fluid>
       <v-row>
+        <v-btn text @click="$store.state.workStatus = false">
+          <v-icon>mdi-arrow-left</v-icon>
+          <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
+        </v-btn>
         <v-col col="7">
           <v-radio-group row v-model="viewMode">
             <v-radio :label="lantext.words.all[$store.state.lanType]" :value="1"></v-radio>
@@ -26,7 +30,6 @@
     </v-container>
 
     <!--comments table-->
-
     <v-data-table
       :headers="lantext.headers.viewHeaders[$store.state.lanType]"
       :search="viewMode===1?viewSearch:'1'"
@@ -45,13 +48,6 @@
         </v-btn>
       </template>
       <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
-          <v-data-table
-          :headers="lantext.headers.remarkHeader[$store.state.lanType]"
-          :items="item.remarks"
-          hide-default-footer>
-          </v-data-table>
-        </td>
       </template>
 
     </v-data-table>
@@ -64,41 +60,68 @@
 
       <!--comment info -->
 
-    <v-data-table
-      v-if="tagPtr>=0"
-      :headers="lantext.headers.commentHeader[$store.state.lanType]"
-      :items="[$store.state.commentTagValueList[$store.state.tagsList[tagPtr].totalCommentIndex]]"
-      hide-default-footer>
-    </v-data-table>
-
-    <v-container v-if="$store.state.tagsList[tagPtr]" fluid>
-      <v-radio-group v-model="tagValue" @change="isSaved = false">
-        <v-row>
-          <v-col cols="3" :style="{backgroundColor: taghelp===7?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 7">
-            <v-radio  :value="7" :label="lantext.tagwords.tags[$store.state.lanType][7]"></v-radio>
-          </v-col>
-        </v-row>
-        <v-row>
-
-          <v-col v-for="n in 6" :key="n" :style="{backgroundColor: taghelp===n?'#FAFAFA':'transparent' }" @mouseenter="taghelp = n">
-            <v-radio  :value="n-1" :label="lantext.tagwords.tags[$store.state.lanType][n-1]" :key="n"></v-radio>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="2" :style="{backgroundColor: taghelp===6?'#FAFAFA':'transparent' }" @mouseenter="taghelp = 6">
-            <v-radio  :value="6" :label="lantext.tagwords.tags[$store.state.lanType][6]"></v-radio>
-          </v-col>
-        </v-row>
-      </v-radio-group>
+    <v-container v-if="$store.state.tagsList[dataSetIndex][tagPtr]" fluid>
       <v-row>
-        <v-col>
-          <v-main>{{lantext.tagwords.taghelpwords[ $store.state.lanType ][ taghelp ] || ''}}</v-main>
+        <v-col cols="3" >
+          <v-card class="ma-0" flat>
+            <v-chip
+              v-for="index in 8" :key="index" class="ma-2"
+              @click="isSaved = false, tagValue = index-1"
+              :color="tagValue===index-1?tagsInfo.colors[index-1]:'grey'" text-color="white">
+              <v-avatar left v-if="tagValue===index-1"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+              {{tagsInfo.text[index-1]}}
+            </v-chip>
+          </v-card>
         </v-col>
-        <v-col>
-          <v-btn text @click="sendView($store.state.tagsList[tagPtr], tagValue)">
-            <v-icon large>mdi-pen</v-icon>
-            <v-main>{{lantext.words.view[ $store.state.lanType ]}}</v-main>
-          </v-btn>
+        <v-col cols="9">
+          <v-container class="pa-0">
+            <v-row align="baseline" v-show="tagValue>=0" dense>
+              <v-col>
+                <v-spacer></v-spacer>
+                <v-btn @click="sendView($store.state.tagsList[dataSetIndex][tagPtr], tagValue)">
+                  {{lantext.words.view[$store.state.lanType]}}
+                </v-btn>
+              </v-col>
+            </v-row>
+
+            <v-card>
+              <v-row>
+                <v-col>
+                  <v-card-title class="font-weight-black text-h6">
+                    {{lantext.words.title[$store.state.lanType]}} :
+                    {{$store.state.commentTagValueList[dataSetIndex][$store.state.tagsList[dataSetIndex][tagPtr].totalCommentIndex].title}}
+                  </v-card-title>
+                  <v-card-text class="font-weight-black">
+                    {{lantext.words.version_info[$store.state.lanType]}} :
+                    {{$store.state.commentTagValueList[dataSetIndex][$store.state.tagsList[dataSetIndex][tagPtr].totalCommentIndex].version_info}}
+                  </v-card-text>
+                  <v-card-text class="font-weight-black">
+                    {{lantext.words.date_info[$store.state.lanType]}} :
+                    {{$store.state.commentTagValueList[dataSetIndex][$store.state.tagsList[dataSetIndex][tagPtr].totalCommentIndex].datetime_info}}
+                  </v-card-text>
+                  <v-card-text class="font-weight-black">
+                    {{lantext.words.rating[$store.state.lanType]}} :
+                    {{$store.state.commentTagValueList[dataSetIndex][$store.state.tagsList[dataSetIndex][tagPtr].totalCommentIndex].rank_level}}
+                  </v-card-text>
+                  <v-card-text class="font-weight-black">
+                    {{lantext.words.view[$store.state.lanType]+" value"}} :
+                    {{$store.state.commentTagValueList[dataSetIndex][$store.state.tagsList[dataSetIndex][tagPtr].totalCommentIndex].tag_result}}
+                  </v-card-text>
+                  <v-card-subtitle class="font-weight-black">
+                    {{lantext.words.content[$store.state.lanType]}} :
+                  </v-card-subtitle >
+                  <v-card-text >
+                    {{$store.state.commentTagValueList[dataSetIndex][$store.state.tagsList[dataSetIndex][tagPtr].totalCommentIndex].content}}
+                  </v-card-text>
+
+                </v-col>
+                <v-col>
+                  <v-card-title class="font-weight-black text-h6">标签说明</v-card-title>
+                  <v-card-text>content</v-card-text>
+                </v-col>
+              </v-row>
+            </v-card>
+          </v-container>
         </v-col>
       </v-row>
 
@@ -123,9 +146,13 @@
       },
       data:()=>({
         //static data
-        app_info:'',
         lantext:lantext,
         tagListValid:false,
+
+        tagsInfo:{
+          colors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple"],
+          text:['Performance','Compatibility', 'Usability','Security','Maintainability','Portability','Others','Functional'],
+        },
 
         tagValue:0,
         tagPtr:-1,
@@ -177,7 +204,7 @@
 
         customfilter2(value,search,item){
           if (this.$store.state.dataTree[item.dataSetIndex].commentList.comments[item.commentIndex].tag_result!==-1) return false;
-          return this.$store.state.commentTagValueList[item.totalCommentIndex].tagValueList.length > 1;
+          return this.$store.state.commentTagValueList[this.dataSetIndex][item.totalCommentIndex].tagValueList.length > 1;
         },
 
         sendView(tag, tag_result){
@@ -198,10 +225,8 @@
                 this.$store.state.dataTree[tag.dataSetIndex].commentList.comments[tag.commentIndex].tag_result = tag_result;
                 this.$store.state.commentTagValueList[tag.totalCommentIndex].tag_result = tag_result;
                 console.log("new tag result",this.$store.state.commentTagValueList[tag.totalCommentIndex].tag_result = tag_result);
-                this.tagListValid = false;
                 this.tagValue = -1;
                 this.tagPtr = -1;
-                this.$nextTick(() => this.tagListValid = true);
               }
               else this.$message.error(
                 lantext.words.view[this.$store.state.lanType] +

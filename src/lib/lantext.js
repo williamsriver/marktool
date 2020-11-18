@@ -4,12 +4,16 @@ const lantext={
     ItemListHeader:[
       [
         {text:'List ID',value:'dataSetId'},
-        {text: 'Comment Number',value: 'commentList.commentIdList.length'},
+        {text: 'Name',value: 'fileName'},
+        {text: 'User Name',value: 'uploadUserName'},
+        {text: 'Comment Number',value: 'commentList.comments.length'},
         {text: '',sortable:false,value: 'buttons'}
       ],
       [
         {text:'评论集ID',value:'dataSetId'},
-        {text: '评论数',value: 'commentList.commentIdList.length'},
+        {text: '文件名',value: 'fileName'},
+        {text: '用户名',value: 'uploadUserName'},
+        {text: '评论数',value: 'commentList.comments.length'},
         {text: '',sortable:false,value: 'buttons'}
       ],
     ],
@@ -41,11 +45,9 @@ const lantext={
     remarkHeader:[
       [
         {text:'content',value:'content'},
-        {text: 'reference',value: 'reference'},
       ],
       [
         {text:'备注内容',value:'content'},
-        {text: '引用原文',value: 'reference'},
       ]
     ],
 

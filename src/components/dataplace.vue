@@ -60,7 +60,7 @@
             type: 'pie'
           },
           title: {
-            text: '功能分布'
+            text: 'NFR类型标签分布情况'
           },
           tooltip: {
             pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -148,15 +148,15 @@
         setChart(dataset){
           this.list_choosen = dataset.dataSetIndex;
           for (let j=0;j<this.chart1_config.series[0].data.length;j++){
-            this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[store.state.lanType][j];
+            this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[this.$store.state.lanType][j];
             this.chart1_config.series[0].data[j].y = 0
           }
           for (let j=0;j<this.chart2_config.series[0].data.length;j++){
             this.chart2_config.series[0].data[j].y = 0
-            this.chart2_config.series[0].data[j].name = lantext.tagwords.class[store.state.lanType][j];
+            this.chart2_config.series[0].data[j].name = lantext.tagwords.class[this.$store.state.lanType][j];
           }
 
-          this.chart2_config.title.text = "categories"
+          this.chart2_config.title.text = "标签分布情况"
 
           this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
             this.chart1_config.series[0].data[tag.tag_value].y++;

@@ -2,22 +2,22 @@
   <v-app>
 
     <!--search tab && table-->
-    <v-container fluid v-show="!work_status">
-
-      <v-row>
-        <v-col>
-
-          <v-btn text @click="refreshCommentList">
-            <v-icon>mdi-refresh</v-icon>
-            {{lantext.sentences.reload_data[$store.state.lanType]}}
-          </v-btn>
-        </v-col>
-        <v-col>
+    <v-container fluid v-show="!$store.state.workStatus">
+        <v-row align="baseline">
+          <v-col cols="3">
+            <v-btn text @click="refreshCommentList">
+              <v-icon>mdi-refresh</v-icon>
+              {{lantext.sentences.reload_data[$store.state.lanType]}}
+            </v-btn>
+          </v-col>
+          <v-col></v-col>
+          <v-col cols="5">
           <v-text-field v-model="listSrchString" append-icon="mdi-magnify"
                         :label="lantext.words.search[$store.state.lanType]"></v-text-field>
-        </v-col>
-      </v-row>
-
+          </v-col>
+        </v-row>
+    </v-container>
+    <v-container fluid v-show="!$store.state.workStatus">
       <v-row>
 
         <v-col>
@@ -25,6 +25,7 @@
           <v-data-table
             :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
             :items="$store.state.dataTree"
+            :items-per-page="5"
             :search="listSrchString"
             item-key="listid"
             v-if="isListAlive"
@@ -32,37 +33,49 @@
 
 
             <template v-slot:item.buttons="{item}">
-                <v-btn :disabled="false" text @click="dataSetPtr = item.dataSetIndex, work_status = true">
+                <v-btn text @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true">
                   <span class="mdi mdi-pen-plus"></span>
                   {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}
                 </v-btn>
+
+              <v-btn text @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
+                <span class="mdi mdi-share"></span>
+                share
+              </v-btn>
+
             </template>
 
           </v-data-table>
 
         </v-col>
       </v-row>
-
-
     </v-container>
 
-    <v-row>
+    <v-container fluid v-show="$store.state.workStatus" class="pa-0">
 
-      <v-col cols="2" v-show="work_status">
-        <v-btn text @click="backToCommentList()">
-          <v-icon>mdi-arrow-left</v-icon>
-          <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
-        </v-btn>
-      </v-col>
-    </v-row>
-
-    <v-container fluid v-show="work_status">
-
-      <markplace v-if="$store.state.user_level===0 && work_status" @goBack="backToCommentList()" :look-mode="false"
-                 :data-set-index="dataSetPtr" :enable="work_status" :loadFinish="$store.state.startLoading===$store.state.endLoading"></markplace>
-      <viewplace v-if="$store.state.user_level===1 && work_status" @goBack="backToCommentList()"
-                 :data-set-index="dataSetPtr" :enable="work_status" :loadFinish="$store.state.startLoading===$store.state.endLoading"></viewplace>
+      <markplace v-if="$store.state.user_level===0 && $store.state.workStatus" :look-mode="false"
+                 :data-set-index="dataSetPtr" :enable="$store.state.workStatus" :loadFinish="$store.state.startLoading===$store.state.endLoading">
+      </markplace>
+      <viewplace v-if="$store.state.user_level===1 && $store.state.workStatus"
+                 :data-set-index="dataSetPtr" :enable="$store.state.workStatus" :loadFinish="$store.state.startLoading===$store.state.endLoading"></viewplace>
     </v-container>
+
+    <v-overlay v-show="shareOverlay">
+      <v-card>
+        <v-main>
+          <v-spacer></v-spacer>
+          <v-btn @click="shareOverlay = false">
+            <span class="mdi mdi-close"></span>
+          </v-btn>
+        </v-main>
+        <v-card-title>share dataset</v-card-title>
+        <v-text-field label="shared user" v-model="temp_username"></v-text-field>
+        <v-text-field label="dataset ID" v-model="temp_dataSetId"></v-text-field>
+        <v-card-actions>
+          <v-btn @click="relateDataSet">share dataset</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-overlay>
 
   </v-app>
 </template>
@@ -85,7 +98,9 @@
         listSrchString:'',
         dataSetPtr:-1,
         isListAlive:true,
-        work_status:false,
+        shareOverlay:false,
+        temp_username:"",
+        temp_dataSetId: "",
       }),
       watch:{
         enable:{
@@ -94,21 +109,21 @@
             if (val) this.refreshCommentList();
           },
           immediate:true,
-        }
-      },
-      methods:{
-        backToCommentList(){
-          this.work_status = false;
         },
 
+      },
+      methods:{
         refreshCommentList(){
+          this.$store.state.dataTree = [];
+          this.$store.state.dataSetIdList = [];
+          this.$store.state.tagsDuplicateList = [];
+          this.$store.state.commentsDuplicateList = [];
           this.getDataSet();
         },
 
         getDataSet(){
-          this.$store.state.dataTree = [];
-          this.$store.state.dataSetIdList = [];
-          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',{params:{username:this.$store.state.currentuser} })
+          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',
+            {params:{username:this.$store.state.currentuser} })
             .then(response =>{
               if (response.data.Details) {
                 response.data.Details.comment_list_id.forEach(id => {
@@ -117,29 +132,31 @@
                     this.$store.state.dataTree.push({
                       dataSetId : id,
                       dataSetIndex : this.$store.state.dataTree.length,
-                      commentList: {},
+                      commentList: {
+                        dataSetId: id,
+                        dataSetIndex : this.$store.state.dataTree.length,
+                        commentIdList : [],
+                        comments: [],
+                      },
                     });
                   }
                 });
+
                 this.$store.state.tagsList = new Array(this.$store.state.dataTree.length);
                 this.$store.state.commentTagValueList = new Array(this.$store.state.dataTree.length);
-                this.$store.state.dataTree.forEach(dataset => this.getCommentIdListByDataSet(dataset));
+                this.$store.state.dataTree.forEach(dataset => this.getCommentIdListByDataSet(dataset) );
               }
               else this.$message.error('datasets acquiring error');
-
             })
             .catch(error =>console.log(error))
         },
 
+
         getCommentIdListByDataSet(dataset){
-          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',{params:{list_id:dataset.dataSetId} })
+          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/', {params: {list_id:dataset.dataSetId}})
             .then(response => {
               if (response.data.comment_id_list) {
-                this.$store.state.dataTree[dataset.dataSetIndex].commentList = {
-                  dataSetIndex : dataset.dataSetIndex,
-                  commentIdList: response.data.comment_id_list,
-                  comments :[],
-                }
+                this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
                 this.getCommentByCommentIdList(this.$store.state.dataTree[dataset.dataSetIndex].commentList);
               }
               else this.$message.error('comments id list acquiring error');
@@ -152,28 +169,32 @@
           commentList.commentIdList.forEach((id) =>{
             this.axios.get('http://tonycoder.ziqiang.net.cn:8080/comments/', {params: {comment_id: id} } )
               .then(response => {
-                if (response.data.Details){
-                  let temp = response.data.Details;
-                  temp["comment_id"] = id;
-                  temp["dataSetIndex"] = commentList.dataSetIndex;
-                  temp["commentIndex"] = this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.length;
-                  temp["totalCommentIndex"] = this.$store.state.commentTagValueList[commentList.dataSetIndex].length;
-                  temp["tagValueList"] = [];
-                  temp["tagList"] = {
-                    comment_id : id,
-                    dataSetIndex : commentList.dataSetIndex,
-                    commentIndex : this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.length,
-                    totalCommentIndex : temp.totalCommentIndex,
-                    tagIdList : [],
-                    tags : [],
-                  };
-                  let temp_tagIdList = response.data.Details.tag_id_list.split(',');
-                  temp_tagIdList.forEach(item => {if (item) temp.tagList.tagIdList.push(item); });
-                  this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.push(temp);
-                  this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
-                  this.getTagByTagIdList(temp.tagList);
+                if (this.$store.state.commentsDuplicateList.indexOf(id)===-1) {
+                  this.$store.state.commentsDuplicateList.push(id);
+                  if (response.data.Details) {
+                    let temp = response.data.Details;
+                    temp["comment_id"] = id;
+                    temp["dataSetIndex"] = commentList.dataSetIndex;
+                    temp["commentIndex"] = this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.length;
+                    temp["totalCommentIndex"] = this.$store.state.commentTagValueList[commentList.dataSetIndex].length;
+                    temp["tagValueList"] = [];
+                    temp["tagList"] = {
+                      comment_id: id,
+                      dataSetIndex: commentList.dataSetIndex,
+                      commentIndex: this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.length,
+                      totalCommentIndex: temp.totalCommentIndex,
+                      tagIdList: [],
+                      tags: [],
+                    };
+                    let temp_tagIdList = response.data.Details.tag_id_list.split(',');
+                    temp_tagIdList.forEach(item => {
+                      if (item) temp.tagList.tagIdList.push(item);
+                    });
+                    this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.push(temp);
+                    this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
+                    this.getTagByTagIdList(temp.tagList);
+                  } else this.$message.error('comment acquiring error');
                 }
-                else this.$message.error('comment acquiring error');
               })
               .catch(error => console.log(error));
           })
@@ -183,41 +204,58 @@
           this.$store.state.tagsList[tagList.dataSetIndex] = [];
           if (tagList.tagIdList.length>0) {
             tagList.tagIdList.forEach(id => {
-              this.axios.get('http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: id}})
-                .then(response => {
-                  if (response.data.Details) {
-                    let temp = response.data.Details;
-                    temp["tag_value"] = this.getTagValue(temp);
-                    if (this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.indexOf(temp.tag_value) === -1)
-                      this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.push(temp.tag_value);
-                    temp["totalCommentIndex"] = tagList.totalCommentIndex;
-                    temp["tag_id"] = id;
-                    temp["comment_id"] = tagList.comment_id;
-                    temp["dataSetIndex"] = tagList.dataSetIndex;
-                    temp["commentIndex"] = tagList.commentIndex;
-                    temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
-                    temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
-                    this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
-                    this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
-                  } else this.$message.error('tag acquiring error');
-                })
-                .catch(error => console.log(error))
+              if (this.$store.state.tagsDuplicateList.indexOf(id)===-1) {
+                this.$store.state.tagsDuplicateList.push(id);
+                this.axios.get('http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: id}})
+                  .then(response => {
+                    if (response.data.Details) {
+                      let temp = response.data.Details;
+                      temp["tag_value"] = this.getTagValue(temp);
+                      if (this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.indexOf(temp.tag_value) === -1)
+                        this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.push(temp.tag_value);
+                      temp["totalCommentIndex"] = tagList.totalCommentIndex;
+                      temp["tag_id"] = id;
+                      temp["comment_id"] = tagList.comment_id;
+                      temp["dataSetIndex"] = tagList.dataSetIndex;
+                      temp["commentIndex"] = tagList.commentIndex;
+                      temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
+                      temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
+                      this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
+                      this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
+                    } else this.$message.error('tag acquiring error');
+                  })
+                  .catch(error => console.log(error))
+              }
             })
           }
         },
 
         getTagValue(item){
           if (!item) return -1;
-          if (item.Functional_requirements) return 0;
-          if (item.Performance) return 1;
-          if (item.Compatibility) return 2;
-          if (item.Usability) return 3;
-          if (item.Security) return 4;
-          if (item.Maintainability) return 5;
-          if (item.Portability) return 6;
-          if (item.Others) return 7;
+          if (item.Performance) return 0;
+          if (item.Compatibility) return 1;
+          if (item.Usability) return 2;
+          if (item.Security) return 3;
+          if (item.Maintainability) return 4;
+          if (item.Portability) return 5;
+          if (item.Others) return 6;
+          if (item.Functional_requirements) return 7;
           return -1;
         },
+
+        relateDataSet(){
+          let formData1 = new FormData();
+          formData1.append('username',this.temp_username);
+          formData1.append('list_id',this.temp_dataSetId);
+          this.axios.put('http://tonycoder.ziqiang.net.cn:8080/commentsList/',formData1)
+            .then(response =>{
+            console.log(response);
+            if (response.data.msg ==="ok"){
+              this.$message.success("ok");
+            }
+            else this.$message.error("wrong");
+          }).catch(error => console.log(error));
+        }
 
 
 
