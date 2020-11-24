@@ -224,7 +224,7 @@
                 )
                 this.$store.state.currentuser = response.data.username
                 this.$store.state.token = response.data.token
-                this.$store.state.user_level = 1;
+                this.$store.state.user_level = response.data.user_level;
                 this.$store.state.loginstatus = true
 
                 this.inputUsername = ''
