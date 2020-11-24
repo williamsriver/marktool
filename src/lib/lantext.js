@@ -6,40 +6,58 @@ const lantext={
         {text:'List ID',value:'dataSetId'},
         {text: 'Name',value: 'fileName'},
         {text: 'User Name',value: 'uploadUserName'},
-        {text: 'Comment Number',value: 'commentList.comments.length'},
         {text: '',sortable:false,value: 'buttons'}
       ],
       [
         {text:'评论集ID',value:'dataSetId'},
         {text: '文件名',value: 'fileName'},
         {text: '用户名',value: 'uploadUserName'},
-        {text: '评论数',value: 'commentList.comments.length'},
         {text: '',sortable:false,value: 'buttons'}
       ],
     ],
 
 
+    /*
+
+
+
+     */
     viewHeaders:[
       [
-        {text:'tag ID',value:'tag_id'},
+
         {text: 'comment ID',value: `comment_id`},
+        {text: 'title',value: 'title'},
+
+
+        {text: 'view value',value: 'tag_result'},
+        {text: 'view',value: 'view'},
+        {text: 'details',value: 'data-table-expand',sortable:false},
+      ],
+      [
+
+        {text: '所属评论ID',value: 'comment_id'},
+        {text: '标题',value: 'title'},
+
+
+        {text: '审阅值',value: 'tag_result'},
+        {text: '审阅',value: 'view'},
+        {text: '详情',value: 'data-table-expand',sortable:false},
+      ],
+    ],
+
+    viewTagHeader:[
+      [
+        {text:'tag ID',value:'tag_id'},
         {text: 'marker',value: 'tag_user_info'},
         {text:'confidence',value:'confidence'},
         {text: 'mark value',value: 'tag_value'},
-        {text: 'view value',value: 'viewVal'},
-        {text: 'view',value: 'view'},
-        {text: 'remarks',value: 'data-table-expand',sortable:false},
       ],
       [
         {text:'标注ID',value:'tag_id'},
-        {text: '所属评论ID',value: 'comment_id'},
         {text: '标注者',value: 'tag_user_info'},
         {text:'自信度',value:'confidence'},
         {text: '标记值',value: 'tag_value'},
-        {text: '审阅值',value: 'viewVal'},
-        {text: '审阅',value: 'view'},
-        {text: '备注',value: 'data-table-expand',sortable:false},
-      ],
+      ]
     ],
 
     remarkHeader:[

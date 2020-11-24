@@ -118,6 +118,8 @@
           this.$store.state.dataSetIdList = [];
           this.$store.state.tagsDuplicateList = [];
           this.$store.state.commentsDuplicateList = [];
+          this.$store.state.startLoading = 0;
+          this.$store.state.endLoading = 0;
           this.getDataSet();
         },
 
@@ -125,6 +127,7 @@
           this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',
             {params:{username:this.$store.state.currentuser} })
             .then(response =>{
+              console.log(response)
               if (response.data.Details) {
                 response.data.Details.comment_list_id.forEach(id => {
                   if (this.$store.state.dataSetIdList.indexOf(id) === -1) {
@@ -166,7 +169,8 @@
 
         getCommentByCommentIdList(commentList){
           this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
-          commentList.commentIdList.forEach((id) =>{
+          commentList.commentIdList.forEach((id, index) =>{
+            this.$store.state.startLoading++;
             this.axios.get('http://tonycoder.ziqiang.net.cn:8080/comments/', {params: {comment_id: id} } )
               .then(response => {
                 if (this.$store.state.commentsDuplicateList.indexOf(id)===-1) {
@@ -192,9 +196,11 @@
                     });
                     this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.push(temp);
                     this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
+                    this.$store.state.endLoading++;
                     this.getTagByTagIdList(temp.tagList);
                   } else this.$message.error('comment acquiring error');
                 }
+                else this.$store.state.endLoading++;// duplicate items
               })
               .catch(error => console.log(error));
           })

@@ -180,7 +180,6 @@
           [
             { title: 'Upgrade User', icon: 'mdi-pen'},
             { title: 'View All the List', icon: 'mdi-image' },
-            { title: 'Data', icon: 'mdi-image' },
             { title: 'Log-out', icon: 'mdi-logout'},
           ],
         ],
@@ -225,7 +224,7 @@
                 )
                 this.$store.state.currentuser = response.data.username
                 this.$store.state.token = response.data.token
-                this.$store.state.user_level = 2;
+                this.$store.state.user_level = 1;
                 this.$store.state.loginstatus = true
 
                 this.inputUsername = ''
@@ -293,7 +292,6 @@
               console.log(error);
             });
 
-          //将注册数据发到后台进行处理
 
 
 

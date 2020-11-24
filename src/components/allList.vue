@@ -1,5 +1,6 @@
 <template>
   <v-app>
+
     <v-container fluid v-show="!$store.state.workStatus">
       <v-row>
         <v-col>
@@ -77,14 +78,14 @@
             this.getCommentByCommentIdList(this.$store.state.dataTree[this.dataSetPtr].commentList);
           },
 
-        backToCommentList(){
-          this.$store.state.workStatus = false;
-        },
-
 
         getAllList(){
           this.$store.state.dataTree = [];
           this.$store.state.dataSetIdList = [];
+          this.$store.state.tagsDuplicateList = [];
+          this.$store.state.commentsDuplicateList = [];
+          this.$store.state.startLoading = 0;
+          this.$store.state.endLoading = 0;
           this.axios.get('http://tonycoder.ziqiang.net.cn:8080/adminview/',
             {params:{username:this.$store.state.currentuser} })
             .then(response =>{
@@ -130,10 +131,14 @@
         },
 
         getCommentByCommentIdList(commentList){
+            console.log('comments')
           this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
           commentList.commentIdList.forEach((id) =>{
+            this.$store.state.startLoading++;
             this.axios.get('http://tonycoder.ziqiang.net.cn:8080/comments/', {params: {comment_id: id} } )
               .then(response => {
+                if (this.$store.state.commentsDuplicateList.indexOf(id)===-1) {
+                  this.$store.state.commentsDuplicateList.push(id);
                 if (response.data.Details){
                   let temp = response.data.Details;
                   temp["comment_id"] = id;
@@ -153,9 +158,12 @@
                   temp_tagIdList.forEach(item => {if (item) temp.tagList.tagIdList.push(item); });
                   this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.push(temp);
                   this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
+                  this.$store.state.endLoading++;
                   this.getTagByTagIdList(temp.tagList);
                 }
                 else this.$message.error('comment acquiring error');
+                }
+                else this.$store.state.endLoading++;// duplicate items
               })
               .catch(error => console.log(error));
           })
@@ -167,21 +175,24 @@
             tagList.tagIdList.forEach(id => {
               this.axios.get('http://tonycoder.ziqiang.net.cn:8080/tag/', {params: {tag_id: id}})
                 .then(response => {
-                  if (response.data.Details) {
-                    let temp = response.data.Details;
-                    temp["tag_value"] = this.getTagValue(temp);
-                    if (this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.indexOf(temp.tag_value) === -1)
-                      this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.push(temp.tag_value);
-                    temp["totalCommentIndex"] = tagList.totalCommentIndex;
-                    temp["tag_id"] = id;
-                    temp["comment_id"] = tagList.comment_id;
-                    temp["dataSetIndex"] = tagList.dataSetIndex;
-                    temp["commentIndex"] = tagList.commentIndex;
-                    temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
-                    temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
-                    this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
-                    this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
-                  } else this.$message.error('tag acquiring error');
+                  if (this.$store.state.tagsDuplicateList.indexOf(id)===-1) {
+                    this.$store.state.tagsDuplicateList.push(id);
+                    if (response.data.Details) {
+                      let temp = response.data.Details;
+                      temp["tag_value"] = this.getTagValue(temp);
+                      if (this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.indexOf(temp.tag_value) === -1)
+                        this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.push(temp.tag_value);
+                      temp["totalCommentIndex"] = tagList.totalCommentIndex;
+                      temp["tag_id"] = id;
+                      temp["comment_id"] = tagList.comment_id;
+                      temp["dataSetIndex"] = tagList.dataSetIndex;
+                      temp["commentIndex"] = tagList.commentIndex;
+                      temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
+                      temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
+                      this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
+                      this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
+                    } else this.$message.error('tag acquiring error');
+                  }
                 })
                 .catch(error => console.log(error))
             })

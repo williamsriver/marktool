@@ -1,11 +1,12 @@
 <template>
   <v-app>
+
     <v-container fluid class="pa-0">
       <v-row dense>
         <v-col  cols="10" class="pa-0">
           <v-container fluid>
             <v-row dense align="baseline">
-              <v-btn text @click="$store.state.workStatus = false">
+              <v-btn text @click="$store.state.startLoading=0, $store.state.endLoading=0, $store.state.workStatus = false">
                 <v-icon>mdi-arrow-left</v-icon>
                 <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
               </v-btn>
@@ -18,12 +19,27 @@
           <v-row>
             <v-col cols="3" >
               <v-card class="ma-0" flat>
+                <v-main>functional</v-main> <v-divider></v-divider>
                 <v-chip
-                  v-for="index in 8" :key="index" class="ma-2"
-                  @click="isSaved = false, tagValue = index-1"
-                  :color="tagValue===index-1?tagsInfo.colors[index-1]:'grey'" text-color="white">
-                  <v-avatar left v-if="tagValue===index-1"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                  {{tagsInfo.text[index-1]}}
+                  class="ma-2" @click="isSaved = false, tagValue = 0"
+                  :color="tagValue===0?tagsInfo.colors[0]:'grey'" text-color="white">
+                  <v-avatar left v-if="tagValue===0"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+                  {{tagsInfo.text[0]}}
+                </v-chip>
+                <v-main>non-functional</v-main> <v-divider></v-divider>
+                <v-chip
+                  v-for="index in 6" :key="index" class="ma-2"
+                  @click="isSaved = false, tagValue = index"
+                  :color="tagValue===index?tagsInfo.colors[index]:'grey'" text-color="white">
+                  <v-avatar left v-if="tagValue===index"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+                  {{tagsInfo.text[index]}}
+                </v-chip>
+                <v-main>others</v-main> <v-divider></v-divider>
+                <v-chip
+                  class="ma-2" @click="isSaved = false, tagValue = 7"
+                  :color="tagValue===7?tagsInfo.colors[7]:'grey'" text-color="white">
+                  <v-avatar left v-if="tagValue===7"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+                  {{tagsInfo.text[7]}}
                 </v-chip>
               </v-card>
             </v-col>
@@ -207,6 +223,13 @@
         immediate: true,
       },
 
+      loadFinish:{
+        handler(value) {
+          this.refreshPtr(0);
+        },
+        immediate: true,
+      },
+
       ptr:{
         handler(value){
           console.log(value)
@@ -232,7 +255,7 @@
     methods: {
       startBoard(){
         let timer = setInterval(()=>{this.totalStartTime += 1},1000);
-        this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.commentIdList.length;
+
         this.ptr = 0;
       },
 
@@ -327,9 +350,13 @@
 
       refreshPtr(value){
         if (this.$store.state.workStatus) {
+          console.log('loadFinish',this.$store.state.startLoading, this.$store.state.endLoading)
+          console.log(this.$store.state.dataTree[this.dataSetIndex].commentList)
+          if (this.loadFinish){
+            this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
+            this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
+          }
           this.maxPtr = Math.max(this.maxPtr, value);
-          console.log(this.$store.state.dataTree[this.dataSetIndex].commentList);
-          this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
           if (this.currentComment) {
             if (this.currentComment.tagList.tags.length > 0) {
               this.currentTag = null;
