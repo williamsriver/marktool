@@ -38,7 +38,7 @@
 
     <v-container fluid v-show="$store.state.workStatus">
       <markplace v-if="$store.state.workStatus" :look-mode="true" :enable="$store.state.workStatus"
-                 :data-set-index="dataSetPtr" :loadFinish="$store.state.startLoading===$store.state.endLoading"></markplace>
+                 :data-set-index="dataSetPtr" :loadFinish="$store.state.startLoading===$store.state.endLoading && $store.state.startLoading>0"></markplace>
     </v-container>
   </v-app>
 </template>

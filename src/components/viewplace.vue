@@ -16,16 +16,16 @@
         </v-col>
         <v-col cols="6">
           <v-row align="baseline">
-            <v-col cols="3">
-              confidence
+            <v-col cols="5">
+              {{lantext.words.confidence[$store.state.lanType]}}
             </v-col>
-            <v-col cols="4">
+            <v-col cols="3">
               <v-select v-model="lowerVal" :items="valueTable[0]"></v-select>
             </v-col>
             <v-col cols="1">
               <span>to</span>
             </v-col>
-            <v-col cols="4">
+            <v-col cols="3">
               <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
             </v-col>
           </v-row>
@@ -36,20 +36,23 @@
     </v-container>
     <!--comments table-->
     <v-data-table
+      :search="'no'"
       :headers="lantext.headers.viewHeaders[$store.state.lanType]"
-
+      :custom-filter="customfilter3"
       :items="$store.state.commentTagValueList[dataSetIndex]"
-
       v-if="tagListValid"
       item-key="commentIndex"
       show-expand
       hide-default-footer>
+      <template v-slot:item.viewValue="{item}">
+        {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]}}
+      </template>
       <template v-slot:item.view="{item}" >
         <v-row :key="item.commentIndex" align="baseline">
-          <v-col cols="6">
+          <v-col cols="6" v-show="tagResultModifying && modifyPtr===item.commentIndex">
             <span v-show="!tagResultModifying || modifyPtr !==item.commentIndex">{{item.tag_result}}</span>
-            <v-text-field :key="item.commentIndex" v-show="tagResultModifying && modifyPtr===item.commentIndex"
-                          v-model="temp_tagResult"></v-text-field>
+            <v-select :items="lantext.tagwords.tags[$store.state.lanType]"
+                      v-model="temp_tagContent"></v-select>
           </v-col>
           <v-col cols="6">
             <v-btn text @click="reviewBtnClick(item)">
@@ -69,7 +72,7 @@
             <v-col cols="8">
               <v-data-table
                 :search="'no'"
-                :custom-filter="viewMode===1?customfilter1:customfilter2"
+                :custom-filter="customfilter1"
                 :headers="lantext.headers.viewTagHeader[$store.state.lanType]"
                 :items="item.tagList.tags"
                 hide-default-footer>
@@ -121,6 +124,7 @@
 
         tagResultModifying:false,
         temp_tagResult:-1,
+        temp_tagContent:'',
         modifyPtr:-1,
 
         tagsInfo:{
@@ -180,12 +184,24 @@
         },
 
         customfilter1(value,search,item){
-          console.log(value,search,item)
           return item.confidence >= Number(this.lowerVal) && item.confidence <= Number(this.upperVal)
         },
 
         customfilter2(value,search,item){
           return this.$store.state.commentTagValueList[this.dataSetIndex][item.totalCommentIndex].tagValueList.length > 1;
+        },
+
+        customfilter3(value,search,item){
+          let flag = false;
+          item.tagList.tags.forEach(tag =>{
+            if (tag.confidence >= Number(this.lowerVal) && tag.confidence <= Number(this.upperVal) ){
+              flag = true;
+            }
+          });
+          if (this.viewMode===2){
+            flag = this.$store.state.commentTagValueList[this.dataSetIndex][item.totalCommentIndex].tagValueList.length === 1;
+          }
+          return flag;
         },
 
         sendView(comment, tag_result){
@@ -215,6 +231,7 @@
 
         reviewBtnClick(comment){
           if (this.modifyPtr===comment.commentIndex){
+            this.temp_tagResult = lantext.tagwords.tags[this.$store.state.lanType].indexOf(this.temp_tagContent);
             if (this.tagResultModifying) this.sendView(comment, this.temp_tagResult);
             this.tagResultModifying = !this.tagResultModifying;
           }

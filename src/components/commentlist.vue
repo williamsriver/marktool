@@ -237,16 +237,12 @@
         },
 
         getTagValue(item){
-          if (!item) return -1;
-          if (item.Performance) return 0;
-          if (item.Compatibility) return 1;
-          if (item.Usability) return 2;
-          if (item.Security) return 3;
-          if (item.Maintainability) return 4;
-          if (item.Portability) return 5;
-          if (item.Others) return 6;
-          if (item.Functional_requirements) return 7;
-          return -1;
+          let result = -1;
+          if (!item) return result;
+          lantext.tagwords.tags[0].forEach((prop_name,index) =>{
+            if (item[prop_name]) result = index;
+          });
+          return result;
         },
 
         relateDataSet(){

@@ -28,18 +28,19 @@
                 </v-chip>
                 <v-main>non-functional</v-main> <v-divider></v-divider>
                 <v-chip
-                  v-for="index in 6" :key="index" class="ma-2"
+                  v-for="index in 8" :key="index" class="ma-2"
                   @click="isSaved = false, tagValue = index"
                   :color="tagValue===index?tagsInfo.colors[index]:'grey'" text-color="white">
                   <v-avatar left v-if="tagValue===index"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                  {{tagsInfo.text[index]}}
+                  <v-main>{{lantext.tagwords.tags[$store.state.lanType][index]}}</v-main>
                 </v-chip>
                 <v-main>others</v-main> <v-divider></v-divider>
                 <v-chip
-                  class="ma-2" @click="isSaved = false, tagValue = 7"
-                  :color="tagValue===7?tagsInfo.colors[7]:'grey'" text-color="white">
-                  <v-avatar left v-if="tagValue===7"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                  {{tagsInfo.text[7]}}
+                  v-for="index in 2" :key="index+8" class="ma-2"
+                  @click="isSaved = false, tagValue = index+8"
+                  :color="tagValue===index+8?tagsInfo.colors[index+8]:'grey'" text-color="white">
+                  <v-avatar left v-if="tagValue===index+8"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+                  {{lantext.tagwords.tags[$store.state.lanType][index+8]}}
                 </v-chip>
               </v-card>
             </v-col>
@@ -58,36 +59,55 @@
                     <v-rating :color="tagValue>=0?tagsInfo.colors[tagValue]:''" hover v-model="trustRating"></v-rating>
                   </v-col>
                 </v-row>
+                <v-row>
+                  <v-col>
+                    <v-main class="font-weight-black text-h6" >
+                      {{lantext.tagwords.tags[$store.state.lanType][tagValue]}}标签说明
+                    </v-main>
+                    <v-virtual-scroll
+                      v-if="tagValue>=0"
+                      :items="lantext.tagwords.taghelpwords[$store.state.lanType][tagValue]"
+                      :item-height="80"
+                      height="200">
+                      <template v-slot:default="{item}">
+                        <v-card :color="tagsInfo.colors[Math.round(8*Math.random())]" height="100">
+                          <span style="color: white">{{item.name}}</span>
+                        </v-card>
+                      </template>
+                    </v-virtual-scroll>
+                  </v-col>
+
+                </v-row>
+
+
+
 
                 <v-card>
                   <v-row>
                     <v-col>
-                      <v-card-title class="font-weight-black text-h6">
+                      <v-main class="font-weight-black text-h6">
                         {{lantext.words.title[$store.state.lanType]}} : {{currentComment.title}}
-                      </v-card-title>
-                      <v-card-text class="font-weight-black">
+                      </v-main>
+                      <v-main class="font-weight-black">
                         {{lantext.words.version_info[$store.state.lanType]}} : {{currentComment.version_info}}
-                      </v-card-text>
-                      <v-card-text class="font-weight-black">
+                      </v-main>
+                      <v-main class="font-weight-black">
                         {{lantext.words.date_info[$store.state.lanType]}} : {{currentComment.datetime_info}}
-                      </v-card-text>
-                      <v-card-text class="font-weight-black">
+                      </v-main>
+                      <v-main class="font-weight-black">
                         {{lantext.words.rating[$store.state.lanType]}} : {{currentComment.rank_level}}
-                      </v-card-text>
-                      <v-card-text class="font-weight-black">
+                      </v-main>
+                      <v-main class="font-weight-black">
                         {{lantext.words.view[$store.state.lanType]+" value"}} :
                         {{currentComment.tag_result}}
-                      </v-card-text>
-                      <v-card-subtitle class="font-weight-black">
+                      </v-main>
+                      <v-main class="font-weight-black">
                         {{lantext.words.content[$store.state.lanType]}} :
-                      </v-card-subtitle >
-                      <v-card-text >
-                        {{currentComment.content}}
-                      </v-card-text>
+                      </v-main >
+                      <span >{{currentComment.content}}</span>
                     </v-col>
                     <v-col>
-                      <v-card-title class="font-weight-black text-h6">标签说明</v-card-title>
-                      <v-card-text>content</v-card-text>
+
                       <v-textarea
                         :label="lantext.words.remark[$store.state.lanType]"
                         v-model="remarkContent" outlined full-width>
@@ -160,16 +180,18 @@
       lantext:lantext,
 
       tagsInfo:{
-        colors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple"],
-        text:['Performance','Compatibility', 'Usability','Security','Maintainability','Portability','Others','Functional'],
+        colors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple","#9E9D24","#FFC107","#E65100","#5D4037"],
+        text:['Functional',
+          'Suitability','Performance','Compatibility', 'Usability','Security','Reliability','Maintainability','Portability',
+          'Bug_Fix','Others'],
       },
 
       currentTag:null,
       currentComment:null,
       displayComment:null,
 
-      ptr:-1,
-      maxPtr:-1,
+      ptr:0,
+      maxPtr:0,
       tagValue:-1,
       isSaved:true,
       remarkContent:"",
@@ -178,19 +200,8 @@
       trustRating:4,
 
       totalStartTime:0,
-
-      taghelp:'',
     }),
     mounted() {
-      window.onkeypress = (function (event) {
-        if (event.key === 'q') {
-          this.tagValue = (this.tagValue+1) % 8;
-          this.issave = false;
-        }
-        if (event.key === 'Enter') {
-          this.saveMark();
-        }
-      }.bind(this))
     },
     computed:{
       markHour(){
@@ -218,14 +229,14 @@
       enable: {
         handler(value) {
           console.log("enable",value);
-          if (value===true) this.startBoard();
+          if (this.loadFinish) this.startBoard();
         },
         immediate: true,
       },
 
       loadFinish:{
         handler(value) {
-          this.refreshPtr(0);
+          if (value) this.refreshPtr(0);
         },
         immediate: true,
       },
@@ -233,7 +244,7 @@
       ptr:{
         handler(value){
           console.log(value)
-          this.refreshPtr(value);
+          if (this.enable) this.refreshPtr(value);
         },
         immediate:true,
       },
@@ -253,6 +264,7 @@
     },
 
     methods: {
+
       startBoard(){
         let timer = setInterval(()=>{this.totalStartTime += 1},1000);
 
@@ -350,8 +362,6 @@
 
       refreshPtr(value){
         if (this.$store.state.workStatus) {
-          console.log('loadFinish',this.$store.state.startLoading, this.$store.state.endLoading)
-          console.log(this.$store.state.dataTree[this.dataSetIndex].commentList)
           if (this.loadFinish){
             this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
             this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];

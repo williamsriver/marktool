@@ -83,14 +83,19 @@
             name:"Functional",
             colorByPoint: true,
             data: [
-              {name:'Performance',y:0},
+              {name:'Functional_requirements',y:0},
+
+              {name:'Functional Suitability',y:0},
+              {name:'Performance Efficiency',y:0},
               {name:'Compatibility',y:0},
               {name:'Usability',y:0},
               {name:'Security',y:0},
+              {name:'Reliability',y:0},
               {name:'Maintainability',y:0},
               {name:'Portability',y:0},
+
+              {name:'Bug_Fix',y:0},
               {name:'Others',y:0},
-              {name:'Functional_requirements',y:0},
             ]
           }]
         },
@@ -125,8 +130,8 @@
             colorByPoint: true,
 
             data: [
-              {name:'Non_Functional_requirements',y:0},
               {name:'Functional_requirements',y:0},
+              {name:'Non_Functional_requirements',y:0},
               {name:'Others',y:0},
             ]
           }]
@@ -161,7 +166,7 @@
           this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
             this.chart1_config.series[0].data[tag.tag_value].y++;
             if (tag.tag_value === 0 ) this.chart2_config.series[0].data[0].y++;
-            else if (tag.tag_value === 7) this.chart2_config.series[0].data[2].y++;
+            else if (tag.tag_value >= 9) this.chart2_config.series[0].data[2].y++;
             else this.chart2_config.series[0].data[1].y++;
           });
 
