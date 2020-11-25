@@ -190,7 +190,9 @@
             && this.userpassword !== '')
         },
         UserType(){
+          console.log(this.$store.state.user_level);
           switch(this.$store.state.user_level){
+
             case 0:return "Marker";
             case 1:return "Viewer";
             case 2:return "Admin";
@@ -224,7 +226,7 @@
                 )
                 this.$store.state.currentuser = response.data.username
                 this.$store.state.token = response.data.token
-                this.$store.state.user_level = response.user_level;
+                this.$store.state.user_level = response.data.user_level;
                 this.$store.state.loginstatus = true
 
                 this.inputUsername = ''
