@@ -23,7 +23,7 @@
             :search="listSrchString"
             :items-per-page="10"
             v-if="isListAlive"
-            hide-default-footer>
+          >
             <template v-slot:item.buttons="{item}">
               <v-btn :disabled="false" text @click="commentLoad(item)">
                 <span class="mdi mdi-pen-plus"></span>

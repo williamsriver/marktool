@@ -29,7 +29,7 @@
             :search="listSrchString"
             item-key="listid"
             v-if="isListAlive"
-            hide-default-footer>
+          >
 
 
             <template v-slot:item.buttons="{item}">
