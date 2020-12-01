@@ -191,9 +191,7 @@
                       tags: [],
                     };
                     let temp_tagIdList = response.data.Details.tag_id_list.split(',');
-                    temp_tagIdList.forEach(item => {
-                      if (item) temp.tagList.tagIdList.push(item);
-                    });
+                    temp_tagIdList.forEach(item => {if (item) temp.tagList.tagIdList.push(item);});
                     this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.push(temp);
                     this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
                     this.$store.state.endLoading++;

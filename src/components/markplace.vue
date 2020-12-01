@@ -11,8 +11,9 @@
                 <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
               </v-btn>
               <v-icon>mdi-pen</v-icon>
-              {{ptr+1}}/{{commentsTotalNum}}
-              <v-col><v-progress-linear height="6" :value="((ptr+1)/commentsTotalNum)*100"></v-progress-linear></v-col>
+              <span>{{$store.state.startLoading===$store.state.endLoading?
+                ptr+1+'/'+commentsTotalNum:"Loading:"+$store.state.endLoading+'/'+$store.state.startLoading}}</span>
+              <v-col><v-progress-linear height="6"  :value="((ptr+1)/commentsTotalNum)*100"></v-progress-linear></v-col>
               <v-icon>mdi-clock</v-icon>
               {{markHour}}:{{markMin}}:{{markSec}}
             </v-row>
@@ -363,6 +364,7 @@
       refreshPtr(value){
         if (this.$store.state.workStatus) {
           if (this.loadFinish){
+            console.log(this.$store.state.startLoading,this.$store.state.endLoading,this.$store.state.dataTree[this.dataSetIndex].commentList.comments)
             this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
             this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
           }

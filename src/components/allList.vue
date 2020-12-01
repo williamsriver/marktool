@@ -72,8 +72,15 @@
       },
       methods:{
           commentLoad(item){
+            console.log('index',this.dataSetPtr)
             this.dataSetPtr = item.dataSetIndex;
-            this.$store.state.workStatus = true
+            this.$store.state.workStatus = true;
+            //important
+            this.$store.state.tagsDuplicateList = [];
+            this.$store.state.commentsDuplicateList = [];
+            this.$store.state.startLoading = 0;
+            this.$store.state.endLoading = 0;
+
             this.$store.state.dataTree[this.dataSetPtr].commentList.comments = [];
             this.getCommentByCommentIdList(this.$store.state.dataTree[this.dataSetPtr].commentList);
           },
@@ -131,7 +138,7 @@
         },
 
         getCommentByCommentIdList(commentList){
-            console.log('comments')
+            console.log('comments',commentList)
           this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
           commentList.commentIdList.forEach((id) =>{
             this.$store.state.startLoading++;
