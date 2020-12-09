@@ -76,6 +76,10 @@
                 :headers="lantext.headers.viewTagHeader[$store.state.lanType]"
                 :items="item.tagList.tags"
                 hide-default-footer>
+                <template v-slot:item.tag_value="{item}">
+
+                  {{lantext.tagwords.tags[$store.state.lanType][item.tag_value]}}
+                </template>
               </v-data-table>
             </v-col>
             <v-col cols="4">
@@ -199,7 +203,7 @@
             }
           });
           if (this.viewMode===2){
-            flag = this.$store.state.commentTagValueList[this.dataSetIndex][item.totalCommentIndex].tagValueList.length === 1;
+            flag = this.$store.state.commentTagValueList[this.dataSetIndex][item.totalCommentIndex].tagValueList.length > 1;
           }
           return flag;
         },

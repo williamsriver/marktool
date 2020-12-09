@@ -18,6 +18,8 @@ export default new Vuex.Store({
     tagsList:[],
     tagsDuplicateList:[],
     commentsDuplicateList:[],
+    tagValue:-1,
+    isSaved:true,
     startLoading:0,
     endLoading:0,
     commentTagValueList:[],

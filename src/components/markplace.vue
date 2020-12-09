@@ -18,61 +18,61 @@
               {{markHour}}:{{markMin}}:{{markSec}}
             </v-row>
           <v-row>
-            <v-col cols="3" >
+            <v-col cols="3">
               <v-card class="ma-0" flat>
-                <v-main>functional</v-main> <v-divider></v-divider>
+                <v-main>FR</v-main> <v-divider></v-divider>
                 <v-chip
-                  class="ma-2" @click="isSaved = false, tagValue = 0"
-                  :color="tagValue===0?tagsInfo.colors[0]:'grey'" text-color="white">
-                  <v-avatar left v-if="tagValue===0"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                  {{tagsInfo.text[0]}}
+                  class="ma-2" @click="$store.state.isSaved = false, $store.state.tagValue = 0"
+                  :color="$store.state.tagValue===0?tagsInfo.colors[0]:'grey'" text-color="white">
+                  <v-avatar left v-if="$store.state.tagValue===0"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+                  {{lantext.tagwords.tags[$store.state.lanType][0]}}
                 </v-chip>
-                <v-main>non-functional</v-main> <v-divider></v-divider>
+                <v-main>NFR</v-main> <v-divider></v-divider>
                 <v-chip
                   v-for="index in 8" :key="index" class="ma-2"
-                  @click="isSaved = false, tagValue = index"
-                  :color="tagValue===index?tagsInfo.colors[index]:'grey'" text-color="white">
-                  <v-avatar left v-if="tagValue===index"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+                  @click="$store.state.isSaved = false, $store.state.tagValue = index"
+                  :color="$store.state.tagValue===index?tagsInfo.colors[index]:'grey'" text-color="white">
+                  <v-avatar left v-if="$store.state.tagValue===index"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
                   <v-main>{{lantext.tagwords.tags[$store.state.lanType][index]}}</v-main>
                 </v-chip>
                 <v-main>others</v-main> <v-divider></v-divider>
                 <v-chip
                   v-for="index in 2" :key="index+8" class="ma-2"
-                  @click="isSaved = false, tagValue = index+8"
-                  :color="tagValue===index+8?tagsInfo.colors[index+8]:'grey'" text-color="white">
-                  <v-avatar left v-if="tagValue===index+8"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
+                  @click="$store.state.isSaved = false, $store.state.tagValue = index+8"
+                  :color="$store.state.tagValue===index+8?tagsInfo.colors[index+8]:'grey'" text-color="white">
+                  <v-avatar left v-if="$store.state.tagValue===index+8"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
                   {{lantext.tagwords.tags[$store.state.lanType][index+8]}}
                 </v-chip>
               </v-card>
             </v-col>
             <v-col cols="9" v-if="currentComment">
               <v-container class="pa-0">
-                <v-row align="baseline" v-show="tagValue>=0" dense>
+                <v-row align="baseline" v-show="$store.state.tagValue>=0" dense>
                   <v-col>
-                    <v-chip class="ma-2" :color="tagsInfo.colors[tagValue]" text-color="white">
+                    <v-chip class="ma-2" :color="tagsInfo.colors[$store.state.tagValue]" text-color="white">
                       <v-avatar left><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                      {{tagsInfo.text[tagValue]}}
+                      {{tagsInfo.text[$store.state.tagValue]}}
                     </v-chip>
                     {{lantext.words.confidence[$store.state.lanType]}}
                     <span class="text-h5 font-italic">{{trustRating}}</span>
                   </v-col>
                   <v-col>
-                    <v-rating :color="tagValue>=0?tagsInfo.colors[tagValue]:''" hover v-model="trustRating"></v-rating>
+                    <v-rating :color="$store.state.tagValue>=0?tagsInfo.colors[$store.state.tagValue]:''" hover v-model="trustRating"></v-rating>
                   </v-col>
                 </v-row>
                 <v-row>
                   <v-col>
                     <v-main class="font-weight-black text-h6" >
-                      {{lantext.tagwords.tags[$store.state.lanType][tagValue]}}标签说明
+                      {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}标签说明
                     </v-main>
                     <v-virtual-scroll
-                      v-if="tagValue>=0"
-                      :items="lantext.tagwords.taghelpwords[$store.state.lanType][tagValue]"
+                      v-if="$store.state.tagValue>=0"
+                      :items="lantext.tagwords.taghelpwords[$store.state.lanType][$store.state.tagValue]"
                       :item-height="80"
                       height="200">
                       <template v-slot:default="{item}">
-                        <v-card :color="tagsInfo.colors[Math.round(8*Math.random())]" height="100">
-                          <span style="color: white">{{item.name}}</span>
+                        <v-card :color="item.id%2===0?'white':'grey'" height="100">
+                          <span >{{item.name}}</span>
                         </v-card>
                       </template>
                     </v-virtual-scroll>
@@ -126,7 +126,7 @@
         <v-col cols="2">
           <v-navigation-drawer width="200" permanent>
             <v-list dense nav>
-                <v-list-item :disabled="ptr===0" @click="ptr--, isSaved = true">
+                <v-list-item :disabled="ptr===0" @click="ptr--, $store.state.isSaved = true">
                   <v-list-item-icon> <v-icon>mdi-arrow-left</v-icon> </v-list-item-icon>
                   <v-list-item-content>
                     <v-list-item-title>{{lantext.words.previous[$store.state.lanType]}}</v-list-item-title>
@@ -193,18 +193,24 @@
 
       ptr:0,
       maxPtr:0,
-      tagValue:-1,
-      isSaved:true,
       remarkContent:"",
       commentsTotalNum:0,
-
+      presskey:"",
+      pressIndex:0,
       trustRating:4,
 
       totalStartTime:0,
     }),
     mounted() {
+      window.onkeypress = (event =>{
+        if (event.key==='q'){
+          this.$store.state.tagValue = (this.$store.state.tagValue+1) % 11;
+          this.$store.state.isSaved = false;
+        }
+      });
     },
     computed:{
+
       markHour(){
         return Math.floor(this.totalStartTime/3600);
       },
@@ -223,7 +229,7 @@
         }
       },
       saveValid(){
-        return ! ( this.lookMode || this.isSaved || this.ptr<0 );
+        return ! ( this.lookMode || this.$store.state.isSaved || this.ptr<0 );
       }
     },
     watch:{
@@ -244,23 +250,19 @@
 
       ptr:{
         handler(value){
-          console.log(value)
-          if (this.enable) this.refreshPtr(value);
+          console.log('ptr',this.enable,value)
+          this.refreshPtr(value);
         },
         immediate:true,
       },
 
+
       remarkContent:{
         handler(value){
-          this.isSaved = false
+          this.$store.state.isSaved = false
         }
       },
 
-      tagValue:{
-        handler(value){
-          this.isSaved = false
-        }
-      }
 
     },
 
@@ -268,7 +270,6 @@
 
       startBoard(){
         let timer = setInterval(()=>{this.totalStartTime += 1},1000);
-
         this.ptr = 0;
       },
 
@@ -277,15 +278,15 @@
         formData1.append('token', this.$store.state.token);
         /*
         this.lantext.tagwords.tags[0].forEach((item,index) => {
-          formData1.append(String(item), index===this.tagValue?"True":"False");
+          formData1.append(String(item), index===this.$store.state.tagValue?"True":"False");
         })//chosen tag
         */
-        formData1.append(String(this.lantext.tagwords.tags[0][this.tagValue]), "True");
+        formData1.append(String(this.lantext.tagwords.tags[0][this.$store.state.tagValue]), "True");
         formData1.append('remarks', this.remarkContent);
         formData1.append('tag_user_info', this.$store.state.currentuser)//用户信息
         formData1.append('confidence', this.trustRating + "") //confidence
 
-        console.log(this.tagValue);
+        console.log(this.$store.state.tagValue);
 
         if (!this.currentTag)
           this.createTag(formData1, this.currentComment);
@@ -309,7 +310,7 @@
             console.log(response.data)
             if (response.data) {
               this.$message.success("create new tag succeed");
-              this.isSaved = true;
+              this.$store.state.isSaved = true;
               if (this.ptr<this.commentsTotalNum-1) this.ptr++;
             }
             else this.$message.error("create new tag failed");
@@ -324,13 +325,13 @@
             if (response.data.Msg === "OK") {
               this.$message.success("tag edit succeed");
               let temp = {};
-              temp["tag_value"] = this.tagValue;
+              temp["tag_value"] = this.$store.state.tagValue;
               temp["remarks"] = this.remarkContent;
               temp["tag_user_info"] = this.$store.state.currentuser;
               temp["confidence"] = this.trustRating;
-              temp["tag_value"] = this.tagValue;
+              temp["tag_value"] = this.$store.state.tagValue;
               this.$store.state.dataTree[this.currentTag.dataSetIndex].commentList.comments[this.ptr].tagList.tags[this.currentTag.tagIndex] = temp;
-              this.isSaved = true;
+              this.$store.state.isSaved = true;
               if (this.ptr<this.commentsTotalNum-1) this.ptr++;
             }
           })
@@ -343,7 +344,7 @@
             if (response.data.Details) {
               console.log(response);
               let temp ={};
-              temp["tag_value"] = this.tagValue;
+              temp["tag_value"] = this.$store.state.tagValue;
               temp["tag_id"] = response.data.Details.tag_id;
               temp["dataSetIndex"] = comment.dataSetIndex;
               temp["tagIndex"] = comment.tagList.tagIdList.length;
@@ -362,27 +363,34 @@
       },
 
       refreshPtr(value){
-        if (this.$store.state.workStatus) {
+        console.log('**',value)
+
+          this.currentTag = null;
+          this.currentComment = null;
+
           if (this.loadFinish){
-            console.log(this.$store.state.startLoading,this.$store.state.endLoading,this.$store.state.dataTree[this.dataSetIndex].commentList.comments)
             this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
             this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
           }
           this.maxPtr = Math.max(this.maxPtr, value);
+
           if (this.currentComment) {
             if (this.currentComment.tagList.tags.length > 0) {
-              this.currentTag = null;
+              console.log(value, this.currentComment.tagList.tags)
               this.currentComment.tagList.tags.forEach(tag =>{
                 if (tag.tag_user_info === this.$store.state.currentuser) this.currentTag = tag;
               })
               if (this.currentTag) this.remarkContent = this.currentTag.remarks;
               else this.remarkContent = "";
-              if (this.currentTag) this.tagValue = this.currentTag.tag_value;
-              else this.tagValue = -1;
-            } else this.tagValue = -1;
-          } else this.tagValue = -1;
-          this.isSaved = true;
-        }
+              if (this.currentTag) {
+                this.$store.state.tagValue = this.currentTag.tag_value;
+                console.log("i'm setting tag value",this.$store.state.tagValue);
+              }
+              else this.$store.state.tagValue = -1;
+            } else this.$store.state.tagValue = -1;
+          }
+          this.$store.state.isSaved = true;
+
       },
 
       beforeRouteLeave(to, from, next) {

@@ -32,8 +32,12 @@
                   if (cur_user_level===-1) this.$message.error("user not found");
                   else if (cur_user_level===1) this.$message.error("you are a reviewer now, can't upgrade");
                   else {
-                    this.axios.post('http://tonycoder.ziqiang.net.cn:8080/userupgrade/',
-                      {params: {cur_username: userName, tar_username: userName, tar_level: 1} })
+                    let formData1 = new FormData();
+                    let tar_username = userName
+                    formData1.append('cur_username',userName)
+                    formData1.append('tar_username',tar_username)
+                    formData1.append('tar_level',1)
+                    this.axios.post('http://tonycoder.ziqiang.net.cn:8080/userupgrade/',formData1)
                       .then((response) => {
                         console.log(response)
                         if (response.data.msg === "ok") this.$message.success("升级成功");

@@ -265,6 +265,7 @@
                 let formData1 = new FormData()
                 formData1.append('username', this.username)
                 formData1.append('password', this.userpassword)
+                //formData1.append('user_level', 1)
                 this.axios.post('http://tonycoder.ziqiang.net.cn:8080/register/', formData1)
                   .then(function (response) {
                     console.log(response);
@@ -274,9 +275,6 @@
                         lantext.words.login[this.$store.state.lanType]+
                         lantext.sentences.item_success[this.$store.state.lanType]
                       )
-                      setTimeout(function () {
-                        that.$router.push('/')
-                      },1000)
                     }
                     else this.$message.error(
                       lantext.words.login[this.$store.state.lanType]+

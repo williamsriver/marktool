@@ -164,14 +164,26 @@
           this.chart2_config.title.text = "标签分布情况"
 
           this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
-            this.chart1_config.series[0].data[tag.tag_value].y++;
-            if (tag.tag_value === 0 ) this.chart2_config.series[0].data[0].y++;
-            else if (tag.tag_value >= 9) this.chart2_config.series[0].data[2].y++;
+            console.log(tag)
+            let temp_num = this.getTagValue(tag);
+            if (temp_num>=0) this.chart1_config.series[0].data[temp_num].y++;
+            if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
+            else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
             else this.chart2_config.series[0].data[1].y++;
           });
 
           this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
           this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
+        },
+
+
+        getTagValue(item){
+          let result = -1;
+          if (!item) return result;
+          lantext.tagwords.tags[0].forEach((prop_name,index) =>{
+            if (item[prop_name]) result = index;
+          });
+          return result;
         },
       }
     }

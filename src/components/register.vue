@@ -1,6 +1,9 @@
 <template>
+
   <v-app>
+
     <v-card style=" padding: 0 40px 0 40px">
+      <v-card-title>funxk</v-card-title>
       <v-card-title>{{lantext.words.welcome[$store.state.lanType]}} {{lantext.words.register[$store.state.lanType]}}</v-card-title>
       <!--用户名-->
       <v-text-field
@@ -96,7 +99,8 @@
           },
           params:{
             username:this.username,
-            password:this.userpassword
+            password:this.userpassword,
+
           }
         };
 
@@ -108,18 +112,15 @@
               let formData1 = new FormData()
               formData1.append('username', this.username)
               formData1.append('password', this.userpassword)
+              formData1.append('user_level', '2');
               this.axios.post('http://tonycoder.ziqiang.net.cn:8080/register/', formData1)
                 .then(function (response) {
                   console.log(response);
                   if (response.data.Msg === 'Register Succeeded.') {
-                    const that =this
                     this.$message.success(
                       lantext.words.login[this.$store.state.lanType]+
                       lantext.sentences.item_success[this.$store.state.lanType]
                     )
-                    setTimeout(function () {
-                      that.$router.push('/')
-                    },1000)
                   }
                   else this.$message.error(
                     lantext.words.login[this.$store.state.lanType]+
