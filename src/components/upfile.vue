@@ -4,7 +4,7 @@
       <v-btn @click="showFile">show</v-btn>
       <v-file-input type="file" v-model="myFile"></v-file-input>
       <v-text-field label="File Name" v-model="fileName"></v-text-field>
-      <v-btn @click="upLoadFile(myFile)">upload</v-btn>
+      <v-btn @click="upLoadFile(myFile,fileName)">upload</v-btn>
     </v-container>
 
   </v-app>
@@ -32,7 +32,7 @@
           console.log(this.myFile);
         },
         upLoadFile(file, name){
-          console.log(file)
+          console.log(file, name)
           let formData1 = new FormData();
           formData1.append("files",file);
           formData1.append("name",name);
@@ -41,6 +41,7 @@
           this.axios.post('http://tonycoder.ziqiang.net.cn:8080/fileoperations/',formData1)
             .then((response) =>{
             console.log(response);
+            if (response.data.msg==="ok") this.$message.success('ok')
             }).catch(error => console.log(error));
         }
       }

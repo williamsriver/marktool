@@ -238,6 +238,11 @@ const lantext={
   },
 
   words:{
+    tag_description:['tag description','标签说明'],
+    others:['others','其他需求'],
+    FR:['FR','功能性需求'],
+    NFR:['NFR','非功能需求'],
+    value:['value','值'],
     admin:['admin','管理员'],
     non_functional:['nonfunctional','非功能性'],
     upload:['upload','上传'],

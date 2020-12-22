@@ -118,12 +118,12 @@
                   console.log(response);
                   if (response.data.Msg === 'Register Succeeded.') {
                     this.$message.success(
-                      lantext.words.login[this.$store.state.lanType]+
+                      lantext.words.register[this.$store.state.lanType]+
                       lantext.sentences.item_success[this.$store.state.lanType]
                     )
                   }
                   else this.$message.error(
-                    lantext.words.login[this.$store.state.lanType]+
+                    lantext.words.register[this.$store.state.lanType]+
                     lantext.sentences.item_failed[this.$store.state.lanType]
                   )
 

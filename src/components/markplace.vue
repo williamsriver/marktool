@@ -20,14 +20,14 @@
           <v-row>
             <v-col cols="3">
               <v-card class="ma-0" flat>
-                <v-main>FR</v-main> <v-divider></v-divider>
+                <v-main>{{lantext.words.FR[$store.state.lanType]}}</v-main> <v-divider></v-divider>
                 <v-chip
                   class="ma-2" @click="$store.state.isSaved = false, $store.state.tagValue = 0"
                   :color="$store.state.tagValue===0?tagsInfo.colors[0]:'grey'" text-color="white">
                   <v-avatar left v-if="$store.state.tagValue===0"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
                   {{lantext.tagwords.tags[$store.state.lanType][0]}}
                 </v-chip>
-                <v-main>NFR</v-main> <v-divider></v-divider>
+                <v-main>{{lantext.words.NFR[$store.state.lanType]}}</v-main> <v-divider></v-divider>
                 <v-chip
                   v-for="index in 8" :key="index" class="ma-2"
                   @click="$store.state.isSaved = false, $store.state.tagValue = index"
@@ -35,7 +35,7 @@
                   <v-avatar left v-if="$store.state.tagValue===index"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
                   <v-main>{{lantext.tagwords.tags[$store.state.lanType][index]}}</v-main>
                 </v-chip>
-                <v-main>others</v-main> <v-divider></v-divider>
+                <v-main>{{lantext.words.others[$store.state.lanType]}}</v-main> <v-divider></v-divider>
                 <v-chip
                   v-for="index in 2" :key="index+8" class="ma-2"
                   @click="$store.state.isSaved = false, $store.state.tagValue = index+8"
@@ -63,7 +63,8 @@
                 <v-row>
                   <v-col>
                     <v-main class="font-weight-black text-h6" >
-                      {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}标签说明
+                      {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}
+                      {{lantext.words.tag_description[$store.state.lanType]}}
                     </v-main>
                     <v-virtual-scroll
                       v-if="$store.state.tagValue>=0"
@@ -87,20 +88,21 @@
                   <v-row>
                     <v-col>
                       <v-main class="font-weight-black text-h6">
-                        {{lantext.words.title[$store.state.lanType]}} : {{currentComment.title}}
+                        {{lantext.words.title[$store.state.lanType]}} : {{currentComment.title||"--"}}
                       </v-main>
                       <v-main class="font-weight-black">
-                        {{lantext.words.version_info[$store.state.lanType]}} : {{currentComment.version_info}}
+                        {{lantext.words.version_info[$store.state.lanType]}} : {{currentComment.version_info||"--"}}
                       </v-main>
                       <v-main class="font-weight-black">
-                        {{lantext.words.date_info[$store.state.lanType]}} : {{currentComment.datetime_info}}
+                        {{lantext.words.date_info[$store.state.lanType]}} : {{currentComment.datetime_info||"--"}}
                       </v-main>
                       <v-main class="font-weight-black">
-                        {{lantext.words.rating[$store.state.lanType]}} : {{currentComment.rank_level}}
+                        {{lantext.words.rating[$store.state.lanType]}} : {{currentComment.rank_level||"--"}}
                       </v-main>
                       <v-main class="font-weight-black">
-                        {{lantext.words.view[$store.state.lanType]+" value"}} :
-                        {{currentComment.tag_result}}
+                        {{lantext.words.view[$store.state.lanType]+" "+lantext.words.value[$store.state.lanType]}} :
+                        {{currentComment.tag_result === -1?"--"
+                        :lantext.tagwords[$store.state.lanType][currentComment.tag_result]}}
                       </v-main>
                       <v-main class="font-weight-black">
                         {{lantext.words.content[$store.state.lanType]}} :

@@ -23,6 +23,7 @@
         <v-col>
 
           <v-data-table
+            :loading="$store.state.startLoading>$store.state.endLoading"
             :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
             :items="$store.state.dataTree"
             :items-per-page="5"
@@ -32,8 +33,13 @@
           >
 
 
+            <template v-slot:item.uploadUserName="{item}">
+              {{$store.state.currentuser}}
+            </template>
+
             <template v-slot:item.buttons="{item}">
-                <v-btn text @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true">
+                <v-btn text @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true"
+                  :disabled="$store.state.startLoading!==$store.state.endLoading">
                   <span class="mdi mdi-pen-plus"></span>
                   {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}
                 </v-btn>
@@ -127,7 +133,6 @@
           this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',
             {params:{username:this.$store.state.currentuser} })
             .then(response =>{
-              console.log(response)
               if (response.data.Details) {
                 response.data.Details.comment_list_id.forEach(id => {
                   if (this.$store.state.dataSetIdList.indexOf(id) === -1) {
@@ -140,6 +145,7 @@
                         dataSetIndex : this.$store.state.dataTree.length,
                         commentIdList : [],
                         comments: [],
+                        fileName : "undefined",
                       },
                     });
                   }
@@ -156,13 +162,20 @@
 
 
         getCommentIdListByDataSet(dataset){
+
           this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/', {params: {list_id:dataset.dataSetId}})
             .then(response => {
+
+              if (response.data) this.$store.state.dataTree[dataset.dataSetIndex].fileName = response.data.name;
               if (response.data.comment_id_list) {
                 this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
                 this.getCommentByCommentIdList(this.$store.state.dataTree[dataset.dataSetIndex].commentList);
               }
               else this.$message.error('comments id list acquiring error');
+
+              //refresh to get name
+              this.isListAlive = false;
+              this.$nextTick(()=>{ this.isListAlive = true; })
             })
             .catch(error => console.log(error))
         },

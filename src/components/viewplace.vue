@@ -2,6 +2,7 @@
 
   <v-app>
     <!--mode radio & search tab-->
+
     <v-container fluid>
       <v-row>
         <v-btn text @click="$store.state.workStatus = false">
@@ -37,6 +38,7 @@
     <!--comments table-->
     <v-data-table
       :search="'no'"
+      :loading="$store.state.startLoading>$store.state.endLoading"
       :headers="lantext.headers.viewHeaders[$store.state.lanType]"
       :custom-filter="customfilter3"
       :items="$store.state.commentTagValueList[dataSetIndex]"
@@ -44,8 +46,11 @@
       item-key="commentIndex"
       show-expand
       hide-default-footer>
+      <template v-slot:item.title="{item}">
+        {{item.title||"--"}}
+      </template>
       <template v-slot:item.viewValue="{item}">
-        {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]}}
+        {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"--"}}
       </template>
       <template v-slot:item.view="{item}" >
         <v-row :key="item.commentIndex" align="baseline">
@@ -55,7 +60,7 @@
                       v-model="temp_tagContent"></v-select>
           </v-col>
           <v-col cols="6">
-            <v-btn text @click="reviewBtnClick(item)">
+            <v-btn text @click="reviewBtnClick(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
               <v-icon>mdi-pen-plus</v-icon>
               <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?"finish":"review"}}</v-main>
             </v-btn>

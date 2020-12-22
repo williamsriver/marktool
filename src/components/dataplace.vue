@@ -2,9 +2,14 @@
   <v-app>
     <v-container fluid>
       <v-data-table
+        :loading="$store.state.startLoading>$store.state.endLoading"
         :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
         :items="$store.state.dataTree"
+        :items-per-page="5"
         hide-default-footer>
+        <template v-slot:item.uploadUserName="{item}">
+          {{$store.state.currentuser}}
+        </template>
         <template v-slot:item.buttons="{item}">
           <v-btn @click="setChart(item)" text>
             <v-icon>mdi-database</v-icon>
@@ -71,7 +76,7 @@
               cursor: 'pointer',
               dataLabels: {
                 enabled: true,
-                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                format: '<b>{point.name}</b>: {point.y}({point.percentage:.1f} %)',
                 style: {
                   color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                 }
@@ -118,7 +123,7 @@
               cursor: 'pointer',
               dataLabels: {
                 enabled: true,
-                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                format: '<b>{point.name}</b>: {point.y} ({point.percentage:.1f} %)',
                 style: {
                   color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                 }

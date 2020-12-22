@@ -7,8 +7,8 @@
 
       <v-col cols="8">
         <v-tabs fixed-tabs v-model="MenuChoose">
-          <v-tab>login</v-tab>
-          <v-tab>register</v-tab>
+          <v-tab>{{lantext.words.login[$store.state.lanType]}}</v-tab>
+          <v-tab>{{lantext.words.register[$store.state.lanType]}}</v-tab>
         </v-tabs>
       </v-col>
 
@@ -265,19 +265,19 @@
                 let formData1 = new FormData()
                 formData1.append('username', this.username)
                 formData1.append('password', this.userpassword)
-                //formData1.append('user_level', 1)
+                formData1.append('user_level', 2)
                 this.axios.post('http://tonycoder.ziqiang.net.cn:8080/register/', formData1)
                   .then(function (response) {
                     console.log(response);
                     if (response.data.Msg === 'Register Succeeded.') {
                       const that =this
                       this.$message.success(
-                        lantext.words.login[this.$store.state.lanType]+
+                        lantext.words.register[this.$store.state.lanType]+
                         lantext.sentences.item_success[this.$store.state.lanType]
                       )
                     }
                     else this.$message.error(
-                      lantext.words.login[this.$store.state.lanType]+
+                      lantext.words.register[this.$store.state.lanType]+
                       lantext.sentences.item_failed[this.$store.state.lanType]
                     )
 
