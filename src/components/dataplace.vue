@@ -6,7 +6,7 @@
         :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
         :items="$store.state.dataTree"
         :items-per-page="5"
-        hide-default-footer>
+      >
         <template v-slot:item.uploadUserName="{item}">
           {{$store.state.currentuser}}
         </template>
@@ -78,12 +78,14 @@
                 enabled: true,
                 format: '<b>{point.name}</b>: {point.y}({point.percentage:.1f} %)',
                 style: {
-                  color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                  color: (Highcharts.theme && Highcharts.theme.contrastTextColor)
                 }
               },
               showInLegend: true
             }
           },
+          colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00',
+            '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
           series: [{
             name:"Functional",
             colorByPoint: true,
@@ -125,12 +127,14 @@
                 enabled: true,
                 format: '<b>{point.name}</b>: {point.y} ({point.percentage:.1f} %)',
                 style: {
-                  color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                  color: (Highcharts.theme && Highcharts.theme.contrastTextColor)
                 }
               },
               showInLegend: true
             }
           },
+          colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00',
+            '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
           series: [{
             colorByPoint: true,
 
@@ -167,14 +171,15 @@
           }
 
           this.chart2_config.title.text = "标签分布情况"
-
           this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
-            console.log(tag)
+
+
             let temp_num = this.getTagValue(tag);
+            //console.log(tag, temp_num);
             if (temp_num>=0) this.chart1_config.series[0].data[temp_num].y++;
             if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
             else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-            else this.chart2_config.series[0].data[1].y++;
+            else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
           });
 
           this.chart1 = Highcharts.chart('chartshow',this.chart1_config);

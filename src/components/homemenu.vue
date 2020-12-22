@@ -105,7 +105,7 @@
             @click="list_chosen=index">
             <v-list-item-icon> <v-icon>{{ item.icon }}</v-icon> </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>{{ item.title }}</v-list-item-title>
+              <v-list-item-title>{{ item.title[$store.state.lanType] }}</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -163,24 +163,24 @@
 
         items:[
           [
-            { title: 'Mark', icon: 'mdi-pen'},
-            { title: 'Data', icon: 'mdi-image' },
-            { title: 'Upload Data', icon: 'mdi-content-save' },
-            { title: 'Log-out', icon: 'mdi-logout'},
-            { title: 'Get DataSet', icon: 'mdi-image'},
+            { title: ['Mark','标记'], icon: 'mdi-pen'},
+            { title: ['Data','数据'], icon: 'mdi-image' },
+            { title: ['Upload Data','更新数据'], icon: 'mdi-content-save' },
+            { title: ['Log-out','登出'], icon: 'mdi-logout'},
+            { title: ['Get DataSet','获取数据'], icon: 'mdi-image'},
 
           ],
           [
-            { title: 'Review', icon: 'mdi-pen-plus'},
-            { title: 'Data', icon: 'mdi-image' },
-            { title: 'Upload Data', icon: 'mdi-content-save' },
-            { title: 'Log-out', icon: 'mdi-logout'},
-            { title: 'Get DataSet', icon: 'mdi-image'},
+            { title: ['Review','审阅'], icon: 'mdi-pen-plus'},
+            { title: ['Data','数据'], icon: 'mdi-image' },
+            { title: ['Upload Data','更新数据'], icon: 'mdi-content-save' },
+            { title: ['Log-out','登出'], icon: 'mdi-logout'},
+            { title: ['Get DataSet','获取数据'], icon: 'mdi-image'},
           ],
           [
-            { title: 'Upgrade User', icon: 'mdi-pen'},
-            { title: 'View All the List', icon: 'mdi-image' },
-            { title: 'Log-out', icon: 'mdi-logout'},
+            { title: ['Upgrade User','更新用户'], icon: 'mdi-pen'},
+            { title: ['View All the List','全部列表'], icon: 'mdi-image' },
+            { title: ['Log-out','登出'], icon: 'mdi-logout'},
           ],
         ],
       }),
@@ -203,7 +203,7 @@
       watch:{
           list_chosen(value){
             this.$store.state.workStatus = false;
-            if (this.items[this.$store.state.user_level][value].title==='Log-out') this.logoutOperation();
+            if (this.items[this.$store.state.user_level][value].title[0]==='Log-out') this.logoutOperation();
           }
       },
       methods:{
