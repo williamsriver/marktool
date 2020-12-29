@@ -11,7 +11,7 @@
 </template>
 
 <script>
-  import lantext from "./lantext";
+  import lantext from "../lib/lantext";
     export default {
         name: "getFile",
       data:()=>({
