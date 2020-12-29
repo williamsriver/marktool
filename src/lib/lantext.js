@@ -238,6 +238,8 @@ const lantext={
   },
 
   words:{
+    datasetID:["dataset ID","数据集ID"],
+    getDataSet:["get dataset","获取数据集"],
     tag_description:['tag description','标签说明'],
     others:['others','其他需求'],
     FR:['FR','功能性需求'],
