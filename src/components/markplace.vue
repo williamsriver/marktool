@@ -1,11 +1,10 @@
 <template>
   <v-app>
-
-    <v-container fluid class="pa-0">
+    <v-container fluid  class="pa-0">
       <v-row dense>
         <v-col  cols="10" class="pa-0">
           <v-container fluid>
-            <v-row dense align="baseline">
+            <v-row dense  align="baseline">
               <v-btn text @click="$store.state.startLoading=0, $store.state.endLoading=0, $store.state.workStatus = false">
                 <v-icon>mdi-arrow-left</v-icon>
                 <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
@@ -17,7 +16,7 @@
               <v-icon>mdi-clock</v-icon>
               {{markHour}}:{{markMin}}:{{markSec}}
             </v-row>
-          <v-row>
+            <v-row >
             <v-col cols="3">
               <v-card class="ma-0" flat>
                 <v-main>{{lantext.words.FR[$store.state.lanType]}}</v-main> <v-divider></v-divider>
@@ -45,8 +44,8 @@
                 </v-chip>
               </v-card>
             </v-col>
-            <v-col cols="9" v-if="currentComment">
-              <v-container class="pa-0">
+            <v-col cols="9" v-if="currentComment!==null">
+              <v-container class="pa-0" >
                 <v-row align="baseline" v-show="$store.state.tagValue>=0" dense>
                   <v-col>
                     <v-chip class="ma-2" :color="tagsInfo.colors[$store.state.tagValue]" text-color="white">
@@ -80,37 +79,33 @@
                   </v-col>
 
                 </v-row>
-
-
-
-
-                <v-card>
+                <v-card >
                   <v-row>
+
                     <v-col>
-                      <v-main class="font-weight-black text-h6">
+                      <v-main class="font-weight-black text-h6" >
                         {{lantext.words.title[$store.state.lanType]}} : {{currentComment.title||"--"}}
                       </v-main>
-                      <v-main class="font-weight-black">
+                      <v-main  class="font-weight-black" >
                         {{lantext.words.version_info[$store.state.lanType]}} : {{currentComment.version_info||"--"}}
                       </v-main>
-                      <v-main class="font-weight-black">
+                      <v-main v-if="false" class="font-weight-black" >
                         {{lantext.words.date_info[$store.state.lanType]}} : {{currentComment.datetime_info||"--"}}
                       </v-main>
-                      <v-main class="font-weight-black">
+                      <v-main v-if="false" class="font-weight-black" >
                         {{lantext.words.rating[$store.state.lanType]}} : {{currentComment.rank_level||"--"}}
                       </v-main>
-                      <v-main class="font-weight-black">
+                      <v-main v-if="false" class="font-weight-black" >
                         {{lantext.words.view[$store.state.lanType]+" "+lantext.words.value[$store.state.lanType]}} :
                         {{currentComment.tag_result === -1?"--"
-                        :lantext.tagwords[$store.state.lanType][currentComment.tag_result]}}
+                        :lantext.tagwords.tags[$store.state.lanType][currentComment.tag_result]}}
                       </v-main>
-                      <v-main class="font-weight-black">
+                      <v-main v-if="false" class="font-weight-black" >
                         {{lantext.words.content[$store.state.lanType]}} :
                       </v-main >
-                      <span >{{currentComment.content}}</span>
+                      <span v-if="false">{{currentComment.content}}</span>
                     </v-col>
                     <v-col>
-
                       <v-textarea
                         :label="lantext.words.remark[$store.state.lanType]"
                         v-model="remarkContent" outlined full-width>
@@ -372,7 +367,9 @@
 
           if (this.loadFinish){
             this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
-            this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
+            if (this.commentsTotalNum!==0) {
+              this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
+            }
           }
           this.maxPtr = Math.max(this.maxPtr, value);
 
