@@ -2,25 +2,29 @@
   <v-app>
     <!--系统栏-->
     <v-system-bar
-      style="background-image: linear-gradient(to right, #c31432 , #240b36)" height="43">
+      color="#999999"
+      style="color:white;"
+       height="43">
       <v-row>
 
         <v-col cols="5" align-self="center">
-          <v-main class="text-left" style="color: white">{{lantext.words.system_title[this.$store.state.lanType]}}</v-main>
+          <v-main class="text-left" >{{lantext.words.system_title[this.$store.state.lanType]}}</v-main>
         </v-col>
 
         <v-spacer></v-spacer>
 
         <v-col cols="2" align-self="center">
           <v-select
-            dense filled flat hide-details dark
+            dense filled flat hide-details
+            dark
+            color="white"
             v-model="lanValue"
             :items="lanlist">
           </v-select>
         </v-col>
 
         <v-col cols="1" align-self="center">
-          <span style="color: white">{{nowtime}}</span>
+          <span >{{nowtime}}</span>
         </v-col>
 
       </v-row>

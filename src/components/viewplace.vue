@@ -62,11 +62,12 @@
           <v-col cols="6">
             <v-btn text @click="reviewBtnClick(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
               <v-icon>mdi-pen-plus</v-icon>
-              <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?"finish":"review"}}</v-main>
+              <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?
+                lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
             </v-btn>
             <v-btn text v-show="tagResultModifying  && modifyPtr===item.commentIndex" @click="tagResultModifying = false">
               <v-icon class="mdi-backspace">mdi-backspace</v-icon>
-              <v-main>cancel</v-main>
+              <v-main>{{lantext.words.cancel[$store.state.lanType]}}</v-main>
             </v-btn>
           </v-col>
         </v-row>

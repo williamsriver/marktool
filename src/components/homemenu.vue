@@ -1,56 +1,34 @@
 <template>
 <v-app>
 
-  <v-container v-show="!$store.state.loginstatus" fluid>
-    <v-row>
-      <v-col></v-col>
-
-      <v-col cols="8">
+  <v-container v-show="!$store.state.loginstatus" style="margin: 0 auto">
         <v-tabs fixed-tabs v-model="MenuChoose">
           <v-tab>{{lantext.words.login[$store.state.lanType]}}</v-tab>
           <v-tab>{{lantext.words.register[$store.state.lanType]}}</v-tab>
         </v-tabs>
-      </v-col>
-
-      <v-col></v-col>
-    </v-row>
-
-    <v-row>
-      <v-col></v-col>
-
-      <v-col cols="8">
 
         <v-tabs-items v-model="MenuChoose">
           <v-tab-item>
-            <v-card elevation="0">
-              <v-card-text>
                 <v-text-field
-                  v-model="inputUsername" :label="lantext.words.username[$store.state.lanType]"
+                  clearable
+                  v-model="loginUsername" :label="lantext.words.username[$store.state.lanType]"
                   @click:append="Login_showpassword = !Login_showpassword">
                 </v-text-field>
-              </v-card-text>
 
-              <v-card-text>
                 <v-text-field
-                  v-model="inputPassword"
+                  clearable
+                  v-model="loginPassword"
                   :append-icon="Login_showpassword ? 'mdi-eye' : 'mdi-eye-off'"
                   :type="Login_showpassword ? 'text' : 'password'"
                   :label="lantext.words.password[$store.state.lanType]"
                   @click:append="Login_showpassword = !Login_showpassword">
                 </v-text-field>
-              </v-card-text>
+              <v-row></v-row>
 
 
-              <v-card-actions>
-                <v-btn @click="loginadmit">{{lantext.words.login[$store.state.lanType]}}</v-btn>
-                <v-spacer></v-spacer>
-              </v-card-actions>
-
-            </v-card>
           </v-tab-item>
 
           <v-tab-item>
-            <v-card elevation="0">
               <v-text-field
                 v-model="username"
                 :label="lantext.words.username[$store.state.lanType]"
@@ -72,41 +50,32 @@
                 :rules="[rules.sameCheck(passwordmatch,userpassword)]"
                 :label="lantext.words.confirm[$store.state.lanType] + ' ' + lantext.words.password[$store.state.lanType]">
               </v-text-field>
-
-              <v-card-actions>
-                <v-btn :disabled="!registerValid" @click="registerOpr">{{lantext.words.register[$store.state.lanType]}}</v-btn>
-              </v-card-actions>
-
-            </v-card>
-
           </v-tab-item>
         </v-tabs-items>
 
-
-
-      </v-col>
-
-      <v-col></v-col>
-    </v-row>
-
+        <v-btn width="100%" :color="MenuChoose===0?'green':'blue'" style="color:white;"
+               :disabled="MenuChoose===0?!loginValid:!registerValid"
+               @click="MenuChoose===0?loginadmit():registerOpr()">
+          <v-icon>mdi-arrow-right</v-icon>
+        </v-btn>
 
   </v-container>
 
-  <v-container v-show="$store.state.loginstatus" fluid>
+  <v-container v-show="$store.state.loginstatus" fluid style="padding-top: 0">
     <v-row>
       <v-navigation-drawer permanent width="200">
-        <v-list dense nav>
-          <v-list-item-title class="title">{{$store.state.currentuser}}</v-list-item-title>
-          <v-list-item-subtitle>{{UserType}}</v-list-item-subtitle>
-          <v-divider></v-divider>
+        <v-list dense >
+          <v-list-item-title class="title" style="text-align: center">{{$store.state.currentuser}}</v-list-item-title>
+          <v-list-item-subtitle style="text-align: center">{{lantext.words[String(UserType)]!== undefined?
+            lantext.words[String(UserType)][$store.state.lanType]:"Unknown"}}</v-list-item-subtitle>
           <v-list-item
             v-for="(item,index) in items[$store.state.user_level]"
-            :key="item.title" link
+            :key="index" link
             @click="list_chosen=index">
-            <v-list-item-icon> <v-icon>{{ item.icon }}</v-icon> </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>{{ item.title[$store.state.lanType] }}</v-list-item-title>
-            </v-list-item-content>
+            <v-row>
+              <v-col><v-icon>{{ item.icon }}</v-icon></v-col>
+              <v-col>{{ item.title[$store.state.lanType] }}</v-col>
+            </v-row>
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
@@ -116,8 +85,6 @@
         <admin v-show="list_chosen===0 && $store.state.user_level===2"></admin>
         <all-list v-show="list_chosen===1 && $store.state.user_level===2"
                   :enable="$store.state.user_level===2 && list_chosen===1 "></all-list>
-        <upfile v-show="list_chosen===2 && $store.state.user_level<2"></upfile>
-        <get-file v-show="list_chosen===4 && $store.state.user_level<2"></get-file>
       </v-col>
     </v-row>
   </v-container>
@@ -141,8 +108,8 @@
       data:()=>({
         list_chosen:"",
         lantext:lantext,
-        inputUsername:'',
-        inputPassword:'',
+        loginUsername:'',
+        loginPassword:'',
         Login_showpassword:false,
         MenuChoose:0,
         rules: {
@@ -163,19 +130,15 @@
 
         items:[
           [
-            { title: ['Mark','标记'], icon: 'mdi-pen'},
-            { title: ['Data','数据'], icon: 'mdi-image' },
-            { title: ['Upload Data','更新数据'], icon: 'mdi-content-save' },
+            { title: ['Mark','标注'], icon: 'mdi-pen'},
+            { title: ['Data','统计'], icon: 'mdi-image' },
             { title: ['Log-out','登出'], icon: 'mdi-logout'},
-            { title: ['Get DataSet','获取数据'], icon: 'mdi-image'},
 
           ],
           [
             { title: ['Review','审阅'], icon: 'mdi-pen-plus'},
-            { title: ['Data','数据'], icon: 'mdi-image' },
-            { title: ['Upload Data','更新数据'], icon: 'mdi-content-save' },
+            { title: ['Data','统计'], icon: 'mdi-image' },
             { title: ['Log-out','登出'], icon: 'mdi-logout'},
-            { title: ['Get DataSet','获取数据'], icon: 'mdi-image'},
           ],
           [
             { title: ['Upgrade User','更新用户'], icon: 'mdi-pen'},
@@ -189,13 +152,16 @@
           return(this.username!=='' && this.userpassword === this.passwordmatch
             && this.userpassword !== '')
         },
+        loginValid(){
+          return(this.loginUsername!=='' && this.loginPassword !== '')
+        },
         UserType(){
           console.log(this.$store.state.user_level);
           switch(this.$store.state.user_level){
 
-            case 0:return "Marker";
-            case 1:return "Viewer";
-            case 2:return "Admin";
+            case 0:return "marker";
+            case 1:return "reviewer";
+            case 2:return "admin";
             default:return "Unknown";
           }
         }
@@ -203,6 +169,7 @@
       watch:{
           list_chosen(value){
             this.$store.state.workStatus = false;
+            console.log(this.items[this.$store.state.user_level][value].title[0]==='Log-out')
             if (this.items[this.$store.state.user_level][value].title[0]==='Log-out') this.logoutOperation();
           }
       },
@@ -211,8 +178,8 @@
         loginadmit(){
           //请求登录
           let formData1 = new FormData();
-          formData1.append('username',this.inputUsername)
-          formData1.append('password',this.inputPassword)
+          formData1.append('username',this.loginUsername)
+          formData1.append('password',this.loginPassword)
           this.axios.post('http://tonycoder.ziqiang.net.cn:8080/login/',formData1)
             .then(function (response) {
               console.log(response)
@@ -229,8 +196,8 @@
                 this.$store.state.user_level = response.data.user_level;
                 this.$store.state.loginstatus = true
 
-                this.inputUsername = ''
-                this.inputPassword = ''
+                this.loginUsername = ''
+                this.loginPassword = ''
 
               }
               else this.$message.error(

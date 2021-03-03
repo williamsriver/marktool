@@ -1,19 +1,27 @@
 <template>
-  <v-app>
     <v-container>
-      <v-btn @click="showFile">show</v-btn>
-      <v-file-input type="file" v-model="myFile"></v-file-input>
-      <v-text-field label="File Name" v-model="fileName"></v-text-field>
-      <v-btn @click="upLoadFile(myFile,fileName)">upload</v-btn>
+      <v-main>{{lantext.words.upload_file[$store.state.lanType]}}</v-main>
+      <v-row>
+        <v-col> <v-file-input type="file" v-model="myFile"></v-file-input> </v-col>
+        <v-col> <v-text-field label="File Name" v-model="fileName"></v-text-field> </v-col>
+
+        <v-col>
+          <v-btn @click="upLoadFile(myFile,fileName)">
+            {{lantext.words.upload[$store.state.lanType]}}
+          </v-btn>
+        </v-col>
+      </v-row>
     </v-container>
 
-  </v-app>
 </template>
 
 <script>
+    import lantext from "../lib/lantext";
+
     export default {
         name: "upfile",
       data:()=>({
+        lantext:lantext,
         fileName:"",
         myFile:null,
       }),
@@ -28,9 +36,6 @@
           }
       },
       methods:{
-        showFile(){
-          console.log(this.myFile);
-        },
         upLoadFile(file, name){
           console.log(file, name)
           let formData1 = new FormData();

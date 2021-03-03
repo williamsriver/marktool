@@ -1,12 +1,8 @@
 <template>
   <v-container>
-    <v-card>
-      <v-card-title>{{lantext.words.getDataSet[$store.state.lanType]}}</v-card-title>
-      <v-text-field :label="lantext.words.datasetID[$store.state.lanType]" v-model="temp_dataSetId"></v-text-field>
-      <v-card-actions>
-        <v-btn @click="relateDataSet">{{lantext.words.getDataSet[$store.state.lanType]}}</v-btn>
-      </v-card-actions>
-    </v-card>
+    <v-main>{{lantext.words.get_file[$store.state.lanType]}}</v-main>
+    <v-text-field :label="lantext.words.datasetID[$store.state.lanType]" v-model="temp_dataSetId"></v-text-field>
+    <v-btn @click="relateDataSet">{{lantext.words.getDataSet[$store.state.lanType]}}</v-btn>
   </v-container>
 </template>
 

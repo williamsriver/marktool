@@ -2,19 +2,23 @@
   <v-app>
 
     <v-container fluid>
-      <v-main class="text-h3">升级用户</v-main>
-      <v-text-field label="用户名" v-model="userName"></v-text-field>
-      <v-btn @click="userUpdate(userName)">升级用户</v-btn>
+      <v-main class="text-h3">{{lantext.words.upgrade[$store.state.lanType]+" "}}
+        {{lantext.words.user[$store.state.lanType]}}</v-main>
+      <v-text-field :label="lantext.words.username[$store.state.lanType]" v-model="userName"></v-text-field>
+      <v-btn @click="userUpdate(userName)">{{lantext.words.upgrade[$store.state.lanType]+" "}}
+        {{lantext.words.user[$store.state.lanType]}}</v-btn>
     </v-container>
 
   </v-app>
 </template>
 
 <script>
+  import lantext from "../lib/lantext";
     export default {
       name: "admin",
       data:()=>({
         userName:"",
+        lantext,
       }),
       methods:{
           userUpdate(userName){

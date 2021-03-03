@@ -21,13 +21,21 @@
     <v-container fluid>
       <v-row>
         <v-col>
+          <div style="text-align: center">{{lantext.sentences.tags_distribution[$store.state.lanType]}}</div>
           <div id="chartshow2"></div>
         </v-col>
         <v-col>
+          <div style="text-align: center">NFR{{" "+lantext.sentences.tags_distribution[$store.state.lanType]}}</div>
           <div id="chartshow"></div>
         </v-col>
       </v-row>
     </v-container>
+    <v-container>
+      <upfile></upfile>
+      <all-dataset-table></all-dataset-table>
+    </v-container>
+
+
 
   </v-app>
 </template>
@@ -42,7 +50,9 @@
   HighchartsDrilldown(Highcharts);
   Highcharts3D(Highcharts);
   import lantext from "../lib/lantext";
-  import store from "../store";
+  import GetFile from "./getFile";
+  import upfile from "./upfile";
+  import allDatasetTable from "./allDatasetTable";
     export default {
         name: "dataplace",
       props:{
@@ -51,6 +61,7 @@
           required:true,
         }
       },
+      components: {GetFile, upfile,allDatasetTable},
       data:()=>({
         lantext:lantext,
         list_choosen:-1,
@@ -65,7 +76,7 @@
             type: 'pie'
           },
           title: {
-            text: 'NFR类型标签分布情况'
+            text:''
           },
           tooltip: {
             pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -114,7 +125,7 @@
             type: 'pie'
           },
           title: {
-            text: ''
+            text:''
           },
           tooltip: {
             pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -170,7 +181,6 @@
             this.chart2_config.series[0].data[j].name = lantext.tagwords.class[this.$store.state.lanType][j];
           }
 
-          this.chart2_config.title.text = "标签分布情况"
           this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
 
 

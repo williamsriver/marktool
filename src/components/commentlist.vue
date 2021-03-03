@@ -3,25 +3,20 @@
 
     <!--search tab && table-->
     <v-container fluid v-show="!$store.state.workStatus">
-        <v-row align="baseline">
-          <v-col cols="3">
-            <v-btn text @click="refreshCommentList">
+      <v-row align="baseline">
+        <v-col cols="3">
+          <v-btn text @click="refreshCommentList">
               <v-icon>mdi-refresh</v-icon>
               {{lantext.sentences.reload_data[$store.state.lanType]}}
             </v-btn>
-          </v-col>
-          <v-col></v-col>
-          <v-col cols="5">
+        </v-col>
+        <v-col></v-col>
+      </v-row>
+
+      <v-row>
+        <v-col>
           <v-text-field v-model="listSrchString" append-icon="mdi-magnify"
                         :label="lantext.words.search[$store.state.lanType]"></v-text-field>
-          </v-col>
-        </v-row>
-    </v-container>
-    <v-container fluid v-show="!$store.state.workStatus">
-      <v-row>
-
-        <v-col>
-
           <v-data-table
             :loading="$store.state.startLoading>$store.state.endLoading"
             :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
@@ -32,23 +27,17 @@
             v-if="isListAlive"
           >
 
-
-            <template v-slot:item.uploadUserName="{item}">
-              {{$store.state.currentuser}}
-            </template>
-
             <template v-slot:item.buttons="{item}">
-                <v-btn text @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true"
-                  :disabled="$store.state.startLoading!==$store.state.endLoading">
-                  <span class="mdi mdi-pen-plus"></span>
+              <div style="justify-content: space-around">
+                <v-btn color="blue" @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true"
+                       style="color: white"
+                       :disabled="$store.state.startLoading!==$store.state.endLoading">
                   {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}
                 </v-btn>
-
-              <v-btn text @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
-                <span class="mdi mdi-share"></span>
-                share
-              </v-btn>
-
+                <v-btn color="orange" style="color: white" @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
+                  {{lantext.words.share[$store.state.lanType]}}
+                </v-btn>
+              </div>
             </template>
 
           </v-data-table>
@@ -68,17 +57,19 @@
 
     <v-overlay v-show="shareOverlay">
       <v-card>
-        <v-main>
-          <v-spacer></v-spacer>
-          <v-btn @click="shareOverlay = false">
+        <div>
+          <v-btn @click="shareOverlay = false" absolute right>
             <span class="mdi mdi-close"></span>
           </v-btn>
-        </v-main>
-        <v-card-title>share dataset</v-card-title>
-        <v-text-field label="shared user" v-model="temp_username"></v-text-field>
-        <v-text-field label="dataset ID" v-model="temp_dataSetId"></v-text-field>
+        </div>
+        <v-spacer style="height: 40px;"></v-spacer>
+        <v-card-title>{{lantext.words.share[$store.state.lanType]
+          +" "+lantext.words.dataset[$store.state.lanType]}}</v-card-title>
+        <v-text-field :label="lantext.words.share[$store.state.lanType]
+        +' '+lantext.words.username[$store.state.lanType]"  v-model="temp_username"></v-text-field>
+        <v-text-field :label="lantext.words.dataset[$store.state.lanType]+' ID'" v-model="temp_dataSetId"></v-text-field>
         <v-card-actions>
-          <v-btn @click="relateDataSet">share dataset</v-btn>
+          <v-btn @click="relateDataSet">{{lantext.words.share[$store.state.lanType]}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-overlay>
@@ -108,16 +99,6 @@
         temp_username:"",
         temp_dataSetId: "",
       }),
-      watch:{
-        enable:{
-          handler(val){
-            console.log('value ',val);
-            if (val) this.refreshCommentList();
-          },
-          immediate:true,
-        },
-
-      },
       methods:{
         refreshCommentList(){
           this.$store.state.dataTree = [];

@@ -5,13 +5,11 @@ const lantext={
       [
         {text:'List ID',value:'dataSetId'},
         {text: 'Name',value: 'fileName'},
-        {text: 'User Name',value: 'uploadUserName'},
         {text: '',sortable:false,value: 'buttons'}
       ],
       [
         {text:'评论集ID',value:'dataSetId'},
         {text: '文件名',value: 'fileName'},
-        {text: '用户名',value: 'uploadUserName'},
         {text: '',sortable:false,value: 'buttons'}
       ],
     ],
@@ -238,6 +236,15 @@ const lantext={
   },
 
   words:{
+    dataset:["dataset","数据集"],
+    user:["user","用户"],
+    upgrade:["upgrade","升级"],
+    review:["review", "审阅"],
+    share:["share","分享"],
+    upload_file:["upload file","上传文件"],
+    get_file:["get file","获取数据集"],
+    marker:["marker","标注者"],
+    reviewer:["reviewer","审阅者"],
     datasetID:["dataset ID","数据集ID"],
     getDataSet:["get dataset","获取数据集"],
     tag_description:['tag description','标签说明'],
@@ -315,6 +322,9 @@ const lantext={
     user_duplicated:['user duplicated','用户重复'],
     passwords_different:['passwords different','密码错误'],
     least_eight_words:['at least 8 words','至少8个字符'],
+    get_dataset:["get dataset","获取数据集"],
+    tags_distribution:["tags distribution","标签分布情况"],
+
   }
 }
 

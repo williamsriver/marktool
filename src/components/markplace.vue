@@ -9,15 +9,18 @@
                 <v-icon>mdi-arrow-left</v-icon>
                 <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
               </v-btn>
-              <v-icon>mdi-pen</v-icon>
+              <v-col cols="1">
+                <v-text-field v-model="ptr" ></v-text-field>
+              </v-col>
+
               <span>{{$store.state.startLoading===$store.state.endLoading?
-                ptr+1+'/'+commentsTotalNum:"Loading:"+$store.state.endLoading+'/'+$store.state.startLoading}}</span>
-              <v-col><v-progress-linear height="6"  :value="((ptr+1)/commentsTotalNum)*100"></v-progress-linear></v-col>
+                ptr+'/'+(commentsTotalNum-1) :"Loading:"+$store.state.endLoading+'/'+$store.state.startLoading}}</span>
+              <v-col><v-progress-linear height="6"  :value="(ptr/(commentsTotalNum-1))*100"></v-progress-linear></v-col>
               <v-icon>mdi-clock</v-icon>
               {{markHour}}:{{markMin}}:{{markSec}}
             </v-row>
             <v-row >
-            <v-col cols="3">
+            <v-col cols="4">
               <v-card class="ma-0" flat>
                 <v-main>{{lantext.words.FR[$store.state.lanType]}}</v-main> <v-divider></v-divider>
                 <v-chip
@@ -44,7 +47,7 @@
                 </v-chip>
               </v-card>
             </v-col>
-            <v-col cols="9" v-if="currentComment!==null">
+            <v-col  v-if="currentComment!==null">
               <v-container class="pa-0" >
                 <v-row align="baseline" v-show="$store.state.tagValue>=0" dense>
                   <v-col>
@@ -247,6 +250,10 @@
 
       ptr:{
         handler(value){
+          if (value>=this.commentsTotalNum) {
+            this.ptr = 0;
+            this.refreshPtr(0);
+          }
           console.log('ptr',this.enable,value)
           this.refreshPtr(value);
         },
