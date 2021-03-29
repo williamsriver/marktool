@@ -24,12 +24,10 @@ export default new Vuex.Store({
     endLoading:0,
     commentTagValueList:[],
   },
-  getters:{
-
-
-  },
   mutations:{},
   actions:{
-
+    setLoginStatus(value){
+      state.loginstatus = value;
+    }
   },
 })

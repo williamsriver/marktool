@@ -1,7 +1,8 @@
 <template>
     <v-container>
-      <v-main>{{lantext.words.upload_file[$store.state.lanType]}}</v-main>
-      <v-row>
+      <v-main class="text-h4 ma-2">{{lantext.words.upload_file[$store.state.lanType]}}</v-main>
+      <v-divider></v-divider>
+      <v-row class="ma-2">
         <v-col> <v-file-input type="file" v-model="myFile"></v-file-input> </v-col>
         <v-col> <v-text-field label="File Name" v-model="fileName"></v-text-field> </v-col>
 

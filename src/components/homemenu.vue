@@ -48,7 +48,7 @@
                 v-model="passwordmatch"
                 :type="Register_showpassword ? 'text' : 'password'"
                 :rules="[rules.sameCheck(passwordmatch,userpassword)]"
-                :label="lantext.words.confirm[$store.state.lanType] + ' ' + lantext.words.password[$store.state.lanType]">
+                :label="lantext.sentences.password_confirmation[$store.state.lanType]">
               </v-text-field>
           </v-tab-item>
         </v-tabs-items>
@@ -66,8 +66,11 @@
       <v-navigation-drawer permanent width="200">
         <v-list dense >
           <v-list-item-title class="title" style="text-align: center">{{$store.state.currentuser}}</v-list-item-title>
-          <v-list-item-subtitle style="text-align: center">{{lantext.words[String(UserType)]!== undefined?
+          <v-list-item-subtitle style="text-align: center" v-show="UserType!=='marker'">{{
+            lantext.words[String(UserType)]!== undefined?
             lantext.words[String(UserType)][$store.state.lanType]:"Unknown"}}</v-list-item-subtitle>
+          <v-list-item-subtitle style="text-align: center" v-show="UserType==='marker'">{{
+            $store.state.lanType===0?'coder':'标注者'}}</v-list-item-subtitle>
           <v-list-item
             v-for="(item,index) in items[$store.state.user_level]"
             :key="index" link
@@ -102,6 +105,8 @@
   import upfile from "./upfile";
   import getFile from "./getFile";
   import GetFile from "./getFile";
+
+  import Methods from "../lib/operationsLib"
     export default {
         name: "homemenu",
       components: {GetFile, AllList, Dataplace, Commentlist,  admin, upfile},
@@ -130,9 +135,9 @@
 
         items:[
           [
-            { title: ['Mark','标注'], icon: 'mdi-pen'},
-            { title: ['Data','统计'], icon: 'mdi-image' },
-            { title: ['Log-out','登出'], icon: 'mdi-logout'},
+            { title: ['Labeling','标注'], icon: 'mdi-pen'},
+            { title: ['Statistic','统计'], icon: 'mdi-image' },
+            { title: ['Logout','登出'], icon: 'mdi-logout'},
 
           ],
           [
@@ -170,7 +175,7 @@
           list_chosen(value){
             this.$store.state.workStatus = false;
             console.log(this.items[this.$store.state.user_level][value].title[0]==='Log-out')
-            if (this.items[this.$store.state.user_level][value].title[0]==='Log-out') this.logoutOperation();
+            if (this.items[this.$store.state.user_level][value].title[0]==='Log-out') this.logOut();
           }
       },
       methods:{
@@ -264,22 +269,22 @@
 
         },
 
-        logoutOperation(){
+
+
+        logOut() {
           try {
             this.loginstatus = false
             this.$store.state.loginstatus = false
             this.$message.success(
-              this.lantext.words.logout[this.$store.state.lanType] + ' ' +
-              this.lantext.words.success[this.$store.state.lanType]
+              lantext.words.logout[this.$store.state.lanType] + ' ' +
+              lantext.words.success[this.$store.state.lanType]
             )
-          }catch(e)
-          {
+          } catch (e) {
             this.$message.error(
-              this.lantext.words.logout[this.$store.state.lanType] +
-              this.lantext.words.fail[this.$store.state.lanType])
+              lantext.words.logout[this.$store.state.lanType] +
+              lantext.words.fail[this.$store.state.lanType])
           }
-
-        },
+        }
       }
     }
 </script>

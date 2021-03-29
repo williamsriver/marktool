@@ -1,5 +1,6 @@
 import {Message} from 'element-ui';
-import axios from 'axios'
+import axios from 'axios';
+import lantext from "./lantext";
 const message = Message;
 let methods = {
   upLoadFile(file, name){
@@ -26,6 +27,8 @@ let methods = {
 
 
     }).catch(error => console.log(error));
-  }
+  },
+
+
 }
 export default methods;

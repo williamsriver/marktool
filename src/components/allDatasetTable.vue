@@ -1,10 +1,10 @@
 <template>
 
     <v-container fluid>
-      <v-row dense>
-        <v-col> <v-btn @click="getAllList">{{lantext.sentences.reload_data[$store.state.lanType]}}</v-btn> </v-col>
-        <v-col> <v-text-field v-model="listSrchString"></v-text-field> </v-col>
-      </v-row>
+      <v-main class="text-h4 ma-2">{{lantext.sentences.get_dataset[$store.state.lanType]}}</v-main>
+      <v-divider ></v-divider>
+      <v-btn color="primary" class="ma-2" @click="getAllList">{{lantext.sentences.reload_data[$store.state.lanType]}}</v-btn> </v-col>
+
 
 
           <v-data-table

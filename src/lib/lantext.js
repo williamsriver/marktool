@@ -3,7 +3,7 @@ const lantext={
   headers:{
     ItemListHeader:[
       [
-        {text:'List ID',value:'dataSetId'},
+        {text:'Dataset ID',value:'dataSetId'},
         {text: 'Name',value: 'fileName'},
         {text: '',sortable:false,value: 'buttons'}
       ],
@@ -24,17 +24,17 @@ const lantext={
       [
 
         {text: 'comment ID',value: `comment_id`},
-        {text: 'title',value: 'title'},
+        {text: 'comment title',value: 'title'},
 
 
-        {text: 'view value',value: 'viewValue'},
+        {text: 'Suggested Label',value: 'viewValue'},
         {text: 'view',value: 'view'},
         {text: 'details',value: 'data-table-expand',sortable:false},
       ],
       [
 
         {text: '所属评论ID',value: 'comment_id'},
-        {text: '标题',value: 'title'},
+        {text: '评论标题',value: 'title'},
 
 
         {text: '审阅值',value: 'viewValue'},
@@ -236,6 +236,7 @@ const lantext={
   },
 
   words:{
+    Labeling:["Labeling","标注"],
     dataset:["dataset","数据集"],
     user:["user","用户"],
     upgrade:["upgrade","升级"],
@@ -314,6 +315,7 @@ const lantext={
   },
 
   sentences:{
+    password_confirmation:['password confirmation', '确认密码'],
     reload_data:['reload data','重新加载数据'],
     remark_replicate:['remark areas replicates','选区重复'],
     exit_work:['The mark or view unsaved will be lost, sure to exit now?','未保存的标记或审阅将会丢失，确定现在退出吗？'],
@@ -323,7 +325,8 @@ const lantext={
     passwords_different:['passwords different','密码错误'],
     least_eight_words:['at least 8 words','至少8个字符'],
     get_dataset:["get dataset","获取数据集"],
-    tags_distribution:["tags distribution","标签分布情况"],
+    tags_distribution_chart1:["Distribution of Dataset over FR/NFR/Others","标签分布情况"],
+    tags_distribution_chart2:["Distribution of Dataset over NFR Types","NFR标签分布情况"],
 
   }
 }

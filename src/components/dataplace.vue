@@ -21,11 +21,11 @@
     <v-container fluid>
       <v-row>
         <v-col>
-          <div style="text-align: center">{{lantext.sentences.tags_distribution[$store.state.lanType]}}</div>
+          <div style="text-align: center">{{lantext.sentences.tags_distribution_chart1[$store.state.lanType]}}</div>
           <div id="chartshow2"></div>
         </v-col>
         <v-col>
-          <div style="text-align: center">NFR{{" "+lantext.sentences.tags_distribution[$store.state.lanType]}}</div>
+          <div style="text-align: center">NFR{{" "+lantext.sentences.tags_distribution_chart2[$store.state.lanType]}}</div>
           <div id="chartshow"></div>
         </v-col>
       </v-row>

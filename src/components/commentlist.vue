@@ -32,7 +32,7 @@
                 <v-btn color="blue" @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true"
                        style="color: white"
                        :disabled="$store.state.startLoading!==$store.state.endLoading">
-                  {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}
+                  {{lantext.words[$store.state.user_level===0?"Labeling":"view"][$store.state.lanType]}}
                 </v-btn>
                 <v-btn color="orange" style="color: white" @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
                   {{lantext.words.share[$store.state.lanType]}}
@@ -55,18 +55,19 @@
                  :data-set-index="dataSetPtr" :enable="$store.state.workStatus" :loadFinish="$store.state.startLoading===$store.state.endLoading"></viewplace>
     </v-container>
 
-    <v-overlay v-show="shareOverlay">
-      <v-card>
+    <v-overlay v-show="shareOverlay" color="#eeeeee">
+      <v-card  width="700" height="350" light>
         <div>
-          <v-btn @click="shareOverlay = false" absolute right>
-            <span class="mdi mdi-close"></span>
+          <v-btn @click="shareOverlay = false" text absolute right>
+            <span class="mdi mdi-close" ></span>
           </v-btn>
         </div>
-        <v-spacer style="height: 40px;"></v-spacer>
-        <v-card-title>{{lantext.words.share[$store.state.lanType]
+        <v-card-title >{{lantext.words.share[$store.state.lanType]
           +" "+lantext.words.dataset[$store.state.lanType]}}</v-card-title>
+        <v-divider ></v-divider>
         <v-text-field :label="lantext.words.share[$store.state.lanType]
-        +' '+lantext.words.username[$store.state.lanType]"  v-model="temp_username"></v-text-field>
+        +' '+lantext.words.username[$store.state.lanType]"
+                      v-model="temp_username"></v-text-field>
         <v-text-field :label="lantext.words.dataset[$store.state.lanType]+' ID'" v-model="temp_dataSetId"></v-text-field>
         <v-card-actions>
           <v-btn @click="relateDataSet">{{lantext.words.share[$store.state.lanType]}}</v-btn>
