@@ -46,6 +46,25 @@
                   {{lantext.tagwords.tags[$store.state.lanType][index+8]}}
                 </v-chip>
               </v-card>
+              <v-row>
+                <v-col>
+                  <v-main class="font-weight-black text-h6" >
+                    {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}
+                  </v-main>
+                  <v-virtual-scroll
+                    v-if="$store.state.tagValue>=0"
+                    :items="lantext.tagwords.taghelpwords[$store.state.lanType][$store.state.tagValue]"
+                    :item-height="80"
+                    height="200">
+                    <template v-slot:default="{item}">
+                      <v-card :color="item.id%2===0?'white':'grey'" height="100">
+                        <span >{{item.name}}</span>
+                      </v-card>
+                    </template>
+                  </v-virtual-scroll>
+                </v-col>
+
+              </v-row>
             </v-col>
             <v-col  v-if="currentComment!==null">
               <v-container class="pa-0" >
@@ -62,26 +81,7 @@
                     <v-rating :color="$store.state.tagValue>=0?tagsInfo.colors[$store.state.tagValue]:''" hover v-model="trustRating"></v-rating>
                   </v-col>
                 </v-row>
-                <v-row>
-                  <v-col>
-                    <v-main class="font-weight-black text-h6" >
-                      {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}
-                      {{lantext.words.tag_description[$store.state.lanType]}}
-                    </v-main>
-                    <v-virtual-scroll
-                      v-if="$store.state.tagValue>=0"
-                      :items="lantext.tagwords.taghelpwords[$store.state.lanType][$store.state.tagValue]"
-                      :item-height="80"
-                      height="200">
-                      <template v-slot:default="{item}">
-                        <v-card :color="item.id%2===0?'white':'grey'" height="100">
-                          <span >{{item.name}}</span>
-                        </v-card>
-                      </template>
-                    </v-virtual-scroll>
-                  </v-col>
 
-                </v-row>
                 <v-card >
                   <v-row>
 
@@ -92,30 +92,29 @@
                       <v-main  class="font-weight-black" >
                         {{lantext.words.version_info[$store.state.lanType]}} : {{currentComment.version_info||"--"}}
                       </v-main>
-                      <v-main v-if="false" class="font-weight-black" >
+                      <v-main class="font-weight-black" >
                         {{lantext.words.date_info[$store.state.lanType]}} : {{currentComment.datetime_info||"--"}}
                       </v-main>
-                      <v-main v-if="false" class="font-weight-black" >
+                      <v-main class="font-weight-black" >
                         {{lantext.words.rating[$store.state.lanType]}} : {{currentComment.rank_level||"--"}}
                       </v-main>
-                      <v-main v-if="false" class="font-weight-black" >
+                      <v-main class="font-weight-black" >
                         {{lantext.words.view[$store.state.lanType]+" "+lantext.words.value[$store.state.lanType]}} :
                         {{currentComment.tag_result === -1?"--"
                         :lantext.tagwords.tags[$store.state.lanType][currentComment.tag_result]}}
                       </v-main>
-                      <v-main v-if="false" class="font-weight-black" >
+                      <v-main class="font-weight-black" >
                         {{lantext.words.content[$store.state.lanType]}} :
                       </v-main >
-                      <span v-if="false">{{currentComment.content}}</span>
-                    </v-col>
-                    <v-col>
-                      <v-textarea
-                        :label="lantext.words.remark[$store.state.lanType]"
-                        v-model="remarkContent" outlined full-width>
-                      </v-textarea>
-
+                      <v-main class="font-weight-black">
+                        {{currentComment.content}}
+                      </v-main>
                     </v-col>
                   </v-row>
+                  <v-textarea
+                    :label="lantext.words.remark[$store.state.lanType]"
+                    v-model="remarkContent" outlined full-width>
+                  </v-textarea>
                 </v-card>
               </v-container>
             </v-col>

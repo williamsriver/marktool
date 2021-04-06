@@ -2,6 +2,7 @@
 <v-app>
 
   <v-container v-show="!$store.state.loginstatus" style="margin: 0 auto">
+
         <v-tabs fixed-tabs v-model="MenuChoose">
           <v-tab>{{lantext.words.login[$store.state.lanType]}}</v-tab>
           <v-tab>{{lantext.words.register[$store.state.lanType]}}</v-tab>
@@ -143,12 +144,12 @@
           [
             { title: ['Review','审阅'], icon: 'mdi-pen-plus'},
             { title: ['Data','统计'], icon: 'mdi-image' },
-            { title: ['Log-out','登出'], icon: 'mdi-logout'},
+            { title: ['Logout','登出'], icon: 'mdi-logout'},
           ],
           [
             { title: ['Upgrade User','更新用户'], icon: 'mdi-pen'},
             { title: ['View All the List','全部列表'], icon: 'mdi-image' },
-            { title: ['Log-out','登出'], icon: 'mdi-logout'},
+            { title: ['Logout','登出'], icon: 'mdi-logout'},
           ],
         ],
       }),
@@ -174,8 +175,8 @@
       watch:{
           list_chosen(value){
             this.$store.state.workStatus = false;
-            console.log(this.items[this.$store.state.user_level][value].title[0]==='Log-out')
-            if (this.items[this.$store.state.user_level][value].title[0]==='Log-out') this.logOut();
+            console.log(this.items[this.$store.state.user_level][value].title[0]==='Logout')
+            if (this.items[this.$store.state.user_level][value].title[0]==='Logout') this.logOut();
           }
       },
       methods:{
