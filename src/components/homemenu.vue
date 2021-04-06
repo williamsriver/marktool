@@ -153,6 +153,12 @@
           ],
         ],
       }),
+      mounted() {
+        document.onkeydown = (e)=>{
+          let key = e.key;
+          if (key=== "Enter") this.loginadmit();
+        };
+      },
       computed:{
         registerValid(){
           return(this.username!=='' && this.userpassword === this.passwordmatch
