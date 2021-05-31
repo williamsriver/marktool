@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+    <v-container fluid>
       <v-main class="text-h4 ma-2">{{lantext.words.upload_file[$store.state.lanType]}}</v-main>
       <v-divider></v-divider>
       <v-row class="ma-2">

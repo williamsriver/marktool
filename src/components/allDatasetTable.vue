@@ -15,7 +15,7 @@
             :items-per-page="5"
             v-if="isListAlive">
             <template v-slot:item.buttons="{item}">
-              <v-btn @click="operationsLib.getDataSet($store.state.currentuser, item.dataSetId)">
+              <v-btn @click="getDataSet($store.state.currentuser, item.dataSetId)">
                 {{lantext.sentences.get_dataset[$store.state.lanType]}}
               </v-btn>
             </template>
@@ -27,6 +27,7 @@
 <script>
   import operationsLib from "../lib/operationsLib"
   import lantext from "../lib/lantext";
+  import axios from "axios";
   export default {
     name: "allDataSetTable",
     data:()=>({
@@ -69,6 +70,28 @@
             }
           })
           .catch(error =>console.log(error))
+      },
+      upLoadFile(file, name){
+        console.log(file, name)
+        let formData1 = new FormData();
+        formData1.append("files",file);
+        formData1.append("name",name);
+        formData1.append("username",this.$store.state.currentuser);
+
+        axios.post('http://tonycoder.ziqiang.net.cn:8080/fileoperations/',formData1)
+          .then((response) =>{
+            console.log(response);
+            if (response.data.msg==="ok") this.$message.success('ok')
+          }).catch(error => console.log(error));
+      },
+      getDataSet(userName, datasetId){
+        console.log(userName, datasetId)
+        let url = 'http://tonycoder.ziqiang.net.cn:8080/commentsList/';
+        axios.put(url ,{  username:userName, list_id:datasetId,} )
+          .then(response =>{
+            console.log(response);
+            if (response.data.msg!=="OK") this.$message.warning(response.data.msg);
+          }).catch(error => console.log(error));
       },
     }
   }

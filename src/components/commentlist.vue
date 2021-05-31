@@ -27,6 +27,12 @@
             v-if="isListAlive"
           >
 
+            <template v-slot:item.tagged="{item}">
+              <span v-show="item.commentList">
+                {{item.commentList.tagged}}/{{item.commentList.commentIdList.length}}
+              </span>
+            </template>
+
             <template v-slot:item.buttons="{item}">
               <div style="justify-content: space-around">
                 <v-btn color="blue" @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true"
@@ -34,7 +40,7 @@
                        :disabled="$store.state.startLoading!==$store.state.endLoading">
                   {{lantext.words[$store.state.user_level===0?"Labeling":"view"][$store.state.lanType]}}
                 </v-btn>
-                <v-btn color="orange" style="color: white" @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
+                <v-btn color="orange" v-show="$store.state.user_level===0" style="color: white" @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
                   {{lantext.words.share[$store.state.lanType]}}
                 </v-btn>
               </div>
@@ -53,6 +59,11 @@
       </markplace>
       <viewplace v-if="$store.state.user_level===1 && $store.state.workStatus"
                  :data-set-index="dataSetPtr" :enable="$store.state.workStatus" :loadFinish="$store.state.startLoading===$store.state.endLoading"></viewplace>
+    </v-container>
+
+    <v-container v-show="$store.state.user_level===0" fluid>
+      <upfile></upfile>
+      <all-dataset-table></all-dataset-table>
     </v-container>
 
     <v-overlay v-show="shareOverlay" color="#eeeeee">
@@ -82,6 +93,9 @@
   import lantext from "../lib/lantext";
   import Markplace from "./markplace";
   import Viewplace from "./viewplace";
+  import GetFile from "./getFile";
+  import upfile from "./upfile";
+  import allDatasetTable from "./allDatasetTable";
     export default {
         name: "commentlist",
       props:{
@@ -90,7 +104,7 @@
           required:true
         }
       },
-      components: {Viewplace, Markplace},
+      components: {Viewplace, Markplace, GetFile, upfile , allDatasetTable},
       data:()=>({
         lantext:lantext,
         listSrchString:'',
@@ -123,6 +137,7 @@
                       dataSetId : id,
                       dataSetIndex : this.$store.state.dataTree.length,
                       commentList: {
+                        tagged:0,
                         dataSetId: id,
                         dataSetIndex : this.$store.state.dataTree.length,
                         commentIdList : [],
@@ -189,6 +204,7 @@
                     temp_tagIdList.forEach(item => {if (item) temp.tagList.tagIdList.push(item);});
                     this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.push(temp);
                     this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
+
                     this.$store.state.endLoading++;
                     this.getTagByTagIdList(temp.tagList);
                   } else this.$message.error('comment acquiring error');
@@ -219,6 +235,7 @@
                       temp["commentIndex"] = tagList.commentIndex;
                       temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
                       temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
+                      if (temp.tag_value>=0) this.$store.state.dataTree[tagList.dataSetIndex].commentList.tagged++;
                       this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
                       this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
                     } else this.$message.error('tag acquiring error');
@@ -241,8 +258,12 @@
         relateDataSet(){
           let formData1 = new FormData();
           formData1.append('username',this.temp_username);
-          formData1.append('list_id',this.temp_dataSetId);
-          this.axios.put('http://tonycoder.ziqiang.net.cn:8080/commentsList/',formData1)
+          formData1.append('list_id',String(this.temp_dataSetId));
+
+          console.log('sent');
+          this.axios.put('http://tonycoder.ziqiang.net.cn:8080/commentsList/', {
+            username:this.temp_username, list_id:this.temp_dataSetId
+          })
             .then(response =>{
             console.log(response);
             if (response.data.msg ==="ok"){

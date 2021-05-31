@@ -10,6 +10,11 @@
         <template v-slot:item.uploadUserName="{item}">
           {{$store.state.currentuser}}
         </template>
+        <template v-slot:item.tagged="{item}">
+              <span v-show="item.commentList">
+                {{item.commentList.tagged}}/{{item.commentList.commentIdList.length}}
+              </span>
+        </template>
         <template v-slot:item.buttons="{item}">
           <v-btn @click="setChart(item)" text>
             <v-icon>mdi-database</v-icon>
@@ -25,15 +30,12 @@
           <div id="chartshow2"></div>
         </v-col>
         <v-col>
-          <div style="text-align: center">NFR{{" "+lantext.sentences.tags_distribution_chart2[$store.state.lanType]}}</div>
+          <div style="text-align: center">{{lantext.sentences.tags_distribution_chart2[$store.state.lanType]}}</div>
           <div id="chartshow"></div>
         </v-col>
       </v-row>
     </v-container>
-    <v-container>
-      <upfile></upfile>
-      <all-dataset-table></all-dataset-table>
-    </v-container>
+
 
 
 
@@ -101,7 +103,7 @@
             name:"Functional",
             colorByPoint: true,
             data: [
-              {name:'Functional_requirements',y:0},
+              //{name:'Functional_requirements',y:0,},
 
               {name:'Functional Suitability',y:0},
               {name:'Performance Efficiency',y:0},
@@ -112,8 +114,8 @@
               {name:'Maintainability',y:0},
               {name:'Portability',y:0},
 
-              {name:'Bug_Fix',y:0},
-              {name:'Others',y:0},
+              //{name:'Bug_Fix',y:0},
+              //{name:'Others',y:0},
             ]
           }]
         },
@@ -186,7 +188,7 @@
 
             let temp_num = this.getTagValue(tag);
             //console.log(tag, temp_num);
-            if (temp_num>=0) this.chart1_config.series[0].data[temp_num].y++;
+            if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
             if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
             else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
             else if (temp_num>0) this.chart2_config.series[0].data[1].y++;

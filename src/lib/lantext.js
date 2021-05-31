@@ -3,13 +3,15 @@ const lantext={
   headers:{
     ItemListHeader:[
       [
-        {text:'Dataset ID',value:'dataSetId'},
+        {text:'App Dataset',value:'dataSetId'},
         {text: 'Name',value: 'fileName'},
+        {text: 'tagged',value: 'tagged'},
         {text: '',sortable:false,value: 'buttons'}
       ],
       [
-        {text:'评论集ID',value:'dataSetId'},
+        {text:'数据集编号',value:'dataSetId'},
         {text: '文件名',value: 'fileName'},
+        {text: '标注进度',value: 'tagged'},
         {text: '',sortable:false,value: 'buttons'}
       ],
     ],
@@ -33,11 +35,11 @@ const lantext={
       ],
       [
 
-        {text: '所属评论ID',value: 'comment_id'},
+        {text: '评论编号',value: 'comment_id'},
         {text: '评论标题',value: 'title'},
 
 
-        {text: '审阅值',value: 'viewValue'},
+        {text: '审阅结果',value: 'viewValue'},
         {text: '审阅',value: 'view'},
         {text: '详情',value: 'data-table-expand',sortable:false},
       ],
@@ -45,13 +47,11 @@ const lantext={
 
     viewTagHeader:[
       [
-        {text:'tag ID',value:'tag_id'},
         {text: 'marker',value: 'tag_user_info'},
         {text:'confidence',value:'confidence'},
         {text: 'mark value',value: 'tag_value'},
       ],
       [
-        {text:'标注ID',value:'tag_id'},
         {text: '标注者',value: 'tag_user_info'},
         {text:'自信度',value:'confidence'},
         {text: '标记值',value: 'tag_value'},
@@ -99,7 +99,7 @@ const lantext={
         'Functional Suitability','Performance Efficiency','Compatibility', 'Usability',
         'Security','Reliability','Maintainability','Portability',
         'Bug_Fix','Others',],
-      ['功能型需求',
+      ['功能性需求',
         '适用性', '性能','兼容性','可用性','安全性','可靠性', '可维护性','可移植性',
         'Bug修复','其他'],
     ],
@@ -236,6 +236,10 @@ const lantext={
   },
 
   words:{
+    submit:["submit","提交"],
+    none:["none",'空'],
+    present_tag:["present tag","当前标签"],
+    comment_word:["comment content","评论内容"],
     Labeling:["Labeling","标注"],
     dataset:["dataset","数据集"],
     user:["user","用户"],
@@ -304,7 +308,7 @@ const lantext={
     forgetpassword:['forger your password?','忘记密码？'],
     data:['data','数据'],
     language:['english','中文'],
-    system_title:['marktool','评价标注系统'],
+    system_title:['marktool','移动应用数据标注系统'],
     no_login:['no login','未登录'],
     welcome:['welcome','欢迎'],
     selection:['selection','选择'],
@@ -325,8 +329,8 @@ const lantext={
     passwords_different:['passwords different','密码错误'],
     least_eight_words:['at least 8 words','至少8个字符'],
     get_dataset:["get dataset","获取数据集"],
-    tags_distribution_chart1:["Distribution of Dataset over FR/NFR/Others","标签分布情况"],
-    tags_distribution_chart2:["Distribution of Dataset over NFR Types","NFR标签分布情况"],
+    tags_distribution_chart1:["Distribution of Dataset over FR/NFR/Others","移动应用数据在需求类型中的分布情况（功能/非功能/其他）"],
+    tags_distribution_chart2:["Distribution of Dataset over NFR Types","移动应用数据在需求类型中的分布情况（8种非功能需求类型）"],
 
   }
 }

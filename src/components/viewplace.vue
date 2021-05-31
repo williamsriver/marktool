@@ -44,8 +44,7 @@
       :items="$store.state.commentTagValueList[dataSetIndex]"
       v-if="tagListValid"
       item-key="commentIndex"
-      show-expand
-      hide-default-footer>
+      show-expand>
       <template v-slot:item.title="{item}">
         {{item.title||"--"}}
       </template>
@@ -53,24 +52,12 @@
         {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"--"}}
       </template>
       <template v-slot:item.view="{item}" >
-        <v-row :key="item.commentIndex" align="baseline">
-          <v-col cols="6" v-show="tagResultModifying && modifyPtr===item.commentIndex">
-            <span v-show="!tagResultModifying || modifyPtr !==item.commentIndex">{{item.tag_result}}</span>
-            <v-select :items="lantext.tagwords.tags[$store.state.lanType]"
-                      v-model="temp_tagContent"></v-select>
-          </v-col>
-          <v-col cols="6">
-            <v-btn text @click="reviewBtnClick(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
-              <v-icon>mdi-pen-plus</v-icon>
-              <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?
-                lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
-            </v-btn>
-            <v-btn text v-show="tagResultModifying  && modifyPtr===item.commentIndex" @click="tagResultModifying = false">
-              <v-icon class="mdi-backspace">mdi-backspace</v-icon>
-              <v-main>{{lantext.words.cancel[$store.state.lanType]}}</v-main>
-            </v-btn>
-          </v-col>
-        </v-row>
+        <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
+          <v-icon>mdi-pen-plus</v-icon>
+          <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?
+            lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
+        </v-btn>
+
       </template>
       <template v-slot:expanded-item="{ headers, item }">
         <td :colspan="headers.length">
@@ -89,7 +76,7 @@
               </v-data-table>
             </v-col>
             <v-col cols="4">
-              <v-textarea outlined readonly :label="lantext.words.content[$store.state.lanType]" v-model="item.content"></v-textarea>
+              <v-textarea outlined readonly :label="lantext.words.comment_word[$store.state.lanType]" v-model="item.content"></v-textarea>
             </v-col>
           </v-row>
 
@@ -105,6 +92,43 @@
     <v-spacer style="height: 30px"></v-spacer>
     <v-divider></v-divider>
     <v-spacer style="height: 30px"></v-spacer>
+
+    <v-overlay v-show="overlayValid" color="#eeeeee">
+      <v-card  width="700" height="800" light>
+        <div>
+          <v-btn @click="overlayValid = false" color="red" style="color:white;" absolute right>
+            <span class="mdi mdi-close" ></span>
+          </v-btn>
+          <div class="ma-2">
+            <span class="text-h5">{{lantext.words.present_tag[$store.state.lanType]}}:</span>
+            <span class="text-h5">
+              {{overlayItem?showTag(overlayItem.tag_result):""}}</span>
+          </div>
+          <v-row>
+            <v-col>
+              <v-treeview
+                open-all
+                selectable
+                v-model="treeviewSel"
+                selected-color="red"
+                :items="tagItems[$store.state.lanType]">
+
+              </v-treeview>
+            </v-col>
+            <v-col>
+
+            </v-col>
+          </v-row>
+          <v-main style="text-align: center">
+              <v-spacer></v-spacer>
+              <v-btn style="justify-self: center" @click="reviewBtnClick(overlayItem)" >{{lantext.words.submit[$store.state.lanType]}}</v-btn>
+              <v-spacer></v-spacer>
+          </v-main>
+
+        </div>
+
+      </v-card>
+    </v-overlay>
 
   </v-app>
 </template>
@@ -125,8 +149,54 @@
       },
       data:()=>({
         //static data
+
+        tagItems: [
+            [
+            {id:0, name:'Functional Requirement'},
+              {id: 234, name: 'Non Functional Requirement',
+                children: [{id: 1,name: 'Functional Suitability'},
+                  {id: 2, name: 'Performance Efficiency'},
+                  {id: 3, name: 'Compatibility'},
+                  {id: 4, name: 'Usability'},
+                  {id: 5, name: 'Security'},
+                  {id: 6, name: 'Reliability'},
+                  {id: 7, name: 'Maintainability'},
+                  {id: 8, name: 'Portability'}]
+              },
+              {id: 141, name: 'Others',
+                children: [
+                  {id: 9, name: 'Bug_Fix'},
+                  {id: 10, name: 'Others'},
+                ]
+              },
+          ],
+            [
+              {id:324, name:'功能性需求', children:[{id:0 ,name:'性能'}] },
+              {id: 234, name: '非功能性需求',
+                children: [{id: 1, name: '适用性'},
+                  {id: 2, name: '性能'},
+                  {id: 3, name: '兼容性'},
+                  {id: 4, name: '可用性'},
+                  {id: 5, name: '安全性'},
+                  {id: 6, name: '可靠性'},
+                  {id: 7, name: '可维护性'},
+                  {id: 8, name: '可移植性'}]
+              },
+              {id: 114, name: '其他需求',
+                children: [
+                  {id: 9, name: 'Bug修复'},
+                  {id: 10, name: '其他'},
+                ]
+              },
+            ],
+        ],
+        treeviewSel:[],
+
         lantext:lantext,
         tagListValid:false,
+
+        overlayValid:false,
+        overlayItem:null,
 
         valueTable:[['1','2','3','4','5'],['2','3','4','5'],['3','4','5'],['4','5'],['5']],
         lowerVal:'1',
@@ -165,7 +235,12 @@
 
 
       }),
+
       watch: {
+
+        treeviewSel(value){
+          if (value.length>=2) this.treeviewSel = [this.treeviewSel[this.treeviewSel.length-1]];
+        },
 
         enable: {
           handler(value) {
@@ -183,6 +258,16 @@
         }
       },
       methods:{
+        showTag(tag_result){
+          if (tag_result===-1) return lantext.words.none[this.$store.state.lanType];
+          else return lantext.tagwords.tags[this.$store.state.lanType][tag_result];
+        },
+
+        startOverlay(item){
+          this.overlayValid = true;
+          this.overlayItem = item;
+          this.treeviewSel = [item.tag_result];
+        },
 
         goBack(){
           this.$emit("goBack",true);
@@ -215,6 +300,7 @@
         },
 
         sendView(comment, tag_result){
+          console.log(comment, tag_result)
           var date = new Date();
           let formData3 = new FormData()
           formData3.append("datetime_info",date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate());
@@ -228,7 +314,7 @@
                 this.$message.success(
                   lantext.words.view[this.$store.state.lanType] + lantext.sentences.item_success[this.$store.state.lanType]
                 );
-                this.$store.state.dataTree[comment.dataSetIndex].commentList.comments[comment.commentIndex].tag_result = tag_result;
+                this.$store.state.dataTree[comment.dataSetIndex].commentList.comments[comment.commentIndex]["tag_result"] = tag_result;
                 this.$store.state.commentTagValueList[comment.totalCommentIndex].tag_result = tag_result;
                 console.log("new tag result",this.$store.state.commentTagValueList[tag.totalCommentIndex].tag_result = tag_result);
               }
@@ -240,15 +326,7 @@
         },
 
         reviewBtnClick(comment){
-          if (this.modifyPtr===comment.commentIndex){
-            this.temp_tagResult = lantext.tagwords.tags[this.$store.state.lanType].indexOf(this.temp_tagContent);
-            if (this.tagResultModifying) this.sendView(comment, this.temp_tagResult);
-            this.tagResultModifying = !this.tagResultModifying;
-          }
-          else {
-            this.modifyPtr = comment.commentIndex;
-            this.tagResultModifying = true;
-          }
+          this.sendView(comment, this.treeviewSel[0]);
         },
 
       },

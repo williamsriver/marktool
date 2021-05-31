@@ -51,6 +51,18 @@
                 :rules="[rules.sameCheck(passwordmatch,userpassword)]"
                 :label="lantext.sentences.password_confirmation[$store.state.lanType]">
               </v-text-field>
+
+
+                <v-radio-group v-model="registerType">
+                  <v-row>
+                  <v-col><v-radio :value="0" :label="lantext.words.marker[$store.state.lanType]"></v-radio></v-col>
+                  <v-col><v-radio :value="1" :label="lantext.words.reviewer[$store.state.lanType]"></v-radio></v-col>
+                  <v-col><v-radio :value="2" :label="lantext.words.admin[$store.state.lanType]"></v-radio></v-col>
+                  <v-col cols="6"></v-col>
+                  </v-row>
+                </v-radio-group>
+
+
           </v-tab-item>
         </v-tabs-items>
 
@@ -86,9 +98,8 @@
       <v-col class="pa-0">
         <commentlist v-show="list_chosen===0 && $store.state.user_level<2" :enable=" $store.state.loginstatus"></commentlist>
         <dataplace v-show="(list_chosen===1 && $store.state.user_level<2)" :enable= " $store.state.loginstatus "></dataplace>
-        <admin v-show="list_chosen===0 && $store.state.user_level===2"></admin>
-        <all-list v-show="list_chosen===1 && $store.state.user_level===2"
-                  :enable="$store.state.user_level===2 && list_chosen===1 "></all-list>
+        <all-list v-show="list_chosen===0 && $store.state.user_level===2"
+                  :enable="$store.state.user_level===2 && list_chosen===0"></all-list>
       </v-col>
     </v-row>
   </v-container>
@@ -110,7 +121,7 @@
   import Methods from "../lib/operationsLib"
     export default {
         name: "homemenu",
-      components: {GetFile, AllList, Dataplace, Commentlist,  admin, upfile},
+      components: {GetFile, AllList, Dataplace, Commentlist, upfile},
       data:()=>({
         list_chosen:"",
         lantext:lantext,
@@ -126,6 +137,7 @@
             else return true
           },
         },
+        registerType:0,
         isUserNameDuplicated:false,
         username:'',
         userpassword:'',
@@ -147,7 +159,6 @@
             { title: ['Logout','登出'], icon: 'mdi-logout'},
           ],
           [
-            { title: ['Upgrade User','更新用户'], icon: 'mdi-pen'},
             { title: ['View All the List','全部列表'], icon: 'mdi-image' },
             { title: ['Logout','登出'], icon: 'mdi-logout'},
           ],
@@ -244,7 +255,7 @@
                 let formData1 = new FormData()
                 formData1.append('username', this.username)
                 formData1.append('password', this.userpassword)
-                formData1.append('user_level', 2)
+                formData1.append('user_level', this.registerType)
                 this.axios.post('http://tonycoder.ziqiang.net.cn:8080/register/', formData1)
                   .then(function (response) {
                     console.log(response);
@@ -285,7 +296,13 @@
             this.$message.success(
               lantext.words.logout[this.$store.state.lanType] + ' ' +
               lantext.words.success[this.$store.state.lanType]
-            )
+            );
+            this.$store.state.dataTree = [];
+            this.$store.state.dataSetIdList = [];
+            this.$store.state.tagsDuplicateList = [];
+            this.$store.state.commentsDuplicateList = [];
+            this.$store.state.startLoading = 0;
+            this.$store.state.endLoading = 0;
           } catch (e) {
             this.$message.error(
               lantext.words.logout[this.$store.state.lanType] +
