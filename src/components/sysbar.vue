@@ -2,7 +2,7 @@
   <v-app>
     <!--系统栏-->
     <v-system-bar
-      color="#999999"
+      color="#18a06e"
       style="color:white;"
        height="43">
       <v-row>
@@ -92,7 +92,7 @@
         },
         //get comment lists
         getLists(){
-          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',{params:{username:this.$store.state.currentuser} })
+          this.axios.get('http://121.40.238.237:8080/commentsList/',{params:{username:this.$store.state.currentuser} })
             .then(function (response) {
               console.log('commentslist',response)
               this.$store.state.commentsList = response.data.Details.comment_list_id
@@ -120,7 +120,7 @@
 
         //get comments by the list
         getCommentListByList(listid){
-          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/commentsList/',{params:{list_id:listid} })
+          this.axios.get('http://121.40.238.237:8080/commentsList/',{params:{list_id:listid} })
             .then(function (response) {
 
               var cmtlist =response.data.comment_id_list;
@@ -136,7 +136,7 @@
         getcmt(cmtid){
           var flag1 =false
           this.comment_need++;
-          this.axios.get('http://tonycoder.ziqiang.net.cn:8080/comments/',{params:{comment_id:cmtid} })
+          this.axios.get('http://121.40.238.237:8080/comments/',{params:{comment_id:cmtid} })
             .then(function (response) {
               if (!!response.data.Details) {
                 this.comment_got++;
@@ -201,7 +201,7 @@
           formData1.append('files',excelFile)
           formData1.append('username',this.$store.state.currentuser)
           formData1.append('name',excelFile.name)
-          this.axios.post('http://tonycoder.ziqiang.net.cn:8080/fileoperations/',formData1)
+          this.axios.post('http://121.40.238.237:8080/fileoperations/',formData1)
             .then(function (response) {
               console.log(response)
               if (response.data.msg==="ok"){
