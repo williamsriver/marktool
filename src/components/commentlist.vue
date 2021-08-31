@@ -126,9 +126,10 @@
         },
 
         getDataSet(){
-          this.axios.get('http://121.40.238.237:8080/commentsList/',
+          this.axios.get('/api/commentsList/',
             {params:{username:this.$store.state.currentuser} })
             .then(response =>{
+              console.log(response)
               if (response.data.Details) {
                 response.data.Details.comment_list_id.forEach(id => {
                   if (this.$store.state.dataSetIdList.indexOf(id) === -1) {
@@ -160,9 +161,9 @@
 
         getCommentIdListByDataSet(dataset){
 
-          this.axios.get('http://121.40.238.237:8080/commentsList/', {params: {list_id:dataset.dataSetId}})
+          this.axios.get('/api/commentsList/', {params: {list_id:dataset.dataSetId}})
             .then(response => {
-
+              console.log(response)
               if (response.data) this.$store.state.dataTree[dataset.dataSetIndex].fileName = response.data.name;
               if (response.data.comment_id_list) {
                 this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
@@ -179,9 +180,10 @@
 
         getCommentByCommentIdList(commentList){
           this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
+          console.log("commentList.commentIdList", commentList.commentIdList)
           commentList.commentIdList.forEach((id, index) =>{
             this.$store.state.startLoading++;
-            this.axios.get('http://121.40.238.237:8080/comments/', {params: {comment_id: id} } )
+            this.axios.get('/api/comments/', {params: {comment_id: id} } )
               .then(response => {
                 if (this.$store.state.commentsDuplicateList.indexOf(id)===-1) {
                   this.$store.state.commentsDuplicateList.push(id);
@@ -221,7 +223,7 @@
             tagList.tagIdList.forEach(id => {
               if (this.$store.state.tagsDuplicateList.indexOf(id)===-1) {
                 this.$store.state.tagsDuplicateList.push(id);
-                this.axios.get('http://121.40.238.237:8080/tag/', {params: {tag_id: id}})
+                this.axios.get('/api/tag/', {params: {tag_id: id}})
                   .then(response => {
                     if (response.data.Details) {
                       let temp = response.data.Details;
@@ -261,7 +263,7 @@
           formData1.append('list_id',String(this.temp_dataSetId));
 
           console.log('sent');
-          this.axios.put('http://121.40.238.237:8080/commentsList/', {
+          this.axios.put('/api/commentsList/', {
             username:this.temp_username, list_id:this.temp_dataSetId
           })
             .then(response =>{

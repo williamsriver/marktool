@@ -1,8 +1,6 @@
 <template>
 <v-app>
-
-  <v-container v-show="!$store.state.loginstatus" style="margin: 0 auto">
-
+  <v-container v-show="!$store.state.loginstatus">
         <v-tabs fixed-tabs v-model="MenuChoose">
           <v-tab>{{lantext.words.login[$store.state.lanType]}}</v-tab>
           <v-tab>{{lantext.words.register[$store.state.lanType]}}</v-tab>
@@ -121,6 +119,7 @@
   import Methods from "../lib/operationsLib"
     export default {
         name: "homemenu",
+      inject:['reload'],
       components: {GetFile, AllList, Dataplace, Commentlist, upfile},
       data:()=>({
         list_chosen:"",
@@ -203,7 +202,7 @@
           let formData1 = new FormData();
           formData1.append('username',this.loginUsername)
           formData1.append('password',this.loginPassword)
-          this.axios.post('http://121.40.238.237:8080/login/',formData1)
+          this.axios.post('/api/login/',formData1)
             .then(function (response) {
               console.log(response)
               if (response.data.Msg === 'Login Succeeded.'){
@@ -247,7 +246,7 @@
             }
           };
 
-          this.axios.get('http://121.40.238.237:8080/register/',config1)
+          this.axios.get('/api/register/',config1)
             .then(function (response) {
               console.log(response)
               this.isUserNameDuplicated = response.data.is_duplicated
@@ -256,15 +255,15 @@
                 formData1.append('username', this.username)
                 formData1.append('password', this.userpassword)
                 formData1.append('user_level', this.registerType)
-                this.axios.post('http://121.40.238.237:8080/register/', formData1)
+                this.axios.post('/api/register/', formData1)
                   .then(function (response) {
                     console.log(response);
                     if (response.data.Msg === 'Register Succeeded.') {
-                      const that =this
                       this.$message.success(
                         lantext.words.register[this.$store.state.lanType]+
                         lantext.sentences.item_success[this.$store.state.lanType]
                       )
+                      this.reload()
                     }
                     else this.$message.error(
                       lantext.words.register[this.$store.state.lanType]+

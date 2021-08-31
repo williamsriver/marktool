@@ -1,12 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 const sysbar = () => import ("../components/sysbar");
-const markplace = () => import("../components/markplace");
-const commentlist = () => import("../components/commentlist");
-const viewplace = () => import("../components/viewplace");
-import store from "../store";
-const dataplace = () => import("../components/dataplace");
-const admin = () => import("../components/admin");
 const homemenu = () => import("../components/homemenu");
 
 
