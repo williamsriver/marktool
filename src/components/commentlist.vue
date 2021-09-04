@@ -1,6 +1,5 @@
 <template>
   <v-app>
-
     <!--search tab && table-->
     <v-container fluid v-show="!$store.state.workStatus">
       <v-row align="baseline">
@@ -30,6 +29,12 @@
             <template v-slot:item.tagged="{item}">
               <span v-show="item.commentList">
                 {{item.commentList.tagged}}/{{item.commentList.commentIdList.length}}
+              </span>
+            </template>
+
+            <template v-slot:item.reviewed="{item}">
+              <span v-show="item.commentList">
+                {{item.commentList.reviewed}}/{{item.commentList.commentIdList.length}}
               </span>
             </template>
 
@@ -63,8 +68,9 @@
 
     <v-container v-show="$store.state.user_level===0" fluid>
       <upfile></upfile>
-      <all-dataset-table></all-dataset-table>
     </v-container>
+
+    <all-dataset-table></all-dataset-table>
 
     <v-overlay v-show="shareOverlay" color="#eeeeee">
       <v-card  width="700" height="350" light>
@@ -139,6 +145,7 @@
                       dataSetIndex : this.$store.state.dataTree.length,
                       commentList: {
                         tagged:0,
+                        reviewed:0,
                         dataSetId: id,
                         dataSetIndex : this.$store.state.dataTree.length,
                         commentIdList : [],
@@ -194,6 +201,7 @@
                     temp["commentIndex"] = this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.length;
                     temp["totalCommentIndex"] = this.$store.state.commentTagValueList[commentList.dataSetIndex].length;
                     temp["tagValueList"] = [];
+                    if (temp.tag_result>=0) this.$store.state.dataTree[commentList.dataSetIndex].commentList.reviewed++;
                     temp["tagList"] = {
                       comment_id: id,
                       dataSetIndex: commentList.dataSetIndex,
@@ -238,6 +246,7 @@
                       temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
                       temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
                       if (temp.tag_value>=0) this.$store.state.dataTree[tagList.dataSetIndex].commentList.tagged++;
+
                       this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
                       this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
                     } else this.$message.error('tag acquiring error');

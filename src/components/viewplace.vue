@@ -94,7 +94,7 @@
     <v-spacer style="height: 30px"></v-spacer>
 
     <v-overlay v-show="overlayValid" color="#eeeeee">
-      <v-card  width="700" height="800" light>
+      <v-card  width="700"  light>
         <div>
           <v-btn @click="overlayValid = false" color="red" style="color:white;" absolute right>
             <span class="mdi mdi-close" ></span>
@@ -107,6 +107,7 @@
           <v-row>
             <v-col>
               <v-treeview
+                dense
                 open-all
                 selectable
                 v-model="treeviewSel"
@@ -121,7 +122,8 @@
           </v-row>
           <v-main style="text-align: center">
               <v-spacer></v-spacer>
-              <v-btn style="justify-self: center" @click="reviewBtnClick(overlayItem)" >{{lantext.words.submit[$store.state.lanType]}}</v-btn>
+              <v-btn style="justify-self: center" @click="reviewBtnClick(overlayItem)"
+                     outlined color="primary">{{lantext.words.submit[$store.state.lanType]}}</v-btn>
               <v-spacer></v-spacer>
           </v-main>
 

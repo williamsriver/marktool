@@ -8,7 +8,10 @@
       <v-row>
 
         <v-col cols="5" align-self="center">
-          <v-main class="text-left" >{{lantext.words.system_title[this.$store.state.lanType]}}</v-main>
+          <v-main class="text-left" >
+            {{lantext.words.system_title[this.$store.state.lanType]}}
+            v1.210904
+          </v-main>
         </v-col>
 
         <v-spacer></v-spacer>
