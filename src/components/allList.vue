@@ -93,7 +93,7 @@
           this.$store.state.commentsDuplicateList = [];
           this.$store.state.startLoading = 0;
           this.$store.state.endLoading = 0;
-          this.axios.get('/api/adminview/',
+          this.axios.get('http://121.40.238.237:8080/adminview/',
             {params:{username:this.$store.state.currentuser} })
             .then(response =>{
               if (response.data.details) {
@@ -127,7 +127,7 @@
         },
 
         getCommentIdListByDataSet(dataset){
-          this.axios.get('/api/commentsList/', {params: {list_id:dataset.dataSetId}})
+          this.axios.get('http://121.40.238.237:8080/commentsList/', {params: {list_id:dataset.dataSetId}})
             .then(response => {
               if (response.data.comment_id_list) {
                 this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
@@ -142,7 +142,7 @@
           this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
           commentList.commentIdList.forEach((id) =>{
             this.$store.state.startLoading++;
-            this.axios.get('/api/comments/', {params: {comment_id: id} } )
+            this.axios.get('http://121.40.238.237:8080/comments/', {params: {comment_id: id} } )
               .then(response => {
                 if (this.$store.state.commentsDuplicateList.indexOf(id)===-1) {
                   this.$store.state.commentsDuplicateList.push(id);
@@ -180,7 +180,7 @@
           this.$store.state.tagsList[tagList.dataSetIndex] = [];
           if (tagList.tagIdList.length>0) {
             tagList.tagIdList.forEach(id => {
-              this.axios.get('/api/tag/', {params: {tag_id: id}})
+              this.axios.get('http://121.40.238.237:8080/tag/', {params: {tag_id: id}})
                 .then(response => {
                   if (this.$store.state.tagsDuplicateList.indexOf(id)===-1) {
                     this.$store.state.tagsDuplicateList.push(id);

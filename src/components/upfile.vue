@@ -47,7 +47,7 @@
           formData1.append("name",name);
           formData1.append("username",this.$store.state.currentuser);
           this.$message.warning('uploading...')
-          this.axios.post('/api/fileoperations/',formData1)
+          this.axios.post('http://121.40.238.237:8080/fileoperations/',formData1)
             .then((response) =>{
             console.log(response);
             if (response.data.msg==="ok") this.$message.success('ok')

@@ -9,16 +9,16 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {
-      '/api': {  //代理地址
-        target: 'http://121.40.238.237:8080',  //需要代理的地址， 实际生产环境需要访问的地址
-        changeOrigin: true,  //是否跨域
-        secure: false,
-        pathRewrite: {
-          '^/api': ''   //本身的接口地址没有 '/api' 这种通用前缀，所以要rewrite，如果本身有则去掉
-        }
-      }
-    },
+    // proxyTable: {
+    //   '/api': {  //代理地址
+    //     target: 'http://121.40.238.237:8080',  //需要代理的地址， 实际生产环境需要访问的地址
+    //     changeOrigin: true,  //是否跨域
+    //     secure: false,
+    //     pathRewrite: {
+    //       '^/api': ''   //本身的接口地址没有 '/api' 这种通用前缀，所以要rewrite，如果本身有则去掉
+    //     }
+    //   }
+    // },
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST
@@ -47,6 +47,8 @@ module.exports = {
   build: {
     // Template for index.html
     index: path.resolve(__dirname, '../dist/index.html'),
+
+
 
     // Paths
     assetsRoot: path.resolve(__dirname, '../dist'),

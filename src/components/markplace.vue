@@ -308,7 +308,7 @@
         formData3.append("datetime_info", date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
         formData3.append('comment_id', comment_id)
         formData3.append('tag_id', this.$store.state.dataTree[this.dataSetIndex].commentList.comments[this.ptr].tagList.tagIdList)
-        this.axios.put('/api/comments/', formData3)
+        this.axios.put('http://121.40.238.237:8080/comments/', formData3)
           .then(response => {
             console.log(response.data)
             if (response.data) {
@@ -322,7 +322,7 @@
       },
 
       editTag(data) {
-        this.axios.put('/api/tag/', data)
+        this.axios.put('http://121.40.238.237:8080/tag/', data)
           .then(response => {
             console.log(response);
             if (response.data.Msg === "OK") {
@@ -342,7 +342,7 @@
       },
 
       createTag(data, comment) {
-        this.axios.post('/api/tag/', data)
+        this.axios.post('http://121.40.238.237:8080/tag/', data)
           .then(response => {
             if (response.data.Details) {
               console.log(response);
