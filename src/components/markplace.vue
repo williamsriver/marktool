@@ -380,20 +380,27 @@
           this.maxPtr = Math.max(this.maxPtr, value);
 
           if (this.currentComment) {
+
             if (this.currentComment.tagList.tags.length > 0) {
               console.log(value, this.currentComment.tagList.tags)
               this.currentComment.tagList.tags.forEach(tag =>{
                 if (tag.tag_user_info === this.$store.state.currentuser) this.currentTag = tag;
               })
-              if (this.currentTag) this.remarkContent = this.currentTag.remarks;
+              if (this.currentTag && this.currentTag.remarks) this.remarkContent = this.currentTag.remarks;
               else this.remarkContent = "";
+
               if (this.currentTag) {
                 this.$store.state.tagValue = this.currentTag.tag_value;
                 console.log("i'm setting tag value",this.$store.state.tagValue);
               }
               else this.$store.state.tagValue = -1;
-            } else this.$store.state.tagValue = -1;
+            } else
+              {
+              this.$store.state.tagValue = -1;
+              this.remarkContent = ""
+            }
           }
+
           this.$store.state.isSaved = true;
 
       },

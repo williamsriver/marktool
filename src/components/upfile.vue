@@ -7,11 +7,13 @@
         <v-col> <v-text-field label="File Name" v-model="fileName"></v-text-field> </v-col>
 
         <v-col>
-          <v-btn @click="upLoadFile(myFile,fileName)">
+          <v-btn @click="upLoadFile(myFile,fileName)" outlined color="primary" v-show="!!myFile">
             {{lantext.words.upload[$store.state.lanType]}}
           </v-btn>
         </v-col>
+
       </v-row>
+
     </v-container>
 
 </template>
@@ -25,6 +27,7 @@
         lantext:lantext,
         fileName:"",
         myFile:null,
+        uploading: false,
       }),
       watch:{
           myFile:{
@@ -43,7 +46,7 @@
           formData1.append("files",file);
           formData1.append("name",name);
           formData1.append("username",this.$store.state.currentuser);
-
+          this.$message.warning('uploading...')
           this.axios.post('/api/fileoperations/',formData1)
             .then((response) =>{
             console.log(response);
