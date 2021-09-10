@@ -23,6 +23,7 @@ export default new Vuex.Store({
     startLoading:0,
     endLoading:0,
     commentTagValueList:[],
+    commentsIdTotalList:[],
   },
   mutations:{},
   actions:{

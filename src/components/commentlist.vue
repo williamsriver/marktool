@@ -2,6 +2,7 @@
   <v-app>
     <!--search tab && table-->
     <v-container fluid v-show="!$store.state.workStatus">
+
       <v-row align="baseline">
         <v-col cols="3">
           <v-btn text @click="refreshCommentList">
@@ -32,11 +33,7 @@
               </span>
             </template>
 
-            <template v-slot:item.reviewed="{item}">
-              <span v-show="item.commentList">
-                {{item.commentList.reviewed}}/{{item.commentList.commentIdList.length}}
-              </span>
-            </template>
+
 
             <template v-slot:item.buttons="{item}">
               <div style="justify-content: space-around">
@@ -137,15 +134,14 @@
             .then(response =>{
               console.log(response)
               if (response.data.Details) {
-                response.data.Details.comment_list_id.forEach(id => {
-                  if (this.$store.state.dataSetIdList.indexOf(id) === -1) {
+                response.data.Details.comment_list_id.forEach((id, index) => {
+                  if (this.$store.state.dataSetIdList.indexOf(id) === -1) {//查重
                     this.$store.state.dataSetIdList.push(id);
                     this.$store.state.dataTree.push({
                       dataSetId : id,
                       dataSetIndex : this.$store.state.dataTree.length,
                       commentList: {
                         tagged:0,
-                        reviewed:0,
                         dataSetId: id,
                         dataSetIndex : this.$store.state.dataTree.length,
                         commentIdList : [],
@@ -155,10 +151,10 @@
                     });
                   }
                 });
-
+                this.$store.commentsIdTotalList = []
                 this.$store.state.tagsList = new Array(this.$store.state.dataTree.length);
                 this.$store.state.commentTagValueList = new Array(this.$store.state.dataTree.length);
-                this.$store.state.dataTree.forEach(dataset => this.getCommentIdListByDataSet(dataset) );
+                this.$store.state.dataTree.forEach((dataset) => this.getCommentIdListByDataSet(dataset) );
               }
               else this.$message.error('datasets acquiring error');
             })
@@ -174,6 +170,15 @@
               if (response.data) this.$store.state.dataTree[dataset.dataSetIndex].fileName = response.data.name;
               if (response.data.comment_id_list) {
                 this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
+                console.log("cmt id list", response.data.comment_id_list)
+                //comment list 查重处理
+                this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList.forEach((cmtid, index, arr) =>{
+                  if (this.$store.commentsIdTotalList.indexOf(cmtid) !== -1){
+                    arr.splice(index, index+1)
+                  }
+                  else this.$store.commentsIdTotalList.push(cmtid)
+                })
+
                 this.getCommentByCommentIdList(this.$store.state.dataTree[dataset.dataSetIndex].commentList);
               }
               else this.$message.error('comments id list acquiring error');
@@ -192,34 +197,35 @@
             this.$store.state.startLoading++;
             this.axios.get('http://121.40.238.237:8080/comments/', {params: {comment_id: id} } )
               .then(response => {
-                if (this.$store.state.commentsDuplicateList.indexOf(id)===-1) {
-                  this.$store.state.commentsDuplicateList.push(id);
-                  if (response.data.Details) {
-                    let temp = response.data.Details;
-                    temp["comment_id"] = id;
-                    temp["dataSetIndex"] = commentList.dataSetIndex;
-                    temp["commentIndex"] = this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.length;
-                    temp["totalCommentIndex"] = this.$store.state.commentTagValueList[commentList.dataSetIndex].length;
-                    temp["tagValueList"] = [];
-                    if (temp.tag_result>=0) this.$store.state.dataTree[commentList.dataSetIndex].commentList.reviewed++;
-                    temp["tagList"] = {
-                      comment_id: id,
-                      dataSetIndex: commentList.dataSetIndex,
-                      commentIndex: this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.length,
-                      totalCommentIndex: temp.totalCommentIndex,
-                      tagIdList: [],
-                      tags: [],
-                    };
-                    let temp_tagIdList = response.data.Details.tag_id_list.split(',');
-                    temp_tagIdList.forEach(item => {if (item) temp.tagList.tagIdList.push(item);});
-                    this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments.push(temp);
-                    this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
+                //评论判重已经在cmtidlist解决了
+                if (response.data.Details) {
+                  let temp = response.data.Details;
+                  temp["comment_id"] = id;
+                  temp["dataSetIndex"] = commentList.dataSetIndex;
+                  temp["commentIndex"] = index;
+                  temp["totalCommentIndex"] = this.$store.state.commentTagValueList[commentList.dataSetIndex].length;
+                  temp["tagValueList"] = []
+                  temp["tagList"] = {
+                    comment_id: id,
+                    dataSetIndex: commentList.dataSetIndex,
+                    commentIndex: index,
+                    totalCommentIndex: temp.totalCommentIndex,
+                    tagIdList: [],
+                    tags: [],
+                  };
+                  let temp_tagIdList = response.data.Details.tag_id_list.split(',');
+                  temp_tagIdList.forEach(item => {
+                    if (item) temp.tagList.tagIdList.push(item);
+                  });//tagIdlist本身有序
+                  this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments[index] = temp;
+                  this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
 
-                    this.$store.state.endLoading++;
-                    this.getTagByTagIdList(temp.tagList);
-                  } else this.$message.error('comment acquiring error');
+                  this.$store.state.endLoading++;
+                  this.getTagByTagIdList(temp.tagList);
                 }
-                else this.$store.state.endLoading++;// duplicate items
+                else this.$message.error('comment acquiring error');
+
+                this.$store.state.endLoading++;
               })
               .catch(error => console.log(error));
           })
@@ -228,7 +234,7 @@
         getTagByTagIdList(tagList) {
           this.$store.state.tagsList[tagList.dataSetIndex] = [];
           if (tagList.tagIdList.length>0) {
-            tagList.tagIdList.forEach(id => {
+            tagList.tagIdList.forEach((id, index) => {
               if (this.$store.state.tagsDuplicateList.indexOf(id)===-1) {
                 this.$store.state.tagsDuplicateList.push(id);
                 this.axios.get('http://121.40.238.237:8080/tag/', {params: {tag_id: id}})
