@@ -55,7 +55,6 @@
                   <v-row>
                   <v-col><v-radio :value="0" :label="lantext.words.marker[$store.state.lanType]"></v-radio></v-col>
                   <v-col><v-radio :value="1" :label="lantext.words.reviewer[$store.state.lanType]"></v-radio></v-col>
-                  <v-col><v-radio :value="2" :label="lantext.words.admin[$store.state.lanType]"></v-radio></v-col>
                   <v-col cols="6"></v-col>
                   </v-row>
                 </v-radio-group>

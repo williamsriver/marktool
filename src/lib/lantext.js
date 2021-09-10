@@ -26,22 +26,20 @@ const lantext={
       [
 
         {text: 'comment ID',value: `comment_id`},
-        {text: 'comment title',value: 'title'},
 
 
         {text: 'Suggested Label',value: 'viewValue'},
-        {text: 'view',value: 'view'},
-        {text: 'details',value: 'data-table-expand',sortable:false},
+        {text:"view", value: "view"},
+        {text: 'details',value: 'details',sortable:false},
       ],
       [
 
         {text: '评论编号',value: 'comment_id'},
-        {text: '评论标题',value: 'title'},
 
 
         {text: '审阅结果',value: 'viewValue'},
-        {text: '审阅',value: 'view'},
-        {text: '详情',value: 'data-table-expand',sortable:false},
+        {text:"审阅", value: "view"},
+        {text: '详情',value: 'details',sortable:false},
       ],
     ],
 
@@ -236,6 +234,7 @@ const lantext={
   },
 
   words:{
+    details:["details", "详情"],
     submit:["submit","提交"],
     none:["none",'空'],
     present_tag:["present tag","当前标签"],
@@ -253,7 +252,7 @@ const lantext={
     datasetID:["dataset ID","数据集ID"],
     getDataSet:["get dataset","获取数据集"],
     tag_description:['tag description','标签说明'],
-    others:['others','其他需求'],
+    others:['others','其他'],
     FR:['FR','功能性需求'],
     NFR:['NFR','非功能需求'],
     value:['value','值'],
@@ -268,7 +267,7 @@ const lantext={
     comment_id:['comment id','评论ID'],
     version_info:['version info','版本信息'],
     date_info:['date','评论时间'],
-    confidence:['confidence','自信度'],
+    confidence:['confidence','置信度'],
     search:['search','搜索'],
     required:['required','必填'],
     confirm:['confirm','确认'],

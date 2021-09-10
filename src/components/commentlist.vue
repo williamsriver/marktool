@@ -2,7 +2,6 @@
   <v-app>
     <!--search tab && table-->
     <v-container fluid v-show="!$store.state.workStatus">
-
       <v-row align="baseline">
         <v-col cols="3">
           <v-btn text @click="refreshCommentList">
@@ -39,7 +38,9 @@
               <div style="justify-content: space-around">
                 <v-btn color="blue" @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true"
                        style="color: white"
-                       :disabled="$store.state.startLoading!==$store.state.endLoading">
+                       :disabled="($store.state.startLoading!==$store.state.endLoading)
+                        || ($store.state.startLoading===$store.state.endLoading
+                        && $store.state.user_level===1 && item.commentList.tagged===0)">
                   {{lantext.words[$store.state.user_level===0?"Labeling":"view"][$store.state.lanType]}}
                 </v-btn>
                 <v-btn color="orange" v-show="$store.state.user_level===0" style="color: white" @click="shareOverlay = true, temp_dataSetId = item.dataSetId">

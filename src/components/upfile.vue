@@ -7,7 +7,7 @@
         <v-col> <v-text-field label="File Name" v-model="fileName"></v-text-field> </v-col>
 
         <v-col>
-          <v-btn @click="upLoadFile(myFile,fileName)" outlined color="primary" v-show="!!myFile">
+          <v-btn @click="upLoadFile(myFile,fileName)" outlined color="primary" :disabled="!myFile">
             {{lantext.words.upload[$store.state.lanType]}}
           </v-btn>
         </v-col>

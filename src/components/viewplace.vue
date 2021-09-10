@@ -2,96 +2,92 @@
 
   <v-app>
     <!--mode radio & search tab-->
-
     <v-container fluid>
       <v-row>
         <v-btn text @click="$store.state.workStatus = false">
           <v-icon>mdi-arrow-left</v-icon>
           <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
         </v-btn>
-        <v-col col="6">
-          <v-radio-group row v-model="viewMode">
-            <v-radio :label="lantext.words.all[$store.state.lanType]" :value="1"></v-radio>
-            <v-radio :label="lantext.words.contradictions[$store.state.lanType]" :value="2"></v-radio>
-          </v-radio-group>
-        </v-col>
-        <v-col cols="6">
-          <v-row align="baseline">
-            <v-col cols="5">
-              {{lantext.words.confidence[$store.state.lanType]}}
-            </v-col>
-            <v-col cols="3">
-              <v-select v-model="lowerVal" :items="valueTable[0]"></v-select>
-            </v-col>
-            <v-col cols="1">
-              <span>to</span>
-            </v-col>
-            <v-col cols="3">
-              <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
-            </v-col>
-          </v-row>
-        </v-col>
       </v-row>
+      <v-container>
+        <v-row align-content="center">
+          <v-col cols="5">
+            <v-radio-group row v-model="viewMode">
+              <v-radio :label="lantext.words.all[$store.state.lanType]" :value="1"></v-radio>
+              <v-radio :label="lantext.words.contradictions[$store.state.lanType]" :value="2"></v-radio>
+            </v-radio-group>
+          </v-col>
+          <v-col align-self="center">{{lantext.words.confidence[$store.state.lanType]}}</v-col>
+          <v-col>
+            <v-select v-model="lowerVal" :items="valueTable[0]"></v-select>
+          </v-col>
+          <v-col align-self="center">——</v-col>
+          <v-col>
+            <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
+          </v-col>
+        </v-row>
+      </v-container>
 
 
     </v-container>
     <!--comments table-->
-    <v-data-table
-      :search="'no'"
-      :loading="$store.state.startLoading>$store.state.endLoading"
-      :headers="lantext.headers.viewHeaders[$store.state.lanType]"
-      :custom-filter="customfilter3"
-      :items="$store.state.commentTagValueList[dataSetIndex]"
-      v-if="tagListValid"
-      item-key="commentIndex"
-      show-expand>
-      <template v-slot:item.title="{item}">
-        {{item.title||"--"}}
-      </template>
-      <template v-slot:item.viewValue="{item}">
-        {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"--"}}
-      </template>
-      <template v-slot:item.view="{item}" >
-        <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
-          <v-icon>mdi-pen-plus</v-icon>
-          <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?
-            lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
-        </v-btn>
+    <v-row>
+      <v-col>
+        <v-container fluid>
+          <v-data-table
+            :search="'no'"
+            :loading="$store.state.startLoading>$store.state.endLoading"
+            :headers="lantext.headers.viewHeaders[$store.state.lanType]"
+            :custom-filter="customfilter3"
+            :items="$store.state.commentTagValueList[dataSetIndex]"
+            v-if="tagListValid"
+            item-key="commentIndex">
+            <template v-slot:item.title="{item}">
+              {{item.title||"--"}}
+            </template>
+            <template v-slot:item.viewValue="{item}">
+              {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"--"}}
+            </template>
+            <template v-slot:item.details="{item}">
+              {{$store.state.reviewChosenCmt}}
+              <!--有拓宽作用域的作用？？？-->
+              <v-btn text @click="chosenCmt = item">
+                {{lantext.words.details[$store.state.lanType]}}
+              </v-btn>
+            </template>
+            <template v-slot:item.view="{item}" >
+              <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
+                <v-icon>mdi-pen-plus</v-icon>
+                <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?
+                  lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
+              </v-btn>
 
-      </template>
-      <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
-          <v-row>
-            <v-col cols="8">
+            </template>
+          </v-data-table>
+        </v-container>
+      </v-col>
+      <v-col>
+        <v-container>
               <v-data-table
+                v-if="chosenCmt"
                 :search="'no'"
                 :custom-filter="customfilter1"
                 :headers="lantext.headers.viewTagHeader[$store.state.lanType]"
-                :items="item.tagList.tags"
+                :items="chosenCmt.tagList.tags"
                 hide-default-footer>
                 <template v-slot:item.tag_value="{item}">
-
                   {{lantext.tagwords.tags[$store.state.lanType][item.tag_value]}}
                 </template>
               </v-data-table>
-            </v-col>
-            <v-col cols="4">
-              <v-textarea outlined readonly :label="lantext.words.comment_word[$store.state.lanType]" v-model="item.content"></v-textarea>
-            </v-col>
-          </v-row>
+        </v-container>
+        <v-container>
+              <v-textarea
+                v-if="chosenCmt"
+                outlined readonly :label="lantext.words.comment_word[$store.state.lanType]" v-model="chosenCmt.content"></v-textarea>
+        </v-container>
 
-        </td>
-
-
-      </template>
-
-    </v-data-table>
-
-
-
-    <v-spacer style="height: 30px"></v-spacer>
-    <v-divider></v-divider>
-    <v-spacer style="height: 30px"></v-spacer>
+      </v-col>
+    </v-row>
 
     <v-overlay v-show="overlayValid" color="#eeeeee">
       <v-card  width="700"  light>
@@ -99,11 +95,6 @@
           <v-btn @click="overlayValid = false" color="red" style="color:white;" absolute right>
             <span class="mdi mdi-close" ></span>
           </v-btn>
-          <div class="ma-2">
-            <span class="text-h5">{{lantext.words.present_tag[$store.state.lanType]}}:</span>
-            <span class="text-h5">
-              {{overlayItem?showTag(overlayItem.tag_result):""}}</span>
-          </div>
           <v-row>
             <v-col>
               <v-treeview
@@ -117,7 +108,27 @@
               </v-treeview>
             </v-col>
             <v-col>
+              <v-container>
+                <v-row>
+                  <v-col>
+                    <v-main class="font-weight-black text-h6" >
+                      {{lantext.tagwords.tags[$store.state.lanType][treeviewSel]}}
+                    </v-main>
+                    <v-virtual-scroll
+                      v-if="treeviewSel"
+                      :items="lantext.tagwords.taghelpwords[$store.state.lanType][treeviewSel]"
+                      :item-height="80"
+                      height="450">
+                      <template v-slot:default="{item}">
+                        <v-card :color="item.id%2===0?'white':'grey'" height="100">
+                          <span >{{item.name}}</span>
+                        </v-card>
+                      </template>
+                    </v-virtual-scroll>
+                  </v-col>
 
+                </v-row>
+              </v-container>
             </v-col>
           </v-row>
           <v-main style="text-align: center">
@@ -151,7 +162,7 @@
       },
       data:()=>({
         //static data
-
+        chosenCmt:null,
         tagItems: [
             [
             {id:0, name:'Functional Requirement'},
@@ -173,7 +184,7 @@
               },
           ],
             [
-              {id:324, name:'功能性需求', children:[{id:0 ,name:'性能'}] },
+              {id:0, name:'功能性需求'},
               {id: 234, name: '非功能性需求',
                 children: [{id: 1, name: '适用性'},
                   {id: 2, name: '性能'},
@@ -184,7 +195,7 @@
                   {id: 7, name: '可维护性'},
                   {id: 8, name: '可移植性'}]
               },
-              {id: 114, name: '其他需求',
+              {id: 114, name: '其他',
                 children: [
                   {id: 9, name: 'Bug修复'},
                   {id: 10, name: '其他'},
@@ -260,6 +271,7 @@
         }
       },
       methods:{
+
         showTag(tag_result){
           if (tag_result===-1) return lantext.words.none[this.$store.state.lanType];
           else return lantext.tagwords.tags[this.$store.state.lanType][tag_result];
@@ -309,7 +321,7 @@
           formData3.append('comment_id',comment.comment_id);
           formData3.append('tag_result',tag_result);
 
-          this.axios.put('/api/comments/',formData3)
+          this.axios.put('http://121.40.238.237:8080/comments/',formData3)
             .then((response)=>{
               console.log(response)
               if (response.data.new_tag_result){
@@ -317,8 +329,7 @@
                   lantext.words.view[this.$store.state.lanType] + lantext.sentences.item_success[this.$store.state.lanType]
                 );
                 this.$store.state.dataTree[comment.dataSetIndex].commentList.comments[comment.commentIndex]["tag_result"] = tag_result;
-                this.$store.state.commentTagValueList[comment.totalCommentIndex].tag_result = tag_result;
-                console.log("new tag result",this.$store.state.commentTagValueList[tag.totalCommentIndex].tag_result = tag_result);
+                this.$store.state.commentTagValueList[comment.dataSetIndex][comment.totalCommentIndex].tag_result = tag_result;
               }
               else this.$message.error(
                 lantext.words.view[this.$store.state.lanType] + lantext.sentences.item_failed[this.$store.state.lanType]
