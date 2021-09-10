@@ -6,14 +6,12 @@ const lantext={
         {text:'App Dataset',value:'dataSetId'},
         {text: 'Name',value: 'fileName'},
         {text: 'tagged',value: 'tagged'},
-        {text: 'reviewed',value: 'reviewed'},
         {text: '',sortable:false,value: 'buttons'}
       ],
       [
         {text:'数据集编号',value:'dataSetId'},
         {text: '文件名',value: 'fileName'},
         {text: '标注进度',value: 'tagged'},
-        {text: '审阅进度',value: 'reviewed'},
         {text: '',sortable:false,value: 'buttons'}
       ],
     ],

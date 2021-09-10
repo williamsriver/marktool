@@ -224,8 +224,6 @@
                   this.getTagByTagIdList(temp.tagList);
                 }
                 else this.$message.error('comment acquiring error');
-
-                this.$store.state.endLoading++;
               })
               .catch(error => console.log(error));
           })
@@ -289,9 +287,6 @@
             else this.$message.error("wrong");
           }).catch(error => console.log(error));
         }
-
-
-
 
       }
 
