@@ -28,18 +28,18 @@ const lantext={
         {text: 'comment ID',value: `comment_id`},
 
 
-        {text: 'Suggested Label',value: 'viewValue'},
+        {text: 'Suggested Label',value: 'tag_result', sortable: true},
         {text:"view", value: "view"},
-        {text: 'details',value: 'details',sortable:false},
+        {text: '',value: 'details',sortable:false},
       ],
       [
 
         {text: '评论编号',value: 'comment_id'},
 
 
-        {text: '审阅结果',value: 'viewValue'},
+        {text: '审阅结果',value: 'tag_result', sortable: true},
         {text:"审阅", value: "view"},
-        {text: '详情',value: 'details',sortable:false},
+        {text: '',value: 'details',sortable:false},
       ],
     ],
 
@@ -234,6 +234,7 @@ const lantext={
   },
 
   words:{
+    comment_details:["comment details","评论详情"],
     details:["details", "详情"],
     submit:["submit","提交"],
     none:["none",'空'],

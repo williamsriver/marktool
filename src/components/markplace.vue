@@ -72,7 +72,7 @@
                   <v-col>
                     <v-chip class="ma-2" :color="tagsInfo.colors[$store.state.tagValue]" text-color="white">
                       <v-avatar left><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                      {{tagsInfo.text[$store.state.tagValue]}}
+                      {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}
                     </v-chip>
                     {{lantext.words.confidence[$store.state.lanType]}}
                     <span class="text-h5 font-italic">{{trustRating}}</span>

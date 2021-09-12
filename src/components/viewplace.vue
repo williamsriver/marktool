@@ -9,20 +9,20 @@
           <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
         </v-btn>
       </v-row>
-      <v-container>
-        <v-row align-content="center">
-          <v-col cols="5">
+      <v-container fluid class="ma-0 pa-0">
+        <v-row align-content="center" class="ma-0 pa-0">
+          <v-col cols="3">
             <v-radio-group row v-model="viewMode">
               <v-radio :label="lantext.words.all[$store.state.lanType]" :value="1"></v-radio>
               <v-radio :label="lantext.words.contradictions[$store.state.lanType]" :value="2"></v-radio>
             </v-radio-group>
           </v-col>
-          <v-col align-self="center">{{lantext.words.confidence[$store.state.lanType]}}</v-col>
-          <v-col>
+          <v-col align-self="center" cols="1">{{lantext.words.confidence[$store.state.lanType]}}</v-col>
+          <v-col cols="2">
             <v-select v-model="lowerVal" :items="valueTable[0]"></v-select>
           </v-col>
-          <v-col align-self="center">——</v-col>
-          <v-col>
+          <v-col align-self="center" cols="1">——</v-col>
+          <v-col cols="2">
             <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
           </v-col>
         </v-row>
@@ -35,6 +35,7 @@
       <v-col>
         <v-container fluid>
           <v-data-table
+            class="elevation-1"
             :search="'no'"
             :loading="$store.state.startLoading>$store.state.endLoading"
             :headers="lantext.headers.viewHeaders[$store.state.lanType]"
@@ -42,32 +43,74 @@
             :items="$store.state.commentTagValueList[dataSetIndex]"
             v-if="tagListValid"
             item-key="commentIndex">
-            <template v-slot:item.title="{item}">
-              {{item.title||"--"}}
-            </template>
-            <template v-slot:item.viewValue="{item}">
-              {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"--"}}
-            </template>
-            <template v-slot:item.details="{item}">
-              {{$store.state.reviewChosenCmt}}
-              <!--有拓宽作用域的作用？？？-->
-              <v-btn text @click="chosenCmt = item">
-                {{lantext.words.details[$store.state.lanType]}}
-              </v-btn>
-            </template>
-            <template v-slot:item.view="{item}" >
-              <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
-                <v-icon>mdi-pen-plus</v-icon>
-                <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?
-                  lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
-              </v-btn>
 
+            <template v-slot:item="{item}">
+              <tr :style="{'background-color':item.comment_id === chosenCmtId?'#78ffd6':
+                (item.totalCommentIndex % 2===0?'#f3f3f3':'') }">
+                <td>
+                <span >
+                {{item.comment_id}}
+                </span>
+                </td>
+
+                <td>
+                  <span >
+                  {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"--"}}
+                  </span>
+                </td>
+                <td>
+                  <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
+                    <v-icon>mdi-pen-plus</v-icon>
+                    <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?
+                      lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
+                  </v-btn>
+                </td>
+
+                <td>
+                  <!--有拓宽作用域的作用？？？-->
+                  <v-btn text @click="chosenCmt = item, chosenCmtId = item.comment_id" outlined>
+                    {{lantext.words.details[$store.state.lanType]}}
+                  </v-btn>
+                </td>
+
+              </tr>
             </template>
+
+
+
+<!--            <template v-slot:item.viewValue="{item, header, value}">-->
+<!--             {{value}}-->
+<!--              <span :style="{'background-color':item.comment_id === chosenCmtId?'green':'' }">-->
+<!--                {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"&#45;&#45;"}}-->
+<!--              </span>-->
+
+<!--            </template>-->
+<!--            <template v-slot:item.details="{item}">-->
+<!--              {{$store.state.reviewChosenCmt}}-->
+
+<!--              &lt;!&ndash;有拓宽作用域的作用？？？&ndash;&gt;-->
+<!--              <v-btn text @click="chosenCmt = item, chosenCmtId = item.comment_id">-->
+<!--                {{lantext.words.details[$store.state.lanType]}}-->
+<!--              </v-btn>-->
+<!--            </template>-->
+<!--            <template v-slot:item.view="{item}" >-->
+<!--              <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">-->
+<!--                <v-icon>mdi-pen-plus</v-icon>-->
+<!--                <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?-->
+<!--                  lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>-->
+<!--              </v-btn>-->
+
+<!--            </template>-->
           </v-data-table>
         </v-container>
       </v-col>
       <v-col>
         <v-container>
+          <v-main class="text-h4">{{lantext.words.comment_details[$store.state.lanType]}}</v-main>
+          <v-main class="text-h5">
+            {{lantext.words.comment_id[$store.state.lanType]}} :
+            {{chosenCmtId}}
+          </v-main>
               <v-data-table
                 v-if="chosenCmt"
                 :search="'no'"
@@ -162,6 +205,7 @@
       },
       data:()=>({
         //static data
+        chosenCmtId:null,
         chosenCmt:null,
         tagItems: [
             [

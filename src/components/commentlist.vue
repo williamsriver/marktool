@@ -17,6 +17,7 @@
           <v-text-field v-model="listSrchString" append-icon="mdi-magnify"
                         :label="lantext.words.search[$store.state.lanType]"></v-text-field>
           <v-data-table
+            class="elevation-1"
             :loading="$store.state.startLoading>$store.state.endLoading"
             :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
             :items="$store.state.dataTree"
@@ -220,9 +221,13 @@
                   });//tagIdlist本身有序
                   this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments[index] = temp;
                   this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
+                  if (temp.tagList.tagIdList.length > 0){
+                    this.getTagByTagIdList(temp.tagList);
+                  }
+
 
                   this.$store.state.endLoading++;
-                  this.getTagByTagIdList(temp.tagList);
+
                 }
                 else this.$message.error('comment acquiring error');
               })
