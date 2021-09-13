@@ -106,7 +106,7 @@
       </v-col>
       <v-col>
         <v-container>
-          <v-main class="text-h4">{{lantext.words.comment_details[$store.state.lanType]}}</v-main>
+          <v-main class="text-h4">{{lantext.words.review_details[$store.state.lanType]}}</v-main>
           <v-main class="text-h5">
             {{lantext.words.comment_id[$store.state.lanType]}} :
             {{chosenCmtId}}

@@ -96,10 +96,10 @@ const lantext={
       ['Functional_requirements',
         'Functional Suitability','Performance Efficiency','Compatibility', 'Usability',
         'Security','Reliability','Maintainability','Portability',
-        'Bug_Fix','Others',],
+        'Bug_Fix','Others','Contradictions'],
       ['功能性需求',
         '适用性', '性能','兼容性','可用性','安全性','可靠性', '可维护性','可移植性',
-        'Bug修复','其他'],
+        'Bug修复','其他','矛盾'],
     ],
     taghelpwords:[
       [
@@ -234,7 +234,8 @@ const lantext={
   },
 
   words:{
-    comment_details:["comment details","评论详情"],
+    review_process:["review process", "标注进度"],
+    review_details:["review details","审阅详情"],
     details:["details", "详情"],
     submit:["submit","提交"],
     none:["none",'空'],

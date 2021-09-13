@@ -16,7 +16,7 @@
               </span>
         </template>
         <template v-slot:item.buttons="{item}">
-          <v-btn @click="setChart(item)" text>
+          <v-btn @click="setChart(item)" text :disabled="item.commentList.tagged===0">
             <v-icon>mdi-database</v-icon>
             {{lantext.words.look[$store.state.lanType]}}
           </v-btn>
@@ -25,13 +25,17 @@
     </v-container>
     <v-container fluid>
       <v-row>
-        <v-col>
+        <v-col cols="5">
           <div style="text-align: center">{{lantext.sentences.tags_distribution_chart1[$store.state.lanType]}}</div>
-          <div id="chartshow2"></div>
+          <div id="chartshow2" style="width: 400px;"></div>
         </v-col>
         <v-col>
           <div style="text-align: center">{{lantext.sentences.tags_distribution_chart2[$store.state.lanType]}}</div>
-          <div id="chartshow"></div>
+          <div style="text-align: center" v-if="list_choosen>=0">{{lantext.words.review_process[$store.state.lanType]}}
+            {{$store.state.dataTree[list_choosen].commentList.tagged}}
+                /{{$store.state.dataTree[list_choosen].commentList.commentIdList.length}}
+          </div>
+          <div id="chartshow" style="width: 700px"></div>
         </v-col>
       </v-row>
     </v-container>
@@ -65,6 +69,10 @@
       },
       components: {GetFile, upfile,allDatasetTable},
       data:()=>({
+        appeared_comments_list:[],//record all the comments appeared in those tags
+        tags_for_every_comment_list:[],//put all the tags into their respective belonged comment
+        contradictions_number:0,//the number of contradicting tags
+
         lantext:lantext,
         list_choosen:-1,
         chart1:'',
@@ -113,6 +121,10 @@
               {name:'Reliability',y:0},
               {name:'Maintainability',y:0},
               {name:'Portability',y:0},
+              {},
+              {},
+              {},
+              {name:'Contradictions', y:0}
 
               //{name:'Bug_Fix',y:0},
               //{name:'Others',y:0},
@@ -173,6 +185,11 @@
       },
       methods:{
         setChart(dataset){
+          //contradiction statistics clearing
+          this.contradictions = 0
+          this.appeared_comments_list = []
+          this.tags_for_every_comment_list = []
+
           this.list_choosen = dataset.dataSetIndex;
           for (let j=0;j<this.chart1_config.series[0].data.length;j++){
             this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[this.$store.state.lanType][j];
@@ -184,15 +201,31 @@
           }
 
           this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
+            console.log(tag)
 
-
-            let temp_num = this.getTagValue(tag);
             //console.log(tag, temp_num);
-            if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
-            if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
-            else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-            else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
+            if (this.appeared_comments_list.indexOf(tag.comment_id) === -1){
+              //a new comment
+              this.appeared_comments_list.push(tag.comment_id)
+              this.tags_for_every_comment_list.push([tag])
+            }
+            else{
+              //contradictions, all the tags belonged to this certain comment will be classified as contradictions
+              this.tags_for_every_comment_list[this.appeared_comments_list.indexOf(tag.comment_id)].push(tag)
+            }
           });
+          console.log(this.tags_for_every_comment_list)
+          this.tags_for_every_comment_list.forEach(comment_unit=>{
+            if (comment_unit.length === 1){
+                let temp_num = this.getTagValue(comment_unit[0]);
+                if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
+                if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
+                else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
+                else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
+              }
+            else this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += comment_unit.length
+          })
+
 
           this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
           this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
