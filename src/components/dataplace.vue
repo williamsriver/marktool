@@ -31,8 +31,11 @@
         </v-col>
         <v-col>
           <div style="text-align: center">{{lantext.sentences.tags_distribution_chart2[$store.state.lanType]}}</div>
-          <div style="text-align: center" v-if="list_choosen>=0">{{lantext.words.review_process[$store.state.lanType]}}
-            {{$store.state.dataTree[list_choosen].commentList.tagged}}
+          <div style="text-align: center" v-if="list_choosen>=0">
+            {{$store.state.user_level===0?lantext.words.mark_process[$store.state.lanType]
+              :lantext.words.review_process[$store.state.lanType]}}
+            {{$store.state.user_level===0?$store.state.dataTree[list_choosen].commentList.tagged
+              :reviewed_comments}}
                 /{{$store.state.dataTree[list_choosen].commentList.commentIdList.length}}
           </div>
           <div id="chartshow" style="width: 700px"></div>
@@ -69,6 +72,7 @@
       },
       components: {GetFile, upfile,allDatasetTable},
       data:()=>({
+        reviewed_comments:0,
         appeared_comments_list:[],//record all the comments appeared in those tags
         tags_for_every_comment_list:[],//put all the tags into their respective belonged comment
         contradictions_number:0,//the number of contradicting tags
@@ -185,12 +189,10 @@
       },
       methods:{
         setChart(dataset){
-          //contradiction statistics clearing
-          this.contradictions = 0
-          this.appeared_comments_list = []
-          this.tags_for_every_comment_list = []
-
+          //record chosen dataset
           this.list_choosen = dataset.dataSetIndex;
+
+          //set names for charts
           for (let j=0;j<this.chart1_config.series[0].data.length;j++){
             this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[this.$store.state.lanType][j];
             this.chart1_config.series[0].data[j].y = 0
@@ -200,35 +202,57 @@
             this.chart2_config.series[0].data[j].name = lantext.tagwords.class[this.$store.state.lanType][j];
           }
 
-          this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
-            console.log(tag)
 
-            //console.log(tag, temp_num);
-            if (this.appeared_comments_list.indexOf(tag.comment_id) === -1){
-              //a new comment
-              this.appeared_comments_list.push(tag.comment_id)
-              this.tags_for_every_comment_list.push([tag])
-            }
-            else{
-              //contradictions, all the tags belonged to this certain comment will be classified as contradictions
-              this.tags_for_every_comment_list[this.appeared_comments_list.indexOf(tag.comment_id)].push(tag)
-            }
-          });
-          console.log(this.tags_for_every_comment_list)
-          this.tags_for_every_comment_list.forEach(comment_unit=>{
-            if (comment_unit.length === 1){
+          if (this.$store.state.user_level===0){
+            //contradiction statistics clearing
+            this.contradictions = 0
+            this.appeared_comments_list = []
+            this.tags_for_every_comment_list = []
+
+            //data from tags
+            this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
+              if (this.appeared_comments_list.indexOf(tag.comment_id) === -1){
+                //a new comment
+                this.appeared_comments_list.push(tag.comment_id)
+                this.tags_for_every_comment_list.push([tag])
+              }
+              else{
+                //contradictions, all the tags belonged to this certain comment will be classified as contradictions
+                this.tags_for_every_comment_list[this.appeared_comments_list.indexOf(tag.comment_id)].push(tag)
+              }
+            });
+            console.log(this.tags_for_every_comment_list)
+            this.tags_for_every_comment_list.forEach(comment_unit=>{
+              if (comment_unit.length === 1){
                 let temp_num = this.getTagValue(comment_unit[0]);
                 if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
                 if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
                 else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
                 else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
               }
-            else this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += comment_unit.length
-          })
+              else this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += comment_unit.length
+            })
+          }
+          else{//review data
+            //data from commentTagValueList
+            this.reviewed_comments = 0
+            this.$store.state.commentTagValueList[dataset.dataSetIndex].forEach(comment => {
+              if (comment.tag_result !== -1) {
+                this.reviewed_comments++;
+                let temp_num = comment.tag_result;
+                if (temp_num >= 1 && temp_num <= 8) this.chart1_config.series[0].data[temp_num - 1].y++;
+                if (temp_num === 0) this.chart2_config.series[0].data[0].y++;
+                else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
+                else if (temp_num > 0) this.chart2_config.series[0].data[1].y++;
+              }
+            })
 
+          }
 
+          //render
           this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
           this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
+
         },
 
 

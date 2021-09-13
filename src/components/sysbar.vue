@@ -10,7 +10,7 @@
         <v-col cols="5" align-self="center">
           <v-main class="text-left" >
             {{lantext.words.system_title[this.$store.state.lanType]}}
-            v1.210912
+            v1.210913
           </v-main>
         </v-col>
 

@@ -234,7 +234,8 @@ const lantext={
   },
 
   words:{
-    review_process:["review process", "标注进度"],
+    mark_process:["mark process", "标注进度"],
+    review_process:["review process", "审阅进度"],
     review_details:["review details","审阅详情"],
     details:["details", "详情"],
     submit:["submit","提交"],
