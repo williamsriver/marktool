@@ -9,8 +9,9 @@
 
         <v-col cols="5" align-self="center">
           <v-main class="text-left" >
-            {{lantext.words.system_title[this.$store.state.lanType]}}
-            v1.210913
+            基于Web的移动应用数据集标注工具V1.0
+<!--            {{lantext.words.system_title[this.$store.state.lanType]}}-->
+<!--            v1.210913-->
           </v-main>
         </v-col>
 

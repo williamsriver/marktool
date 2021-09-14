@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-container fluid  class="pa-0">
+      {{currentTag}}
       <v-row dense>
         <v-col  cols="10" class="pa-0">
           <v-container fluid>
@@ -381,6 +382,8 @@
 
           if (this.currentComment) {
 
+
+
             if (this.currentComment.tagList.tags.length > 0) {
               console.log(value, this.currentComment.tagList.tags)
               this.currentComment.tagList.tags.forEach(tag =>{
@@ -390,6 +393,7 @@
               else this.remarkContent = "";
 
               if (this.currentTag) {
+                this.trustRating = this.currentTag.confidence
                 this.$store.state.tagValue = this.currentTag.tag_value;
                 console.log("i'm setting tag value",this.$store.state.tagValue);
               }
