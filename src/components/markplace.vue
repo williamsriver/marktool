@@ -1,7 +1,6 @@
 <template>
   <v-app>
     <v-container fluid  class="pa-0">
-      {{currentTag}}
       <v-row dense>
         <v-col  cols="10" class="pa-0">
           <v-container fluid>
@@ -229,7 +228,7 @@
         }
       },
       saveValid(){
-        return ! ( this.lookMode || this.$store.state.isSaved || this.ptr<0 );
+        return ! ( this.lookMode || this.$store.state.isSaved || this.ptr<0 || this.$store.state.tagValue === -1 );
       }
     },
     watch:{
@@ -247,6 +246,7 @@
         },
         immediate: true,
       },
+
 
       ptr:{
         handler(value){
@@ -266,6 +266,12 @@
           this.$store.state.isSaved = false
         }
       },
+
+      trustRating:{
+        handler(value){
+          this.$store.state.isSaved = false
+        }
+      }
 
 
     },
@@ -334,7 +340,7 @@
               temp["tag_user_info"] = this.$store.state.currentuser;
               temp["confidence"] = this.trustRating;
               temp["tag_value"] = this.$store.state.tagValue;
-              this.$store.state.dataTree[this.currentTag.dataSetIndex].commentList.comments[this.ptr].tagList.tags[this.currentTag.tagIndex] = temp;
+              this.$store.state.dataTree[this.currentComment.dataSetIndex].commentList.comments[this.ptr].tagList.tags[this.currentTag.tagIndex] = temp;
               this.$store.state.isSaved = true;
               if (this.ptr<this.commentsTotalNum-1) this.ptr++;
             }
@@ -354,6 +360,7 @@
               temp["tagIndex"] = comment.tagList.tagIdList.length;
               temp["tag_user_info"] = this.$store.state.currentuser;
               temp["remarks"] = this.remark;
+              temp["confidence"] = this.trustRating
               this.$store.state.dataTree[this.dataSetIndex].commentList.comments[comment.commentIndex].tagList.tagIdList.push(response.data.Details.tag_id);
               if (this.$store.state.dataTree[this.dataSetIndex].commentList.comments[comment.commentIndex].tagList.tags.length===0)
                 this.$store.state.dataTree[this.dataSetIndex].commentList.comments[comment.commentIndex].tagList.tags = [];
@@ -382,18 +389,21 @@
 
           if (this.currentComment) {
 
-
+            console.log("current comment", this.currentComment)
 
             if (this.currentComment.tagList.tags.length > 0) {
               console.log(value, this.currentComment.tagList.tags)
               this.currentComment.tagList.tags.forEach(tag =>{
+                console.log(tag)
                 if (tag.tag_user_info === this.$store.state.currentuser) this.currentTag = tag;
               })
               if (this.currentTag && this.currentTag.remarks) this.remarkContent = this.currentTag.remarks;
               else this.remarkContent = "";
 
               if (this.currentTag) {
-                this.trustRating = this.currentTag.confidence
+                this.currentTag["tagIndex"] = this.currentComment.tagList.tags.indexOf(this.currentTag)
+                this.currentTag["tag_id"] = this.currentComment.tagList.tagIdList[this.currentTag.tagIndex]
+                this.trustRating = this.currentTag.confidence || 4
                 this.$store.state.tagValue = this.currentTag.tag_value;
                 console.log("i'm setting tag value",this.$store.state.tagValue);
               }

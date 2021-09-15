@@ -174,13 +174,14 @@
                 this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
                 console.log("cmt id list", response.data.comment_id_list)
                 //comment list 查重处理
+                let commentsIdTotalList = []
                 this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList.forEach((cmtid, index, arr) =>{
-                  if (this.$store.commentsIdTotalList.indexOf(cmtid) !== -1){
+                  if (commentsIdTotalList.indexOf(cmtid) !== -1){
                     arr.splice(index, index+1)
                   }
-                  else this.$store.commentsIdTotalList.push(cmtid)
+                  else commentsIdTotalList.push(cmtid)
                 })
-
+                console.log("commentsIdTotalList", commentsIdTotalList)
                 this.getCommentByCommentIdList(this.$store.state.dataTree[dataset.dataSetIndex].commentList);
               }
               else this.$message.error('comments id list acquiring error');
