@@ -317,11 +317,13 @@
             })
             console.log(sameNum, totalNum)
             if (totalNum>0) this.$store.state.dataTree[dataSetIndex].kappa = sameNum/totalNum
+            else this.$store.state.dataTree[dataSetIndex].kappa = "--"
             this.isDataAlive = false
             this.$nextTick(()=>{
               this.isDataAlive =true
             })
           }
+          else this.$store.state.dataTree[dataSetIndex].kappa = "--"
         }
       }
     }
