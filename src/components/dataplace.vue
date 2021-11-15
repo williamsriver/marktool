@@ -3,9 +3,10 @@
     <v-container fluid>
       <v-data-table
         :loading="$store.state.startLoading>$store.state.endLoading"
-        :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
+        :headers="lantext.headers.ItemListHeaderWithKappa[$store.state.lanType]"
         :items="$store.state.dataTree"
         :items-per-page="5"
+        v-if="isDataAlive"
       >
         <template v-slot:item.uploadUserName="{item}">
           {{$store.state.currentuser}}
@@ -17,9 +18,14 @@
         </template>
         <template v-slot:item.buttons="{item}">
           <v-btn @click="setChart(item)" text :disabled="item.commentList.tagged===0">
-            <v-icon>mdi-database</v-icon>
-            {{lantext.words.look[$store.state.lanType]}}
+            <v-icon>mdi-chart-pie</v-icon>
+            {{lantext.words.graph[$store.state.lanType]}}
           </v-btn>
+        </template>
+        <template v-slot:item.kappa="{item}" v-if="$store.state.user_level===1">
+          <v-btn @click="updateKappa(item.dataSetIndex)" text outlined
+          :disabled="item.commentList.tagged===0">{{lantext.words.update[$store.state.lanType]}}</v-btn>
+          <span>{{item.kappa}}</span>
         </template>
       </v-data-table>
     </v-container>
@@ -72,6 +78,7 @@
       },
       components: {GetFile, upfile,allDatasetTable},
       data:()=>({
+        isDataAlive:true,
         reviewed_comments:0,
         appeared_comments_list:[],//record all the comments appeared in those tags
         tags_for_every_comment_list:[],//put all the tags into their respective belonged comment
@@ -264,6 +271,58 @@
           });
           return result;
         },
+
+
+        updateKappa(dataSetIndex){
+
+          let dataSet = this.$store.state.dataTree[dataSetIndex]
+          let userList = []
+          let userListTagNumber = []
+          dataSet.commentList.comments.forEach((comment, tagIndex) =>{
+            if (comment.tagList.tags.length > 0){
+              comment.tagList.tags.forEach(tag =>{
+                let index = userList.indexOf(tag.tag_user_info);
+                if (index===-1){
+                  userList.push(tag.tag_user_info);
+                  userListTagNumber.push({
+                    userInfo:tag.tag_user_info,
+                    frequency:1,
+                    tagsIndex:[tagIndex],
+                    tagsValues:[tag.tag_value],
+                  });
+                }
+                else{
+                  userListTagNumber[index].frequency++;
+                  userListTagNumber[index].tagsValues.push(tag.tag_value);
+                  userListTagNumber[index].tagsIndex.push(tagIndex);
+                }
+
+              })
+            }
+          })
+          userListTagNumber.sort((a,b)=> b.frequency-a.frequency);
+          console.log(userListTagNumber)
+          let kappa_1, kappa_2
+          if (userListTagNumber.length >= 2){
+            kappa_1 = userListTagNumber[0]
+            kappa_2 = userListTagNumber[1]
+            let sameNum = 0
+            let totalNum = 0
+            dataSet.commentList.comments.forEach((comment, index) =>{
+              if (kappa_1.tagsIndex.indexOf(index)!==-1 && kappa_2.tagsIndex.indexOf(index)!==-1){
+                totalNum++;
+                if (kappa_1.tagsValues[kappa_1.tagsIndex.indexOf(index)] ===
+                  kappa_2.tagsValues[kappa_2.tagsIndex.indexOf(index)]) sameNum++;
+              }
+            })
+            console.log(sameNum, totalNum)
+            if (totalNum>0) this.$store.state.dataTree[dataSetIndex].kappa = sameNum/totalNum
+            this.isDataAlive = false
+            this.$nextTick(()=>{
+              this.isDataAlive =true
+            })
+          }
+        }
       }
     }
 </script>

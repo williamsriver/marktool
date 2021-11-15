@@ -6,12 +6,9 @@
       style="color:white;"
        height="43">
       <v-row>
-
         <v-col cols="5" align-self="center">
           <v-main class="text-left" >
-            面向群智化需求分析的数据集标注工具V1.0
-<!--            {{lantext.words.system_title[this.$store.state.lanType]}}-->
-<!--            v1.210913-->
+            {{lantext.words.system_title[this.$store.state.lanType]}}V1.0
           </v-main>
         </v-col>
 

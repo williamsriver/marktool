@@ -7,6 +7,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   //dataTree[].commentList.comments[].tagList.tags[]
   state:{
+
     reviewChosenCmt:null,
     lanType:1,
     currentuser:'',

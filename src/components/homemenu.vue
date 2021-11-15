@@ -80,7 +80,7 @@
             lantext.words[String(UserType)]!== undefined?
             lantext.words[String(UserType)][$store.state.lanType]:"Unknown"}}</v-list-item-subtitle>
           <v-list-item-subtitle style="text-align: center" v-show="UserType==='marker'">{{
-            $store.state.lanType===0?'coder':'标注者'}}</v-list-item-subtitle>
+            $store.state.lanType===0?'Coder':'标注者'}}</v-list-item-subtitle>
           <v-list-item
             v-for="(item,index) in items[$store.state.user_level]"
             :key="index" link
@@ -148,17 +148,17 @@
           [
             { title: ['Labeling','标注'], icon: 'mdi-pen'},
             { title: ['Statistic','统计'], icon: 'mdi-image' },
-            { title: ['Logout','登出'], icon: 'mdi-logout'},
+            { title: ['Log Out','登出'], icon: 'mdi-logout'},
 
           ],
           [
             { title: ['Review','审阅'], icon: 'mdi-pen-plus'},
             { title: ['Data','统计'], icon: 'mdi-image' },
-            { title: ['Logout','登出'], icon: 'mdi-logout'},
+            { title: ['Log Out','登出'], icon: 'mdi-logout'},
           ],
           [
             { title: ['View All the List','全部列表'], icon: 'mdi-image' },
-            { title: ['Logout','登出'], icon: 'mdi-logout'},
+            { title: ['Log Out','登出'], icon: 'mdi-logout'},
           ],
         ],
       }),
@@ -190,8 +190,8 @@
       watch:{
           list_chosen(value){
             this.$store.state.workStatus = false;
-            console.log(this.items[this.$store.state.user_level][value].title[0]==='Logout')
-            if (this.items[this.$store.state.user_level][value].title[0]==='Logout') this.logOut();
+            console.log(this.items[this.$store.state.user_level][value].title[0]==='Log Out')
+            if (this.items[this.$store.state.user_level][value].title[0]==='Log Out') this.logOut();
           }
       },
       methods:{

@@ -2,7 +2,7 @@
   <v-app>
     <v-container fluid  class="pa-0">
       <v-row dense>
-        <v-col  cols="10" class="pa-0">
+        <v-col class="pa-0">
           <v-container fluid>
             <v-row dense  align="baseline">
               <v-btn text @click="$store.state.startLoading=0, $store.state.endLoading=0, $store.state.workStatus = false">
@@ -20,14 +20,14 @@
               {{markHour}}:{{markMin}}:{{markSec}}
             </v-row>
             <v-row >
-            <v-col cols="4">
+            <v-col cols="2">
               <v-card class="ma-0" flat>
                 <v-main>{{lantext.words.FR[$store.state.lanType]}}</v-main> <v-divider></v-divider>
                 <v-chip
                   class="ma-2" @click="$store.state.isSaved = false, $store.state.tagValue = 0"
                   :color="$store.state.tagValue===0?tagsInfo.colors[0]:'grey'" text-color="white">
                   <v-avatar left v-if="$store.state.tagValue===0"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                  {{lantext.tagwords.tags[$store.state.lanType][0]}}
+                  {{lantext.tagwords.showingTags[$store.state.lanType][0]}}
                 </v-chip>
                 <v-main>{{lantext.words.NFR[$store.state.lanType]}}</v-main> <v-divider></v-divider>
                 <v-chip
@@ -35,7 +35,7 @@
                   @click="$store.state.isSaved = false, $store.state.tagValue = index"
                   :color="$store.state.tagValue===index?tagsInfo.colors[index]:'grey'" text-color="white">
                   <v-avatar left v-if="$store.state.tagValue===index"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                  <v-main>{{lantext.tagwords.tags[$store.state.lanType][index]}}</v-main>
+                  <v-main>{{lantext.tagwords.showingTags[$store.state.lanType][index]}}</v-main>
                 </v-chip>
                 <v-main>{{lantext.words.others[$store.state.lanType]}}</v-main> <v-divider></v-divider>
                 <v-chip
@@ -43,46 +43,50 @@
                   @click="$store.state.isSaved = false, $store.state.tagValue = index+8"
                   :color="$store.state.tagValue===index+8?tagsInfo.colors[index+8]:'grey'" text-color="white">
                   <v-avatar left v-if="$store.state.tagValue===index+8"><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
-                  {{lantext.tagwords.tags[$store.state.lanType][index+8]}}
+                  {{lantext.tagwords.showingTags[$store.state.lanType][index+8]}}
                 </v-chip>
               </v-card>
-              <v-row>
-                <v-col>
+            </v-col>
+              <v-col cols="3">
+                <v-card >
                   <v-main class="font-weight-black text-h6" >
                     {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}
                   </v-main>
                   <v-virtual-scroll
                     v-if="$store.state.tagValue>=0"
-                    :items="lantext.tagwords.taghelpwords[$store.state.lanType][$store.state.tagValue]"
-                    :item-height="80"
-                    height="200">
+                    :bench="5"
+                    :items="['df']"
+                    :min-height="200"
+                    :max-height="450"
+                    :item-height="450"
+                    >
                     <template v-slot:default="{item}">
-                      <v-card :color="item.id%2===0?'white':'grey'" height="100">
+                      <v-card v-for="(item, index) in lantext.tagwords.taghelpwords[$store.state.lanType][$store.state.tagValue]"
+                              :key="index"
+                              :color="item.id%2===0?'white':'grey'" height="auto">
                         <span >{{item.name}}</span>
                       </v-card>
                     </template>
                   </v-virtual-scroll>
-                </v-col>
-
-              </v-row>
-            </v-col>
-            <v-col  v-if="currentComment!==null">
+                </v-card>
+              </v-col>
+            <v-col  v-if="currentComment!==null" align-self="end">
               <v-container class="pa-0" >
-                <v-row align="baseline" v-show="$store.state.tagValue>=0" dense>
-                  <v-col>
+
+                <v-card height="56" flat>
+                  <v-col v-show="$store.state.tagValue>=0">
                     <v-chip class="ma-2" :color="tagsInfo.colors[$store.state.tagValue]" text-color="white">
                       <v-avatar left><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
                       {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}
                     </v-chip>
                     {{lantext.words.confidence[$store.state.lanType]}}
                     <span class="text-h5 font-italic">{{trustRating}}</span>
-                  </v-col>
-                  <v-col>
+                  </v-col >
+                  <v-col v-show="$store.state.tagValue>=0">
                     <v-rating :color="$store.state.tagValue>=0?tagsInfo.colors[$store.state.tagValue]:''" hover v-model="trustRating"></v-rating>
                   </v-col>
-                </v-row>
-
-                <v-card >
+                </v-card>
+                <v-card height="400">
                   <v-row>
 
                     <v-col>
@@ -98,11 +102,11 @@
                       <v-main class="font-weight-black" >
                         {{lantext.words.rating[$store.state.lanType]}} : {{currentComment.rank_level||"--"}}
                       </v-main>
-                      <v-main class="font-weight-black" >
-                        {{lantext.words.view[$store.state.lanType]+" "+lantext.words.value[$store.state.lanType]}} :
-                        {{currentComment.tag_result === -1?"--"
-                        :lantext.tagwords.tags[$store.state.lanType][currentComment.tag_result]}}
-                      </v-main>
+<!--                      <v-main class="font-weight-black" >-->
+<!--                        {{lantext.words.view[$store.state.lanType]+" "+lantext.words.value[$store.state.lanType]}} :-->
+<!--                        {{currentComment.tag_result === -1?"&#45;&#45;"-->
+<!--                        :lantext.tagwords.tags[$store.state.lanType][currentComment.tag_result]}}-->
+<!--                      </v-main>-->
                       <v-main class="font-weight-black" >
                         {{lantext.words.content[$store.state.lanType]}} :
                       </v-main >
@@ -116,36 +120,29 @@
                     v-model="remarkContent" outlined full-width>
                   </v-textarea>
                 </v-card>
+
               </v-container>
+              <v-row>
+                <v-col>
+                  <v-btn text :disabled="ptr===0" @click="ptr--, $store.state.isSaved = true">
+                    <v-icon>mdi-arrow-left</v-icon>{{lantext.words.previous[$store.state.lanType]}}
+                  </v-btn>
+                </v-col>
+                <v-col>
+                  <v-btn text @click="ptr++" :disabled="ptr===commentsTotalNum-1">
+                    <v-icon>mdi-arrow-right</v-icon>{{lantext.words.next[$store.state.lanType]}}
+                  </v-btn>
+                </v-col>
+                <v-col>
+                  <v-btn text @click="saveMark" :disabled="!saveValid">
+                    <v-icon>mdi-content-save</v-icon>{{lantext.words.save[$store.state.lanType]}}
+                  </v-btn>
+                </v-col>
+              </v-row>
             </v-col>
           </v-row>
 
           </v-container>
-        </v-col>
-        <v-col cols="2">
-          <v-navigation-drawer width="200" permanent>
-            <v-list dense nav>
-                <v-list-item :disabled="ptr===0" @click="ptr--, $store.state.isSaved = true">
-                  <v-list-item-icon> <v-icon>mdi-arrow-left</v-icon> </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{lantext.words.previous[$store.state.lanType]}}</v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-                <v-list-item @click="ptr++" :disabled="ptr===commentsTotalNum-1">
-                  <v-list-item-icon> <v-icon>mdi-arrow-right</v-icon> </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{lantext.words.next[$store.state.lanType]}}</v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-                <v-list-item @click="saveMark" :disabled="!saveValid">
-                  <v-list-item-icon> <v-icon>mdi-content-save</v-icon> </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{lantext.words.save[$store.state.lanType]}}</v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </v-list>
-          </v-navigation-drawer>
-
         </v-col>
       </v-row>
     </v-container>
@@ -329,6 +326,7 @@
       },
 
       editTag(data) {
+        console.log(data)
         this.axios.put('http://121.40.238.237:8080/tag/', data)
           .then(response => {
             console.log(response);
@@ -393,6 +391,7 @@
 
             if (this.currentComment.tagList.tags.length > 0) {
               console.log(value, this.currentComment.tagList.tags)
+              //找到用户名是当前用户名的最后一个tag，因为要从头找到尾巴，没有break
               this.currentComment.tagList.tags.forEach(tag =>{
                 console.log(tag)
                 if (tag.tag_user_info === this.$store.state.currentuser) this.currentTag = tag;

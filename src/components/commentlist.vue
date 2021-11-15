@@ -42,7 +42,7 @@
                        :disabled="($store.state.startLoading!==$store.state.endLoading)
                         || ($store.state.startLoading===$store.state.endLoading
                         && $store.state.user_level===1 && item.commentList.tagged===0)">
-                  {{lantext.words[$store.state.user_level===0?"Labeling":"view"][$store.state.lanType]}}
+                  {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}
                 </v-btn>
                 <v-btn color="orange" v-show="$store.state.user_level===0" style="color: white" @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
                   {{lantext.words.share[$store.state.lanType]}}
@@ -141,6 +141,7 @@
                     this.$store.state.dataSetIdList.push(id);
                     this.$store.state.dataTree.push({
                       dataSetId : id,
+                      kappa:"",
                       dataSetIndex : this.$store.state.dataTree.length,
                       commentList: {
                         tagged:0,
@@ -217,18 +218,20 @@
                     tags: [],
                   };
                   let temp_tagIdList = response.data.Details.tag_id_list.split(',');
-                  temp_tagIdList.forEach(item => {
-                    if (item) temp.tagList.tagIdList.push(item);
-                  });//tagIdlist本身有序
+                  //tag list 查重处理
+                  temp_tagIdList.forEach((item) => {
+                    if (item && temp.tagList.tagIdList.indexOf(item) === -1) temp.tagList.tagIdList.push(item);
+                  });
                   this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments[index] = temp;
                   this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
-                  if (temp.tagList.tagIdList.length > 0){
+                  if (temp.tagList.tagIdList.length > 0 ){
+                    if (this.$store.state.user_level===1){
+                      this.$store.state.dataTree[temp.dataSetIndex].commentList.tagged++;
+                    }
+                    //console.log('tagidlist',temp.tagList.tagIdList,temp.commentIndex, temp.dataSetIndex)
                     this.getTagByTagIdList(temp.tagList);
                   }
-
-
                   this.$store.state.endLoading++;
-
                 }
                 else this.$message.error('comment acquiring error');
               })
@@ -239,9 +242,12 @@
         getTagByTagIdList(tagList) {
           this.$store.state.tagsList[tagList.dataSetIndex] = [];
           if (tagList.tagIdList.length>0) {
+            let tagsDuplicateList = []
+            //tagIdList判重
+
             tagList.tagIdList.forEach((id, index) => {
-              if (this.$store.state.tagsDuplicateList.indexOf(id)===-1) {
-                this.$store.state.tagsDuplicateList.push(id);
+              if (tagsDuplicateList.indexOf(id)===-1) {
+                tagsDuplicateList.push(id);
                 this.axios.get('http://121.40.238.237:8080/tag/', {params: {tag_id: id}})
                   .then(response => {
                     if (response.data.Details) {
@@ -256,15 +262,23 @@
                       temp["commentIndex"] = tagList.commentIndex;
                       temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
                       temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
-                      if (temp.tag_value>=0) this.$store.state.dataTree[tagList.dataSetIndex].commentList.tagged++;
+                      if (temp.tag_value>=0 && temp.tag_user_info === this.$store.state.currentuser && this.$store.state.user_level===0)
+                      {
+                        //&& temp.tag_user_info === this.$store.state.currentuser
+                        this.$store.state.dataTree[tagList.dataSetIndex].commentList.tagged++;
+                        //console.log('dsfsdf',temp.dataSetIndex,temp.tag_id)
+                      }
 
                       this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
                       this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
                     } else this.$message.error('tag acquiring error');
+
                   })
                   .catch(error => console.log(error))
               }
+
             })
+
           }
         },
 
