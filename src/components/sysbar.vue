@@ -8,7 +8,7 @@
       <v-row>
         <v-col cols="5" align-self="center">
           <v-main class="text-left" >
-            {{lantext.words.system_title[this.$store.state.lanType]}}V1.0
+            {{lantext.words.system_title[this.$store.state.lanType]+" "}}V1.0
           </v-main>
         </v-col>
 

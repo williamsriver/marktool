@@ -18,11 +18,11 @@
             </v-radio-group>
           </v-col>
           <v-col align-self="center" cols="1">{{lantext.words.confidence[$store.state.lanType]}}</v-col>
-          <v-col cols="2">
+          <v-col cols="1">
             <v-select v-model="lowerVal" :items="valueTable[0]"></v-select>
           </v-col>
           <v-col align-self="center" cols="1">——</v-col>
-          <v-col cols="2">
+          <v-col cols="1">
             <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
           </v-col>
         </v-row>
@@ -106,6 +106,7 @@
       </v-col>
       <v-col>
         <v-container>
+
           <v-main class="text-h4">{{lantext.words.review_details[$store.state.lanType]}}</v-main>
           <v-main class="text-h5">
             {{lantext.words.comment_id[$store.state.lanType]}} :

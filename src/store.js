@@ -9,7 +9,7 @@ export default new Vuex.Store({
   state:{
 
     reviewChosenCmt:null,
-    lanType:1,
+    lanType:0,
     currentuser:'',
     dataTree:[],
     loginstatus:false,

@@ -64,12 +64,14 @@ const lantext={
       [
         {text: 'Coder',value: 'tag_user_info'},
         {text:'Confidence',value:'confidence'},
-        {text: 'Tag Value',value: 'tag_value'},
+        {text: 'Tag',value: 'tag_value'},
+        {text: 'Rationale',value: 'remarks'},
       ],
       [
         {text: '标注者',value: 'tag_user_info'},
         {text:'自信度',value:'confidence'},
         {text: '标记值',value: 'tag_value'},
+        {text: '注释',value: 'remarks'},
       ]
     ],
 
@@ -339,7 +341,7 @@ const lantext={
     forgetpassword:['Forget Your Password?','忘记密码？'],
     data:['Data','数据'],
     language:['English','中文'],
-    system_title:['Collaborative Labeling for Textual Dataset','面向群智化需求分析的数据集标注工具'],
+    system_title:['CoolTeD: Collaborative Labeling for Textual Dataset','面向群智化需求分析的数据集标注工具'],
     //Collaborative Labeling Textual Dataset
     no_login:['Not Login','未登录'],
     welcome:['Welcome','欢迎'],
