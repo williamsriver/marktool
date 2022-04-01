@@ -212,35 +212,58 @@
 
           if (this.$store.state.user_level===0){
             //contradiction statistics clearing
-            this.contradictions = 0
-            this.appeared_comments_list = []
-            this.tags_for_every_comment_list = []
+            // this.contradictions = 0
+            // this.appeared_comments_list = []
+            // this.tags_for_every_comment_list = []
+            //
 
-            //data from tags
+            // function count(arr, item) {
+            //   return arr.reduce((prev,curr)=> curr === item ? prev+1 : prev, 0);
+            // }
+
             this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
-              if (this.appeared_comments_list.indexOf(tag.comment_id) === -1){
-                //a new comment
-                this.appeared_comments_list.push(tag.comment_id)
-                this.tags_for_every_comment_list.push([tag])
-              }
-              else{
-                //contradictions, all the tags belonged to this certain comment will be classified as contradictions
-                this.tags_for_every_comment_list[this.appeared_comments_list.indexOf(tag.comment_id)].push(tag)
+              if (tag.tag_user_info === this.$store.state.currentuser){
+                if (this.$store.state.dataTree[dataset.dataSetIndex].commentList
+                  .comments[tag.commentIndex].tagList.tagIdList.length > 1){
+                  this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += 1;
+                }
+                else {
+                  let temp_num = this.getTagValue(tag);
+                  if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
+                  if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
+                  else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
+                  else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
+                }
               }
             });
-            console.log(this.tags_for_every_comment_list)
-            this.tags_for_every_comment_list.forEach(comment_unit=>{
-              if (comment_unit.length === 1){
-                let temp_num = this.getTagValue(comment_unit[0]);
-                if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
-                if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
-                else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-                else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
-              }
-              else this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += comment_unit.length
-            })
+
+            //data from tags
+            // this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
+            //   if (this.appeared_comments_list.indexOf(tag.comment_id) === -1 &&
+            //       currentuser_labeled_comment_list.indexOf(tag.comment_)){
+            //     //a new comment
+            //     this.appeared_comments_list.push(tag.comment_id)
+            //     this.tags_for_every_comment_list.push([tag])
+            //   }
+            //   else{
+            //     //contradictions, all the tags belonged to this certain comment will be classified as contradictions
+            //     this.tags_for_every_comment_list[this.appeared_comments_list.indexOf(tag.comment_id)].push(tag)
+            //   }
+            // });
+            //
+            // this.tags_for_every_comment_list.forEach(comment_unit=>{
+            //   if (comment_unit.length === 1){
+            //     let temp_num = this.getTagValue(comment_unit[0]);
+            //     if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
+            //     if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
+            //     else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
+            //     else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
+            //   }
+            //   else this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += comment_unit
+            //   //只记一个人
+            // })
           }
-          else{//review data
+          else{//reviewers
             //data from commentTagValueList
             this.reviewed_comments = 0
             this.$store.state.commentTagValueList[dataset.dataSetIndex].forEach(comment => {

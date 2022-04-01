@@ -366,7 +366,7 @@
           formData3.append('comment_id',comment.comment_id);
           formData3.append('tag_result',tag_result);
 
-          this.axios.put('http://121.40.238.237:8080/comments/',formData3)
+          this.axios.put('/comments/',formData3)
             .then((response)=>{
               console.log(response)
               if (response.data.new_tag_result){

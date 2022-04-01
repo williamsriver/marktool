@@ -19,6 +19,9 @@ Vue.use(Vuetify);
 Vue.use(VueAxios, axios)
 Vue.prototype.$message = Message;
 Vue.prototype.lantext = lantext;
+
+axios.defaults.baseURL = '/api'
+//121.40.238.237
 /* eslint-disable no-new */
 
 

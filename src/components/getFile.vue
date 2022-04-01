@@ -18,7 +18,7 @@
       methods:{
           relateDataSet(){
             let temp_id = this.temp_dataSetId;
-            this.axios.put('http://121.40.238.237:8080/commentsList/',{
+            this.axios.put('/commentsList/',{
               params:{
                 username:this.$store.state.currentuser,
                 list_id:temp_id,

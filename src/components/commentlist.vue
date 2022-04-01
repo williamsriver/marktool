@@ -95,6 +95,14 @@
 </template>
 
 <script>
+  /**
+   * 将remarks分为两段
+   * 前段：可能出现的值
+   * 中间用特殊字符'&'分割
+   * 后端：正常的rationale
+   */
+
+
   import lantext from "../lib/lantext";
   import Markplace from "./markplace";
   import Viewplace from "./viewplace";
@@ -121,85 +129,90 @@
       }),
       methods:{
         refreshCommentList(){
-          this.$store.state.dataTree = [];
-          this.$store.state.dataSetIdList = [];
+          this.$store.state.datasetMap = new Map();
+          this.$store.state.dataSetIdList = new Set();
+
+
           this.$store.state.tagsDuplicateList = [];
           this.$store.state.commentsDuplicateList = [];
+
+
           this.$store.state.startLoading = 0;
           this.$store.state.endLoading = 0;
           this.getDataSet();
         },
 
+
+
         getDataSet(){
-          this.axios.get('http://121.40.238.237:8080/commentsList/',
-            {params:{username:this.$store.state.currentuser} })
-            .then(response =>{
+          this.axios.get('/commentsList/',
+            {
+              params:{
+                username:this.$store.state.currentuser
+              }
+            }).then(response =>{
               console.log(response)
               if (response.data.Details) {
-                response.data.Details.comment_list_id.forEach((id, index) => {
-                  if (this.$store.state.dataSetIdList.indexOf(id) === -1) {//查重
-                    this.$store.state.dataSetIdList.push(id);
-                    this.$store.state.dataTree.push({
-                      dataSetId : id,
-                      kappa:"",
-                      dataSetIndex : this.$store.state.dataTree.length,
-                      commentList: {
-                        tagged:0,
-                        dataSetId: id,
-                        dataSetIndex : this.$store.state.dataTree.length,
-                        commentIdList : [],
-                        comments: [],
-                        fileName : "undefined",
-                      },
-                    });
-                  }
-                });
+                //dataset id list
+                this.$store.state.dataSetIdList = new Set(response.data.Details.comment_list_id)
+                //dataset list(datatree)
+                /**
+                 * kappa
+                 */
+                this.$store.state.dataSetIdList.forEach(id => {
+                  this.$store.state.datasetMap.set(id, {
+                    dataSetIndex : index,
+                    commentList: {
+                      tagged:0,
+                      dataSetId: id,
+                      dataSetIndex : index,
+                      commentIdList : [],
+                      comments: [],
+                      fileName : "undefined",
+                    },
+                  })
+                })
+
                 this.$store.commentsIdTotalList = []
                 this.$store.state.tagsList = new Array(this.$store.state.dataTree.length);
                 this.$store.state.commentTagValueList = new Array(this.$store.state.dataTree.length);
                 this.$store.state.dataTree.forEach((dataset) => this.getCommentIdListByDataSet(dataset) );
               }
               else this.$message.error('datasets acquiring error');
-            })
-            .catch(error =>console.log(error))
+            }).catch(error =>console.log(error))
         },
 
 
         getCommentIdListByDataSet(dataset){
-
-          this.axios.get('http://121.40.238.237:8080/commentsList/', {params: {list_id:dataset.dataSetId}})
-            .then(response => {
-              console.log(response)
-              if (response.data) this.$store.state.dataTree[dataset.dataSetIndex].fileName = response.data.name;
-              if (response.data.comment_id_list) {
-                this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList = response.data.comment_id_list;
-                console.log("cmt id list", response.data.comment_id_list)
-                //comment list 查重处理
-                let commentsIdTotalList = []
-                this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList.forEach((cmtid, index, arr) =>{
-                  if (commentsIdTotalList.indexOf(cmtid) !== -1){
-                    arr.splice(index, index+1)
-                  }
-                  else commentsIdTotalList.push(cmtid)
-                })
-                console.log("commentsIdTotalList", commentsIdTotalList)
-                this.getCommentByCommentIdList(this.$store.state.dataTree[dataset.dataSetIndex].commentList);
+          this.axios.get('/commentsList/',
+            {
+              params: {
+                list_id:dataset.dataSetId
               }
-              else this.$message.error('comments id list acquiring error');
+            }).then(response => {
+              console.log(response)
+              //文件名赋值
+              if (response.data) {
+                this.$store.state.dataTree[dataset.dataSetIndex].fileName = response.data.name;
+                //一个数据集中的数据对象（评论）
+                this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList
+                  = [...new Set(response.data.comment_id_list)]
+                this.getCommentByCommentIdList(this.$store.state.dataTree[dataset.dataSetIndex].commentList)
 
-              //refresh to get name
-              this.isListAlive = false;
-              this.$nextTick(()=>{ this.isListAlive = true; })
-            })
-            .catch(error => console.log(error))
+                //refresh to get name
+                this.isListAlive = false
+                this.$nextTick(()=>{ this.isListAlive = true })
+              }
+              else this.$message.error('comments id list acquiring error')
+            }).catch(error => console.log(error))
         },
 
         getCommentByCommentIdList(commentList){
           this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
-          console.log("commentList.commentIdList", commentList.commentIdList)
+          // console.log("commentList.commentIdList", commentList.commentIdList)
           commentList.commentIdList.forEach((id, index) =>{
             this.$store.state.startLoading++;
-            this.axios.get('http://121.40.238.237:8080/comments/', {params: {comment_id: id} } )
+            this.axios.get('/comments/', {params: {comment_id: id} } )
               .then(response => {
                 //评论判重已经在cmtidlist解决了
                 if (response.data.Details) {
@@ -217,20 +230,19 @@
                     tagIdList: [],
                     tags: [],
                   };
-                  let temp_tagIdList = response.data.Details.tag_id_list.split(',');
                   //tag list 查重处理
-                  temp_tagIdList.forEach((item) => {
-                    if (item && temp.tagList.tagIdList.indexOf(item) === -1) temp.tagList.tagIdList.push(item);
-                  });
+                  temp.tagList.tagIdList = [... new Set(response.data.Details.tag_id_list.split(','))]
                   this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments[index] = temp;
                   this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
                   if (temp.tagList.tagIdList.length > 0 ){
-                    if (this.$store.state.user_level===1){
-                      this.$store.state.dataTree[temp.dataSetIndex].commentList.tagged++;
-                    }
+
+                    // if (this.$store.state.user_level===1){
+                    //   this.$store.state.dataTree[temp.dataSetIndex].commentList.tagged++;
+                    // }
                     //console.log('tagidlist',temp.tagList.tagIdList,temp.commentIndex, temp.dataSetIndex)
-                    this.getTagByTagIdList(temp.tagList);
+                    // this.getTagByTagIdList(temp.tagList);
                   }
+                  this.getTagByTagIdList(temp.tagList);
                   this.$store.state.endLoading++;
                 }
                 else this.$message.error('comment acquiring error');
@@ -242,40 +254,45 @@
         getTagByTagIdList(tagList) {
           this.$store.state.tagsList[tagList.dataSetIndex] = [];
           if (tagList.tagIdList.length>0) {
-            let tagsDuplicateList = []
-            //tagIdList判重
-
             tagList.tagIdList.forEach((id, index) => {
-              if (tagsDuplicateList.indexOf(id)===-1) {
-                tagsDuplicateList.push(id);
-                this.axios.get('http://121.40.238.237:8080/tag/', {params: {tag_id: id}})
-                  .then(response => {
-                    if (response.data.Details) {
-                      let temp = response.data.Details;
-                      temp["tag_value"] = this.getTagValue(temp);
-                      if (this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.indexOf(temp.tag_value) === -1)
-                        this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.push(temp.tag_value);
-                      temp["totalCommentIndex"] = tagList.totalCommentIndex;
-                      temp["tag_id"] = id;
-                      temp["comment_id"] = tagList.comment_id;
-                      temp["dataSetIndex"] = tagList.dataSetIndex;
-                      temp["commentIndex"] = tagList.commentIndex;
-                      temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
-                      temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
-                      if (temp.tag_value>=0 && temp.tag_user_info === this.$store.state.currentuser && this.$store.state.user_level===0)
-                      {
-                        //&& temp.tag_user_info === this.$store.state.currentuser
-                        this.$store.state.dataTree[tagList.dataSetIndex].commentList.tagged++;
-                        //console.log('dsfsdf',temp.dataSetIndex,temp.tag_id)
-                      }
+              this.axios.get('/tag/', {
+                params: {
+                  tag_id: id
+                }
+              }).then(response => {
+                  if (response.data.Details) {
+                    let temp = response.data.Details;
+                    try {
+                      var t1 = JSON.parse(temp.remarks);
+                      temp["tag_value"] = t1.val;
+                      temp["remarks"] = t1.remarks;
+                    }
+                    catch (e) {
+                      temp["tag_value"] = "null/error"
+                    }
+                    // if (this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.indexOf(temp.tag_value) === -1)
+                    //   this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.push(temp.tag_value);
 
-                      this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
-                      this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
-                    } else this.$message.error('tag acquiring error');
+                    temp["totalCommentIndex"] = tagList.totalCommentIndex;
+                    temp["tag_id"] = id;
+                    temp["comment_id"] = tagList.comment_id;
+                    temp["dataSetIndex"] = tagList.dataSetIndex;
+                    temp["commentIndex"] = tagList.commentIndex;
+                    temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
+                    temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
+                    // if (temp.tag_value>=0 && temp.tag_user_info === this.$store.state.currentuser && this.$store.state.user_level===0)
+                    // {
+                    //   //&& temp.tag_user_info === this.$store.state.currentuser
+                    //   this.$store.state.dataTree[tagList.dataSetIndex].commentList.tagged++;
+                    //   //console.log('dsfsdf',temp.dataSetIndex,temp.tag_id)
+                    // }
 
-                  })
-                  .catch(error => console.log(error))
-              }
+                    this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
+                    this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
+                  } else this.$message.error('tag acquiring error');
+
+                })
+                .catch(error => console.log(error))
 
             })
 
@@ -288,6 +305,11 @@
           lantext.tagwords.tags[0].forEach((prop_name,index) =>{
             if (item[prop_name]) result = index;
           });
+
+
+          if (result == -1){
+
+          }
           return result;
         },
 
@@ -297,7 +319,7 @@
           formData1.append('list_id',String(this.temp_dataSetId));
 
           console.log('sent');
-          this.axios.put('http://121.40.238.237:8080/commentsList/', {
+          this.axios.put('/commentsList/', {
             username:this.temp_username, list_id:this.temp_dataSetId
           })
             .then(response =>{

@@ -201,7 +201,7 @@
           let formData1 = new FormData();
           formData1.append('username',this.loginUsername)
           formData1.append('password',this.loginPassword)
-          this.axios.post('http://121.40.238.237:8080/login/',formData1)
+          this.axios.post('/login/',formData1)
             .then(function (response) {
               console.log(response)
               if (response.data.Msg === 'Login Succeeded.'){
@@ -245,7 +245,7 @@
             }
           };
 
-          this.axios.get('http://121.40.238.237:8080/register/',config1)
+          this.axios.get('/register/',config1)
             .then(function (response) {
               console.log(response)
               this.isUserNameDuplicated = response.data.is_duplicated
@@ -254,7 +254,7 @@
                 formData1.append('username', this.username)
                 formData1.append('password', this.userpassword)
                 formData1.append('user_level', this.registerType)
-                this.axios.post('http://121.40.238.237:8080/register/', formData1)
+                this.axios.post('/register/', formData1)
                   .then(function (response) {
                     console.log(response);
                     if (response.data.Msg === 'Register Succeeded.') {

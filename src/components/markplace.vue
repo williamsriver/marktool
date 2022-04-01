@@ -72,20 +72,25 @@
               </v-col>
             <v-col  v-if="currentComment!==null" align-self="end">
               <v-container class="pa-0" >
-
-                <v-card height="56" flat>
-                  <v-col v-show="$store.state.tagValue>=0">
+                <v-row>
+                  <v-col>
                     <v-chip class="ma-2" :color="tagsInfo.colors[$store.state.tagValue]" text-color="white">
                       <v-avatar left><v-icon>mdi-checkbox-marked-circle</v-icon></v-avatar>
                       {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}
                     </v-chip>
-                    {{lantext.words.confidence[$store.state.lanType]}}
-                    <span class="text-h5 font-italic">{{trustRating}}</span>
-                  </v-col >
-                  <v-col v-show="$store.state.tagValue>=0">
-                    <v-rating :color="$store.state.tagValue>=0?tagsInfo.colors[$store.state.tagValue]:''" hover v-model="trustRating"></v-rating>
                   </v-col>
-                </v-card>
+                  <v-col>
+                    {{lantext.words.confidence[$store.state.lanType]}}
+                    <span class="text-h5 font-italic">
+                  {{trustRating}}
+                      </span>
+                  </v-col>
+                  <v-col>
+                      <v-rating :color="$store.state.tagValue>=0?tagsInfo.colors[$store.state.tagValue]:''" hover v-model="trustRating"></v-rating>
+                  </v-col>
+                  <v-col cols="3"></v-col>
+                </v-row>
+
                 <v-card height="400">
                   <v-row>
 
@@ -151,7 +156,6 @@
 
 <script>
   import lantext from "../lib/lantext";
-
   export default {
     name: "markplace",
     props: {
@@ -159,54 +163,46 @@
         type:Number,
         required:true,
       },
-      lookMode:{
-        type:Boolean,
-        required:true
-      },
       enable:{
         type:Boolean,
         required:true,
       },
-      loadFinish:{
-        type:Boolean,
-        required:true,
-      }
     },
     data:()=>({
       //static data
       lantext:lantext,
-
+      tagColors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple","#9E9D24","#FFC107","#E65100","#5D4037"],
       tagsInfo:{
         colors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple","#9E9D24","#FFC107","#E65100","#5D4037"],
         text:['Functional',
           'Suitability','Performance','Compatibility', 'Usability','Security','Reliability','Maintainability','Portability',
           'Bug_Fix','Others'],
       },
-
+      //关键数据（需要及时更新）
+      ptr:0,
+      tagValue:null,
       currentTag:null,
       currentComment:null,
-      displayComment:null,
-
-      ptr:0,
-      maxPtr:0,
       remarkContent:"",
       commentsTotalNum:0,
+      trustRating:4,
+      totalStartTime:0,
+
+      maxPtr:0,
       presskey:"",
       pressIndex:0,
-      trustRating:4,
-
-      totalStartTime:0,
     }),
     mounted() {
-      window.onkeypress = (event =>{
-        if (event.key==='q'){
-          this.$store.state.tagValue = (this.$store.state.tagValue+1) % 11;
-          this.$store.state.isSaved = false;
-        }
-      });
+      let timer = setInterval(()=>{this.totalStartTime += 1},1000);
+      this.ptr = 0;
+      // window.onkeypress = (event =>{
+      //   if (event.key==='q'){
+      //     this.$store.state.tagValue = (this.$store.state.tagValue+1) % 11;
+      //     this.$store.state.isSaved = false;
+      //   }
+      // });
     },
     computed:{
-
       markHour(){
         return Math.floor(this.totalStartTime/3600);
       },
@@ -225,26 +221,11 @@
         }
       },
       saveValid(){
-        return ! ( this.lookMode || this.$store.state.isSaved || this.ptr<0 || this.$store.state.tagValue === -1 );
+        return ! ( this.$store.state.isSaved || this.ptr<0 || this.$store.state.tagValue === -1 );
       }
     },
     watch:{
-      enable: {
-        handler(value) {
-          console.log("enable",value);
-          if (this.loadFinish) this.startBoard();
-        },
-        immediate: true,
-      },
-
-      loadFinish:{
-        handler(value) {
-          if (value) this.refreshPtr(0);
-        },
-        immediate: true,
-      },
-
-
+      //数据集的数据指针
       ptr:{
         handler(value){
           if (value>=this.commentsTotalNum) {
@@ -256,32 +237,28 @@
         },
         immediate:true,
       },
-
-
+      //改变意味着未保存
       remarkContent:{
         handler(value){
           this.$store.state.isSaved = false
         }
       },
-
+      //改变意味着未保存
       trustRating:{
         handler(value){
           this.$store.state.isSaved = false
         }
       }
-
-
     },
 
     methods: {
-
-      startBoard(){
-        let timer = setInterval(()=>{this.totalStartTime += 1},1000);
-        this.ptr = 0;
-      },
-
+      /**
+       * 保存某个标签
+       */
       saveMark() {
         let formData1 = new FormData()
+        //检查是否有合法标签值
+        if (this.$store.state.tagValue)
         formData1.append('token', this.$store.state.token);
         /*
         this.lantext.tagwords.tags[0].forEach((item,index) => {
@@ -312,7 +289,7 @@
         formData3.append("datetime_info", date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
         formData3.append('comment_id', comment_id)
         formData3.append('tag_id', this.$store.state.dataTree[this.dataSetIndex].commentList.comments[this.ptr].tagList.tagIdList)
-        this.axios.put('http://121.40.238.237:8080/comments/', formData3)
+        this.axios.put('/comments/', formData3)
           .then(response => {
             console.log(response.data)
             if (response.data) {
@@ -327,7 +304,7 @@
 
       editTag(data) {
         console.log(data)
-        this.axios.put('http://121.40.238.237:8080/tag/', data)
+        this.axios.put('/tag/', data)
           .then(response => {
             console.log(response);
             if (response.data.Msg === "OK") {
@@ -347,7 +324,7 @@
       },
 
       createTag(data, comment) {
-        this.axios.post('http://121.40.238.237:8080/tag/', data)
+        this.axios.post('/tag/', data)
           .then(response => {
             if (response.data.Details) {
               console.log(response);
@@ -371,48 +348,62 @@
           .catch(error => console.log(error))
       },
 
-      refreshPtr(value){
-        console.log('**',value)
+      /**
+       * 更新关键动态数据
+       */
+      refreshWithPtr(value){
+        console.log('refreshWithPtr',value)
+        //初始化
+        this.currentTag = null;
+        this.currentComment = null;
+        //试图赋值
+        this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
+        this.currentComment = this.commentsTotalNum > value
+          ? this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value]
+          : null;
 
-          this.currentTag = null;
-          this.currentComment = null;
+        this.maxPtr = Math.max(this.maxPtr, value);
 
-          if (this.loadFinish){
-            this.commentsTotalNum = this.$store.state.dataTree[this.dataSetIndex].commentList.comments.length;
-            if (this.commentsTotalNum!==0) {
-              this.currentComment = this.$store.state.dataTree[this.dataSetIndex].commentList.comments[value];
-            }
-          }
-          this.maxPtr = Math.max(this.maxPtr, value);
+        if (this.currentComment) {
+          // console.log("current comment ", this.currentComment);
+          //有标签才可以显示
+          if (this.currentComment.tagList.tags.length > 0) {
+            // console.log(value, this.currentComment.tagList.tags)
+            //找到tag
+            //找到用户名是当前用户名的最后一个tag，因为要从头找到尾巴，没有break
+            this.currentComment.tagList.tags.forEach(tag => {
+              // console.log(tag)
+              if (tag.tag_user_info === this.$store.state.currentuser) this.currentTag = tag;
+            })
 
-          if (this.currentComment) {
+            //找到remark，条件是该对象存在且有remarks这个属性
+            if (this.currentTag && this.currentTag.remarks) this.remarkContent = this.currentTag.remarks;
+            else this.remarkContent = "";
 
-            console.log("current comment", this.currentComment)
+            //tag具体属性的赋值
+            if (this.currentTag) {
+              this.currentTag["tagIndex"] = this.currentComment.tagList.tags.indexOf(this.currentTag)
+              this.currentTag["tag_id"] = this.currentComment.tagList.tagIdList[this.currentTag.tagIndex]
+              this.trustRating = this.currentTag.confidence || 4
+              this.$store.state.tagValue = this.currentTag.tag_value;
 
-            if (this.currentComment.tagList.tags.length > 0) {
-              console.log(value, this.currentComment.tagList.tags)
-              //找到用户名是当前用户名的最后一个tag，因为要从头找到尾巴，没有break
-              this.currentComment.tagList.tags.forEach(tag =>{
-                console.log(tag)
-                if (tag.tag_user_info === this.$store.state.currentuser) this.currentTag = tag;
-              })
-              if (this.currentTag && this.currentTag.remarks) this.remarkContent = this.currentTag.remarks;
-              else this.remarkContent = "";
-
-              if (this.currentTag) {
-                this.currentTag["tagIndex"] = this.currentComment.tagList.tags.indexOf(this.currentTag)
-                this.currentTag["tag_id"] = this.currentComment.tagList.tagIdList[this.currentTag.tagIndex]
-                this.trustRating = this.currentTag.confidence || 4
-                this.$store.state.tagValue = this.currentTag.tag_value;
-                console.log("i'm setting tag value",this.$store.state.tagValue);
+              if (this.currentTag.tag_value == 999 && this.remarkContent.length > 0){
+                let temp = null;
+                try{
+                  temp = this.remarkContent.split('&');
+                }
+                catch (e) {
+                  console.log(e)
+                }
               }
-              else this.$store.state.tagValue = -1;
-            } else
-              {
-              this.$store.state.tagValue = -1;
-              this.remarkContent = ""
-            }
+              console.log("i'm setting tag value", this.$store.state.tagValue);
+            } else this.$store.state.tagValue = -1;
+          } else {
+            this.$store.state.tagValue = -1;
+            this.remarkContent = ""
           }
+        }
+
 
           this.$store.state.isSaved = true;
 
