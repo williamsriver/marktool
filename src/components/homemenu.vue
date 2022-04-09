@@ -73,8 +73,8 @@
 
   <v-container v-show="$store.state.loginstatus" fluid style="padding-top: 0">
     <v-row>
-      <v-navigation-drawer permanent width="200">
-        <v-list dense >
+      <v-navigation-drawer permanent width="200" :height="windowInfo.height">
+        <v-list dense>
           <v-list-item-title class="title" style="text-align: center">{{$store.state.currentuser}}</v-list-item-title>
           <v-list-item-subtitle style="text-align: center" v-show="UserType!=='marker'">{{
             lantext.words[String(UserType)]!== undefined?
@@ -161,6 +161,11 @@
             { title: ['Log Out','登出'], icon: 'mdi-logout'},
           ],
         ],
+        windowInfo:{
+          width: 200,
+          height: 600
+        },
+        cancalDebounce:null,
       }),
       mounted() {
         document.onkeydown = (e)=>{
@@ -193,6 +198,35 @@
             console.log(this.items[this.$store.state.user_level][value].title[0]==='Log Out')
             if (this.items[this.$store.state.user_level][value].title[0]==='Log Out') this.logOut();
           }
+      },
+      created() {
+        this.windowInfo = {
+          width: window.innerWidth,
+          height: window.innerHeight
+        }
+        const getWindowInfo = () => {
+          this.windowInfo = {
+            width: window.innerWidth,
+            height: window.innerHeight
+          }
+        };
+        const debounce = (fn, delay) => {
+          let timer;
+          return function() {
+            if (timer) {
+              clearTimeout(timer);
+            }
+            timer = setTimeout(() => {
+              fn();
+            }, delay);
+          }
+        };
+        this.cancalDebounce = debounce(getWindowInfo, 500)
+        window.addEventListener('resize', this.cancalDebounce);
+
+      },
+      beforeDestroy() {
+        window.removeEventListener('resize', this.cancalDebounce);
       },
       methods:{
 

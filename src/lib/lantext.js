@@ -353,6 +353,7 @@ const lantext={
   },
 
   sentences:{
+    upload_dataset:['Upload Dataset', '上传数据集'],
     password_confirmation:['Password Confirmation', '确认密码'],
     reload_data:['Reload Data','重新加载数据'],
     exit_work:['The labeling or reviewing unsaved will be lost, sure to exit now?','未保存的标记或审阅将会丢失，确定现在退出吗？'],

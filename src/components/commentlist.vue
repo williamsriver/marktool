@@ -7,77 +7,107 @@
           <v-btn text @click="refreshCommentList">
               <v-icon>mdi-refresh</v-icon>
               {{lantext.sentences.reload_data[$store.state.lanType]}}
-            </v-btn>
+          </v-btn>
         </v-col>
-        <v-col></v-col>
+        <v-col cols="3" v-show="$store.state.user_level===0" >
+          <v-btn text @click="overlay_show.upload_dataset = true">
+            <v-icon>mdi-file-upload-outline</v-icon>
+            {{lantext.sentences.upload_dataset[$store.state.lanType]}}
+          </v-btn>
+        </v-col>
+        <v-col cols="3" v-show="$store.state.user_level===0" >
+          <v-btn text @click="overlay_show.get_dataset = true">
+            <v-icon>mdi-file-download-outline</v-icon>
+            {{lantext.sentences.get_dataset[$store.state.lanType]}}
+          </v-btn>
+        </v-col>
+
       </v-row>
+
 
       <v-row>
         <v-col>
-          <v-text-field v-model="listSrchString" append-icon="mdi-magnify"
-                        :label="lantext.words.search[$store.state.lanType]"></v-text-field>
-          <v-data-table
-            class="elevation-1"
-            :loading="$store.state.startLoading>$store.state.endLoading"
-            :headers="lantext.headers.ItemListHeader[$store.state.lanType]"
-            :items="$store.state.dataTree"
-            :items-per-page="5"
-            :search="listSrchString"
-            item-key="listid"
-            v-if="isListAlive"
-          >
+          <v-text-field
+            v-model="listSrchString"
+            append-icon="mdi-magnify"
+            :label="lantext.words.search[$store.state.lanType]">
+          </v-text-field>
 
-            <template v-slot:item.tagged="{item}">
-              <span v-show="item.commentList">
-                {{item.commentList.tagged}}/{{item.commentList.commentIdList.length}}
-              </span>
+          <v-simple-table
+            v-if="isListAlive">
+            <template v-slot:default>
+              <thead>
+              <tr>
+                <th class="text-left">Id</th>
+                <th class="text-left">FileName</th>
+                <th class="text-left">Tagged</th>
+                <th class="text-left"></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="item in $store.state.list.dataset_id_list" :key="item">
+<!--                Id-->
+                <td>{{ item }}</td>
+<!--                FileName-->
+                <td>{{ $store.state.map.dataset_map.has(item) ?
+                  　$store.state.map.dataset_map.get(item).name : '' }}</td>
+<!--                Tagged-->
+                <td>
+                  {{$store.state.map.dataset_comment_map.has(item)
+                  ? $store.state.map.dataset_comment_map.get(item).reduce(get_tagged_num, 0)
+                  : '--'}}
+                  /{{$store.state.map.dataset_comment_map.has(item)
+                  ? $store.state.map.dataset_comment_map.get(item).length
+                  : '--'}}
+                </td>
+<!--                buttons-->
+                <td>
+                  <div style="justify-content: space-around">
+                    <v-btn color="blue" dark
+                           @click="choose_dataset(item)"
+                          :disabled="!work_ready">
+                      {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}
+                    </v-btn>
+                    <v-btn color="orange" dark
+                           v-show="$store.state.user_level===0"
+                           @click="share_dataset(item)"
+                           :disabled="!work_ready">
+                      {{lantext.words.share[$store.state.lanType]}}
+                    </v-btn>
+                  </div>
+                </td>
+              </tr>
+              </tbody>
             </template>
-
-
-
-            <template v-slot:item.buttons="{item}">
-              <div style="justify-content: space-around">
-                <v-btn color="blue" @click="dataSetPtr = item.dataSetIndex, $store.state.workStatus = true"
-                       style="color: white"
-                       :disabled="($store.state.startLoading!==$store.state.endLoading)
-                        || ($store.state.startLoading===$store.state.endLoading
-                        && $store.state.user_level===1 && item.commentList.tagged===0)">
-                  {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}
-                </v-btn>
-                <v-btn color="orange" v-show="$store.state.user_level===0" style="color: white" @click="shareOverlay = true, temp_dataSetId = item.dataSetId">
-                  {{lantext.words.share[$store.state.lanType]}}
-                </v-btn>
-              </div>
-            </template>
-
-          </v-data-table>
-
+          </v-simple-table>
         </v-col>
       </v-row>
     </v-container>
 
     <v-container fluid v-show="$store.state.workStatus" class="pa-0">
-
-      <markplace v-if="$store.state.user_level===0 && $store.state.workStatus" :look-mode="false"
-                 :data-set-index="dataSetPtr" :enable="$store.state.workStatus" :loadFinish="$store.state.startLoading===$store.state.endLoading">
+      <markplace
+        v-if="$store.state.user_level===0 && $store.state.workStatus"
+        :enable="$store.state.workStatus">
       </markplace>
-      <viewplace v-if="$store.state.user_level===1 && $store.state.workStatus"
-                 :data-set-index="dataSetPtr" :enable="$store.state.workStatus" :loadFinish="$store.state.startLoading===$store.state.endLoading"></viewplace>
+      <viewplace
+        v-if="$store.state.user_level===1 && $store.state.workStatus"
+        :enable="$store.state.workStatus">
+      </viewplace>
     </v-container>
 
-    <v-container v-show="$store.state.user_level===0" fluid>
-      <upfile></upfile>
+    <v-container fluid>
+
     </v-container>
 
-    <all-dataset-table></all-dataset-table>
-
-    <v-overlay v-show="shareOverlay" color="#eeeeee">
+    <!--分享数据集-->
+    <v-overlay v-show="overlay_show.dataset_share" color="#eeeeee">
       <v-card  width="700" height="350" light>
         <div>
-          <v-btn @click="shareOverlay = false" text absolute right>
+          <v-btn @click="overlay_show.dataset_share = false" text absolute right>
             <span class="mdi mdi-close" ></span>
           </v-btn>
         </div>
+
         <v-card-title >{{lantext.words.share[$store.state.lanType]
           +" "+lantext.words.dataset[$store.state.lanType]}}</v-card-title>
         <v-divider ></v-divider>
@@ -88,6 +118,29 @@
         <v-card-actions>
           <v-btn @click="relateDataSet">{{lantext.words.share[$store.state.lanType]}}</v-btn>
         </v-card-actions>
+
+      </v-card>
+    </v-overlay>
+
+    <v-overlay v-show="overlay_show.upload_dataset" color="#eeeeee">
+      <v-card  width="700" height="350" light>
+        <div>
+          <v-btn @click="overlay_show.upload_dataset = false" text absolute right>
+            <span class="mdi mdi-close" ></span>
+          </v-btn>
+        </div>
+        <upfile></upfile>
+      </v-card>
+    </v-overlay>
+
+    <v-overlay v-show="overlay_show.get_dataset" color="#eeeeee">
+      <v-card  width="700" height="500" light>
+        <div>
+          <v-btn @click="overlay_show.get_dataset = false" text absolute right>
+            <span class="mdi mdi-close" ></span>
+          </v-btn>
+        </div>
+        <all-dataset-table></all-dataset-table>
       </v-card>
     </v-overlay>
 
@@ -95,13 +148,6 @@
 </template>
 
 <script>
-  /**
-   * 将remarks分为两段
-   * 前段：可能出现的值
-   * 中间用特殊字符'&'分割
-   * 后端：正常的rationale
-   */
-
 
   import lantext from "../lib/lantext";
   import Markplace from "./markplace";
@@ -123,194 +169,195 @@
         listSrchString:'',
         dataSetPtr:-1,
         isListAlive:true,
-        shareOverlay:false,
+        overlay_show:{
+          dataset_share:false,
+          upload_dataset:false,
+          get_dataset:false,
+        },
         temp_username:"",
         temp_dataSetId: "",
+
+        work_ready:false,
+        comment_loading_start:0,
+        comment_loading_end:0,
       }),
+      created() {
+        this.$store.state.list.dataset_id_list = []
+        this.$store.state.list.comment_id_list = []
+        this.$store.state.list.tag_id_list = []
+        this.$store.state.map.dataset_map = new Map()
+        this.$store.state.map.dataset_comment_map = new Map()
+        this.$store.state.map.comment_map = new Map()
+        this.$store.state.map.comment_tag_map = new Map()
+        this.$store.state.map.tag_map = new Map()
+      },
+      mounted() {
+          this.refreshCommentList()
+      },
       methods:{
-        refreshCommentList(){
-          this.$store.state.datasetMap = new Map();
-          this.$store.state.dataSetIdList = new Set();
-
-
-          this.$store.state.tagsDuplicateList = [];
-          this.$store.state.commentsDuplicateList = [];
-
-
-          this.$store.state.startLoading = 0;
-          this.$store.state.endLoading = 0;
-          this.getDataSet();
+        choose_dataset(dataset_id){
+          this.$store.state.chosen_dataset_id = dataset_id
+          this.$store.state.workStatus = true
         },
 
+        share_dataset(dataset_id){
+          this.$store.state.to_share_dataset_id = dataset_id
+          this.overlay_show.dataset_share =true
+        },
 
+        refreshCommentList(){
+          this.work_ready = false
+          this.get_dataset_id_list()
+        },
 
-        getDataSet(){
-          this.axios.get('/commentsList/',
-            {
-              params:{
-                username:this.$store.state.currentuser
+        /**
+         * 获取过程中list不是强制性完整的，允许报错等，层级获取
+         */
+        get_dataset_id_list(){
+          this.axios.get('/commentsList/', {
+              params: {
+                  username:this.$store.state.currentuser
               }
             }).then(response =>{
               console.log(response)
               if (response.data.Details) {
-                //dataset id list
-                this.$store.state.dataSetIdList = new Set(response.data.Details.comment_list_id)
-                //dataset list(datatree)
-                /**
-                 * kappa
-                 */
-                this.$store.state.dataSetIdList.forEach(id => {
-                  this.$store.state.datasetMap.set(id, {
-                    dataSetIndex : index,
-                    commentList: {
-                      tagged:0,
-                      dataSetId: id,
-                      dataSetIndex : index,
-                      commentIdList : [],
-                      comments: [],
-                      fileName : "undefined",
-                    },
-                  })
+                console.log(response.data.Details)
+                this.$store.state.list.dataset_id_list = [...new Set(response.data.Details.comment_list_id)]
+                this.$store.state.list.dataset_id_list.forEach(dataset_id=>{
+                  this.get_dataset_object(dataset_id)
                 })
-
-                this.$store.commentsIdTotalList = []
-                this.$store.state.tagsList = new Array(this.$store.state.dataTree.length);
-                this.$store.state.commentTagValueList = new Array(this.$store.state.dataTree.length);
-                this.$store.state.dataTree.forEach((dataset) => this.getCommentIdListByDataSet(dataset) );
               }
               else this.$message.error('datasets acquiring error');
             }).catch(error =>console.log(error))
         },
 
+        get_loading(){
+          this.comment_loading_end++;
+          if (this.comment_loading_end === this.comment_loading_start){
+            this.refresh_dataset_table()
+            this.work_ready = true
+          }
+        },
 
-        getCommentIdListByDataSet(dataset){
-          this.axios.get('/commentsList/',
-            {
+        get_dataset_object(dataset_id){
+          /**
+           * dataset object
+           * {
+           *   comment_id_list:[]
+           *   name:String
+           * }
+           */
+          this.axios.get('/commentsList/', {
               params: {
-                list_id:dataset.dataSetId
+                list_id: dataset_id
               }
             }).then(response => {
-              console.log(response)
-              //文件名赋值
-              if (response.data) {
-                this.$store.state.dataTree[dataset.dataSetIndex].fileName = response.data.name;
-                //一个数据集中的数据对象（评论）
-                this.$store.state.dataTree[dataset.dataSetIndex].commentList.commentIdList
-                  = [...new Set(response.data.comment_id_list)]
-                this.getCommentByCommentIdList(this.$store.state.dataTree[dataset.dataSetIndex].commentList)
-
-                //refresh to get name
-                this.isListAlive = false
-                this.$nextTick(()=>{ this.isListAlive = true })
+              // console.log(response)
+              if (response.data){
+                this.$store.state.map.dataset_map.set(dataset_id, {
+                  name:response.data.name
+                })
+                // this.refresh_dataset_table()
+                var sub_comment_id_list = [...new Set(response.data.comment_id_list)]
+                this.$store.state.map.dataset_comment_map.set(dataset_id, sub_comment_id_list)
+                this.$store.state.list.comment_id_list = this.$store.state.list.comment_id_list.concat(sub_comment_id_list)
+                sub_comment_id_list.forEach(comment_id =>{
+                  this.comment_loading_start++;
+                  this.get_comment_object(this.get_loading, comment_id, dataset_id)
+                })
               }
-              else this.$message.error('comments id list acquiring error')
+              else console.log(String(dataset_id)+"号数据集 Id. 数据对象")
             }).catch(error => console.log(error))
         },
 
-        getCommentByCommentIdList(commentList){
-          this.$store.state.commentTagValueList[commentList.dataSetIndex] = [];
-          // console.log("commentList.commentIdList", commentList.commentIdList)
-          commentList.commentIdList.forEach((id, index) =>{
-            this.$store.state.startLoading++;
-            this.axios.get('/comments/', {params: {comment_id: id} } )
-              .then(response => {
-                //评论判重已经在cmtidlist解决了
-                if (response.data.Details) {
-                  let temp = response.data.Details;
-                  temp["comment_id"] = id;
-                  temp["dataSetIndex"] = commentList.dataSetIndex;
-                  temp["commentIndex"] = index;
-                  temp["totalCommentIndex"] = this.$store.state.commentTagValueList[commentList.dataSetIndex].length;
-                  temp["tagValueList"] = []
-                  temp["tagList"] = {
-                    comment_id: id,
-                    dataSetIndex: commentList.dataSetIndex,
-                    commentIndex: index,
-                    totalCommentIndex: temp.totalCommentIndex,
-                    tagIdList: [],
-                    tags: [],
-                  };
-                  //tag list 查重处理
-                  temp.tagList.tagIdList = [... new Set(response.data.Details.tag_id_list.split(','))]
-                  this.$store.state.dataTree[commentList.dataSetIndex].commentList.comments[index] = temp;
-                  this.$store.state.commentTagValueList[commentList.dataSetIndex].push(temp);
-                  if (temp.tagList.tagIdList.length > 0 ){
+        get_comment_object(callback, comment_id, dataset_id){
 
-                    // if (this.$store.state.user_level===1){
-                    //   this.$store.state.dataTree[temp.dataSetIndex].commentList.tagged++;
-                    // }
-                    //console.log('tagidlist',temp.tagList.tagIdList,temp.commentIndex, temp.dataSetIndex)
-                    // this.getTagByTagIdList(temp.tagList);
-                  }
-                  this.getTagByTagIdList(temp.tagList);
-                  this.$store.state.endLoading++;
-                }
-                else this.$message.error('comment acquiring error');
+          if (!comment_id) return
+          // console.log("get comment object", comment_id)
+          /**
+           * comment object
+           * app_name: "Monkey"
+           * content: "- \"Add Friend\" changed to \"Follow\""
+           * datetime_info: "2019-02-07"
+           * rank_level: 1
+           * tag_id_list: ""
+           * tag_result: -1
+           * title: ""
+           * version_info: "5.1.8"
+           */
+          this.axios.get('/comments/', {
+            params: {
+              comment_id: comment_id
+            }
+          }).then(response => {
+            // console.log(response)
+            if (response.data.Details) {
+              var comment_object = response.data.Details
+              comment_object["dataset_id"] = dataset_id
+              comment_object["comment_id"] = comment_id
+              this.$store.state.map.comment_map.set(comment_id, comment_object)
+              var sub_tag_id_list = [...new Set(comment_object.tag_id_list.split(','))]
+              this.$store.state.map.comment_tag_map.set(comment_id, sub_tag_id_list)
+
+              callback()
+              // this.refresh_dataset_table()
+              this.$store.state.list.tag_id_list = this.$store.state.list.tag_id_list.concat(sub_tag_id_list)
+              sub_tag_id_list.forEach(tag_id =>{
+                this.get_tag_object(tag_id, comment_id, dataset_id)
               })
-              .catch(error => console.log(error));
-          })
-        },
-
-        getTagByTagIdList(tagList) {
-          this.$store.state.tagsList[tagList.dataSetIndex] = [];
-          if (tagList.tagIdList.length>0) {
-            tagList.tagIdList.forEach((id, index) => {
-              this.axios.get('/tag/', {
-                params: {
-                  tag_id: id
-                }
-              }).then(response => {
-                  if (response.data.Details) {
-                    let temp = response.data.Details;
-                    try {
-                      var t1 = JSON.parse(temp.remarks);
-                      temp["tag_value"] = t1.val;
-                      temp["remarks"] = t1.remarks;
-                    }
-                    catch (e) {
-                      temp["tag_value"] = "null/error"
-                    }
-                    // if (this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.indexOf(temp.tag_value) === -1)
-                    //   this.$store.state.commentTagValueList[tagList.dataSetIndex][tagList.totalCommentIndex].tagValueList.push(temp.tag_value);
-
-                    temp["totalCommentIndex"] = tagList.totalCommentIndex;
-                    temp["tag_id"] = id;
-                    temp["comment_id"] = tagList.comment_id;
-                    temp["dataSetIndex"] = tagList.dataSetIndex;
-                    temp["commentIndex"] = tagList.commentIndex;
-                    temp["tagIndex"] = this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.length;
-                    temp["totalTagIndex"] = this.$store.state.tagsList[tagList.dataSetIndex].length;
-                    // if (temp.tag_value>=0 && temp.tag_user_info === this.$store.state.currentuser && this.$store.state.user_level===0)
-                    // {
-                    //   //&& temp.tag_user_info === this.$store.state.currentuser
-                    //   this.$store.state.dataTree[tagList.dataSetIndex].commentList.tagged++;
-                    //   //console.log('dsfsdf',temp.dataSetIndex,temp.tag_id)
-                    // }
-
-                    this.$store.state.dataTree[tagList.dataSetIndex].commentList.comments[tagList.commentIndex].tagList.tags.push(temp);
-                    this.$store.state.tagsList[tagList.dataSetIndex].push(temp);
-                  } else this.$message.error('tag acquiring error');
-
-                })
-                .catch(error => console.log(error))
-
-            })
-
-          }
-        },
-
-        getTagValue(item){
-          let result = -1;
-          if (!item) return result;
-          lantext.tagwords.tags[0].forEach((prop_name,index) =>{
-            if (item[prop_name]) result = index;
+            }
+            else this.$message.error('comment acquiring error');
+          }).catch(error => {
+            callback()
+            console.log(error)
           });
+        },
 
+        get_tag_object(tag_id, comment_id, dataset_id) {
+          if (!tag_id) return
+          /**
+           * tag object
+           * tag_id = models.AutoField(primary_key=True)
+           * remarks = models.CharField(max_length=500,default="",verbose_name=u'备注信息')
+           *  => tag_value
+           *  => rationale
+           * tag_user_info = models.CharField(max_length=32,verbose_name=u'标注者信息')
+           * confidence = models.IntegerField(default=0,verbose_name=u'置信度')
+           */
+          this.axios.get('/tag/', {
+            params: {
+              tag_id: tag_id
+            }
+          }).then(response => {
+            console.log(response)
+            if (response.data.Details) {
+              var tag_object = response.data.Details
+              tag_object["dataset_id"] = dataset_id
+              tag_object["comment_id"] = comment_id
+              try {
+                var t1 = JSON.parse(tag_object.remarks);
+                tag_object["tag_value"] = t1.tag_value;
+                tag_object["rationale"] = t1.rationale;
+              }
+              catch (e) {
+                console.log(e)
+              }
+              this.$store.state.map.tag_map.set(tag_id, tag_object)
+            } else this.$message.error('tag acquiring error');
 
-          if (result == -1){
+          }).catch(error => console.log(error))
+        },
 
-          }
-          return result;
+        get_tagged_num(pre, comment_id){
+          if (!this.$store.state.map.comment_tag_map.has(comment_id)) return 0
+          return pre + ((this.$store.state.map.comment_map.get(comment_id).tag_id_list.length > 0) ? 1 : 0)
+        },
+
+        refresh_dataset_table(){
+          this.isListAlive = false
+          this.$nextTick(()=>{
+            this.isListAlive = true
+          })
         },
 
         relateDataSet(){

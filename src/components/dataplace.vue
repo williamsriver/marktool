@@ -1,33 +1,80 @@
 <template>
   <v-app>
     <v-container fluid>
-      <v-data-table
-        :loading="$store.state.startLoading>$store.state.endLoading"
-        :headers="lantext.headers.ItemListHeaderWithKappa[$store.state.lanType]"
-        :items="$store.state.dataTree"
-        :items-per-page="5"
-        v-if="isDataAlive"
-      >
-        <template v-slot:item.uploadUserName="{item}">
-          {{$store.state.currentuser}}
+      <v-simple-table
+        v-if="isDataAlive">
+        <template v-slot:default>
+          <thead>
+          <tr>
+            <th class="text-left">Id</th>
+            <th class="text-left">FileName</th>
+            <th class="text-left">Tagged</th>
+            <th class="text-left"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="item in $store.state.list.dataset_id_list" :key="item">
+            <!--                Id-->
+            <td>{{ item }}</td>
+            <!--                FileName-->
+            <td>{{ $store.state.map.dataset_map.has(item) ?
+              　$store.state.map.dataset_map.get(item).name : '' }}</td>
+            <!--                Tagged-->
+            <td>
+<!--              {{$store.state.map.dataset_comment_map.has(item)-->
+<!--              ? $store.state.map.dataset_comment_map.get(item).reduce(get_tagged_num, 0)-->
+<!--              : '&#45;&#45;'}}-->
+<!--              /{{$store.state.map.dataset_comment_map.has(item)-->
+<!--              ? $store.state.map.dataset_comment_map.get(item).length-->
+<!--              : '&#45;&#45;'}}-->
+            </td>
+            <!--                buttons-->
+            <td>
+              <div style="justify-content: space-around">
+<!--                <v-btn color="blue" dark-->
+<!--                       @click="choose_dataset(item)"-->
+<!--                       :disabled="!work_ready">-->
+<!--                  {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}-->
+<!--                </v-btn>-->
+<!--                <v-btn color="orange" dark-->
+<!--                       v-show="$store.state.user_level===0"-->
+<!--                       @click="share_dataset(item)"-->
+<!--                       :disabled="!work_ready">-->
+<!--                  {{lantext.words.share[$store.state.lanType]}}-->
+<!--                </v-btn>-->
+              </div>
+            </td>
+          </tr>
+          </tbody>
         </template>
-        <template v-slot:item.tagged="{item}">
-              <span v-show="item.commentList">
-                {{item.commentList.tagged}}/{{item.commentList.commentIdList.length}}
-              </span>
-        </template>
-        <template v-slot:item.buttons="{item}">
-          <v-btn @click="setChart(item)" text :disabled="item.commentList.tagged===0">
-            <v-icon>mdi-chart-pie</v-icon>
-            {{lantext.words.graph[$store.state.lanType]}}
-          </v-btn>
-        </template>
-        <template v-slot:item.kappa="{item}" v-if="$store.state.user_level===1">
-          <v-btn @click="updateKappa(item.dataSetIndex)" text outlined
-          :disabled="item.commentList.tagged===0">{{lantext.words.update[$store.state.lanType]}}</v-btn>
-          <span>{{item.kappa}}</span>
-        </template>
-      </v-data-table>
+      </v-simple-table>
+<!--      <v-data-table-->
+<!--        :loading="$store.state.startLoading>$store.state.endLoading"-->
+<!--        :headers="lantext.headers.ItemListHeaderWithKappa[$store.state.lanType]"-->
+<!--        :items="$store.state.dataTree"-->
+<!--        :items-per-page="5"-->
+<!--        v-if="isDataAlive"-->
+<!--      >-->
+<!--        <template v-slot:item.uploadUserName="{item}">-->
+<!--          {{$store.state.currentuser}}-->
+<!--        </template>-->
+<!--        <template v-slot:item.tagged="{item}">-->
+<!--              <span v-show="item.commentList">-->
+<!--                {{item.commentList.tagged}}/{{item.commentList.commentIdList.length}}-->
+<!--              </span>-->
+<!--        </template>-->
+<!--        <template v-slot:item.buttons="{item}">-->
+<!--          <v-btn @click="setChart(item)" text :disabled="item.commentList.tagged===0">-->
+<!--            <v-icon>mdi-chart-pie</v-icon>-->
+<!--            {{lantext.words.graph[$store.state.lanType]}}-->
+<!--          </v-btn>-->
+<!--        </template>-->
+<!--        <template v-slot:item.kappa="{item}" v-if="$store.state.user_level===1">-->
+<!--          <v-btn @click="updateKappa(item.dataSetIndex)" text outlined-->
+<!--          :disabled="item.commentList.tagged===0">{{lantext.words.update[$store.state.lanType]}}</v-btn>-->
+<!--          <span>{{item.kappa}}</span>-->
+<!--        </template>-->
+<!--      </v-data-table>-->
     </v-container>
     <v-container fluid>
       <v-row>

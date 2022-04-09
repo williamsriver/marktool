@@ -195,10 +195,6 @@
     export default {
         name: "viewplace",
       props: {
-        dataSetIndex:{
-          type:Number,
-          required:true,
-        },
         enable:{
           type:Boolean,
           required:true,
