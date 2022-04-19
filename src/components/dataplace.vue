@@ -8,7 +8,7 @@
           <tr>
             <th class="text-left">Id</th>
             <th class="text-left">FileName</th>
-            <th class="text-left">Tagged</th>
+            <th class="text-left">Kappa Value</th>
             <th class="text-left"></th>
           </tr>
           </thead>
@@ -18,64 +18,29 @@
             <td>{{ item }}</td>
             <!--                FileName-->
             <td>{{ $store.state.map.dataset_map.has(item) ?
-              　$store.state.map.dataset_map.get(item).name : '' }}</td>
-            <!--                Tagged-->
+              　$store.state.map.dataset_map.get(item).name : 'd' }}</td>
+            <!--                Category-->
+            <td>{{ $store.state.map.dataset_map.has(item) ?
+              　$store.state.map.dataset_map.get(item).category_name : '' }}</td>
+            <!--                Kappa Value-->
             <td>
-<!--              {{$store.state.map.dataset_comment_map.has(item)-->
-<!--              ? $store.state.map.dataset_comment_map.get(item).reduce(get_tagged_num, 0)-->
-<!--              : '&#45;&#45;'}}-->
-<!--              /{{$store.state.map.dataset_comment_map.has(item)-->
-<!--              ? $store.state.map.dataset_comment_map.get(item).length-->
-<!--              : '&#45;&#45;'}}-->
+
             </td>
             <!--                buttons-->
             <td>
               <div style="justify-content: space-around">
-<!--                <v-btn color="blue" dark-->
-<!--                       @click="choose_dataset(item)"-->
-<!--                       :disabled="!work_ready">-->
-<!--                  {{lantext.words[$store.state.user_level===0?"mark":"view"][$store.state.lanType]}}-->
-<!--                </v-btn>-->
-<!--                <v-btn color="orange" dark-->
-<!--                       v-show="$store.state.user_level===0"-->
-<!--                       @click="share_dataset(item)"-->
-<!--                       :disabled="!work_ready">-->
-<!--                  {{lantext.words.share[$store.state.lanType]}}-->
-<!--                </v-btn>-->
+                <v-btn @click="draw_chart(item)" text>
+                  <v-icon>mdi-chart-pie</v-icon>
+                  {{lantext.words.graph[$store.state.lanType]}}
+                </v-btn>
               </div>
             </td>
           </tr>
           </tbody>
         </template>
       </v-simple-table>
-<!--      <v-data-table-->
-<!--        :loading="$store.state.startLoading>$store.state.endLoading"-->
-<!--        :headers="lantext.headers.ItemListHeaderWithKappa[$store.state.lanType]"-->
-<!--        :items="$store.state.dataTree"-->
-<!--        :items-per-page="5"-->
-<!--        v-if="isDataAlive"-->
-<!--      >-->
-<!--        <template v-slot:item.uploadUserName="{item}">-->
-<!--          {{$store.state.currentuser}}-->
-<!--        </template>-->
-<!--        <template v-slot:item.tagged="{item}">-->
-<!--              <span v-show="item.commentList">-->
-<!--                {{item.commentList.tagged}}/{{item.commentList.commentIdList.length}}-->
-<!--              </span>-->
-<!--        </template>-->
-<!--        <template v-slot:item.buttons="{item}">-->
-<!--          <v-btn @click="setChart(item)" text :disabled="item.commentList.tagged===0">-->
-<!--            <v-icon>mdi-chart-pie</v-icon>-->
-<!--            {{lantext.words.graph[$store.state.lanType]}}-->
-<!--          </v-btn>-->
-<!--        </template>-->
-<!--        <template v-slot:item.kappa="{item}" v-if="$store.state.user_level===1">-->
-<!--          <v-btn @click="updateKappa(item.dataSetIndex)" text outlined-->
-<!--          :disabled="item.commentList.tagged===0">{{lantext.words.update[$store.state.lanType]}}</v-btn>-->
-<!--          <span>{{item.kappa}}</span>-->
-<!--        </template>-->
-<!--      </v-data-table>-->
     </v-container>
+
     <v-container fluid>
       <v-row>
         <v-col cols="5">
@@ -166,27 +131,8 @@
           colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00',
             '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
           series: [{
-            name:"Functional",
             colorByPoint: true,
-            data: [
-              //{name:'Functional_requirements',y:0,},
-
-              {name:'Functional Suitability',y:0},
-              {name:'Performance Efficiency',y:0},
-              {name:'Compatibility',y:0},
-              {name:'Usability',y:0},
-              {name:'Security',y:0},
-              {name:'Reliability',y:0},
-              {name:'Maintainability',y:0},
-              {name:'Portability',y:0},
-              {},
-              {},
-              {},
-              {name:'Contradictions', y:0}
-
-              //{name:'Bug_Fix',y:0},
-              //{name:'Others',y:0},
-            ]
+            data: []
           }]
         },
         chart2_config:{
@@ -220,11 +166,7 @@
             '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
           series: [{
             colorByPoint: true,
-
             data: [
-              {name:'Functional_requirements',y:0},
-              {name:'Non_Functional_requirements',y:0},
-              {name:'Others',y:0},
             ]
           }]
         },
@@ -238,26 +180,99 @@
         }
       },
       mounted() {
+        //刷新表格信息
+        console.log('mounted')
+
+
         this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
         this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
       },
+      beforeUpdate() {
+        console.log('before update')
+
+      },
       methods:{
-        setChart(dataset){
-          //record chosen dataset
-          this.list_choosen = dataset.dataSetIndex;
+        draw_chart(dataset_id){
+          // this.chart1_config.series = [{
+          //   name:"Functional",
+          //   colorByPoint: true,
+          //   data: []
+          // }]
+
+          this.chart1_config.series[0].data = []
+          this.chart2_config.series[0].data = []
+
+          var type_map = new Map()
+          var group_map = new Map()
+          var category_name = this.$store.state.map.dataset_map.get(dataset_id).category_name
+
+          if (!this.$store.state.map.tag_category_map.has(category_name)) return
+
+          var current_category = this.$store.state.map.tag_category_map.get(category_name).object
+          current_category.tags.forEach(tag => {
+            type_map.set(tag.value, 0)
+          })
+          current_category.group.forEach((group, index)=>{
+            group_map.set(group.name, {
+              list: group.list,
+              index:index,
+              hit:0
+            })
+          })
+
+
+          this.$store.state.map.tag_map.forEach((value, key)=>{
+            if (value.dataset_id === dataset_id && (
+              this.$store.state.user_level===0 && value.tag_user_info === this.$store.state.currentuser
+              || this.$store.state.user_level===1)){
+              if (type_map.has(value.tag_value)) {
+                var temp = type_map.get(value.tag_value)
+                type_map.set(value.tag_value, temp + 1)
+
+                var tag_index = -1
+                var group_name = ""
+                current_category.tags.forEach((tag, index)=>{
+                  if (tag.value === value.tag_value) tag_index = index
+                })
+                group_map.forEach((value, key)=>{
+                  if (value.list.indexOf(tag_index) !== -1) group_name = key
+                })
+                var hit_group = group_map.get(group_name)
+                if (hit_group){
+                  hit_group.hit++
+                  group_map.set(group_name, hit_group)
+                }
+              }
+            }
+          })
+
+          type_map.forEach((value, key)=>{
+            this.chart1_config.series[0].data.push({
+              name: key,
+              y:value
+            })
+          })
+
+          group_map.forEach((value, key)=>{
+            this.chart2_config.series[0].data.push({
+              name: key,
+              y:value.hit
+            })
+          })
 
           //set names for charts
-          for (let j=0;j<this.chart1_config.series[0].data.length;j++){
-            this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[this.$store.state.lanType][j];
-            this.chart1_config.series[0].data[j].y = 0
-          }
-          for (let j=0;j<this.chart2_config.series[0].data.length;j++){
-            this.chart2_config.series[0].data[j].y = 0
-            this.chart2_config.series[0].data[j].name = lantext.tagwords.class[this.$store.state.lanType][j];
-          }
+          //
+          // for (let j=0;j<this.chart1_config.series[0].data.length;j++){
+          //   this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[this.$store.state.lanType][j];
+          //   this.chart1_config.series[0].data[j].y = 0
+          // }
+          // for (let j=0;j<this.chart2_config.series[0].data.length;j++){
+          //   this.chart2_config.series[0].data[j].y = 0
+          //   this.chart2_config.series[0].data[j].name = lantext.tagwords.class[this.$store.state.lanType][j];
+          // }
 
 
-          if (this.$store.state.user_level===0){
+          // if (this.$store.state.user_level===0){
             //contradiction statistics clearing
             // this.contradictions = 0
             // this.appeared_comments_list = []
@@ -268,21 +283,21 @@
             //   return arr.reduce((prev,curr)=> curr === item ? prev+1 : prev, 0);
             // }
 
-            this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
-              if (tag.tag_user_info === this.$store.state.currentuser){
-                if (this.$store.state.dataTree[dataset.dataSetIndex].commentList
-                  .comments[tag.commentIndex].tagList.tagIdList.length > 1){
-                  this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += 1;
-                }
-                else {
-                  let temp_num = this.getTagValue(tag);
-                  if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
-                  if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
-                  else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-                  else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
-                }
-              }
-            });
+            // this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
+            //   if (tag.tag_user_info === this.$store.state.currentuser){
+            //     if (this.$store.state.dataTree[dataset.dataSetIndex].commentList
+            //       .comments[tag.commentIndex].tagList.tagIdList.length > 1){
+            //       this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += 1;
+            //     }
+            //     else {
+            //       let temp_num = this.getTagValue(tag);
+            //       if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
+            //       if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
+            //       else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
+            //       else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
+            //     }
+            //   }
+            // });
 
             //data from tags
             // this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
@@ -309,22 +324,22 @@
             //   else this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += comment_unit
             //   //只记一个人
             // })
-          }
-          else{//reviewers
-            //data from commentTagValueList
-            this.reviewed_comments = 0
-            this.$store.state.commentTagValueList[dataset.dataSetIndex].forEach(comment => {
-              if (comment.tag_result !== -1) {
-                this.reviewed_comments++;
-                let temp_num = comment.tag_result;
-                if (temp_num >= 1 && temp_num <= 8) this.chart1_config.series[0].data[temp_num - 1].y++;
-                if (temp_num === 0) this.chart2_config.series[0].data[0].y++;
-                else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-                else if (temp_num > 0) this.chart2_config.series[0].data[1].y++;
-              }
-            })
-
-          }
+          // }
+          // else{//reviewers
+          //   //data from commentTagValueList
+          //   this.reviewed_comments = 0
+          //   this.$store.state.commentTagValueList[dataset.dataSetIndex].forEach(comment => {
+          //     if (comment.tag_result !== -1) {
+          //       this.reviewed_comments++;
+          //       let temp_num = comment.tag_result;
+          //       if (temp_num >= 1 && temp_num <= 8) this.chart1_config.series[0].data[temp_num - 1].y++;
+          //       if (temp_num === 0) this.chart2_config.series[0].data[0].y++;
+          //       else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
+          //       else if (temp_num > 0) this.chart2_config.series[0].data[1].y++;
+          //     }
+          //   })
+          //
+          // }
 
           //render
           this.chart1 = Highcharts.chart('chartshow',this.chart1_config);

@@ -94,7 +94,7 @@
       </v-navigation-drawer>
       <v-col class="pa-0">
         <commentlist v-show="list_chosen===0 && $store.state.user_level<2" :enable=" $store.state.loginstatus"></commentlist>
-        <dataplace v-show="(list_chosen===1 && $store.state.user_level<2)" :enable= " $store.state.loginstatus "></dataplace>
+        <dataplace v-if="(list_chosen===1 && $store.state.user_level<2)" :enable= " $store.state.loginstatus "></dataplace>
         <all-list v-show="list_chosen===0 && $store.state.user_level===2"
                   :enable="$store.state.user_level===2 && list_chosen===0"></all-list>
       </v-col>

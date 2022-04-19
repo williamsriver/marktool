@@ -6,20 +6,18 @@
           <v-container fluid>
 <!--            顶栏-->
             <v-row dense align="baseline">
-              <v-btn text @click="$store.state.workStatus = false">
+<!--              button[back]:go back to the 'commentlist' -->
+              <v-btn text @click="$store.state.workStatus = false, $store.state.current_tag_category_saved = false">
                 <v-icon>mdi-arrow-left</v-icon>
                 <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
               </v-btn>
+<!--              enable users to input the wanted location in a dataset -->
               <v-col cols="1">
                 <v-text-field v-model="ptr"></v-text-field>
               </v-col>
+<!--              show the location we are on-->
               <span>{{ptr}}/{{$store.state.map.dataset_comment_map.get($store.state.chosen_dataset_id).length-1}}</span>
-<!--              <v-col>-->
-<!--                <v-progress-linear-->
-<!--                  height="6"-->
-<!--                  :value="(ptr/($store.state.map.dataset_comment_map.get($store.state.chosen_dataset_id).length-1))*100">-->
-<!--                </v-progress-linear>-->
-<!--              </v-col>-->
+<!--              labeling time-->
               <v-icon>mdi-clock</v-icon>
               {{markHour}}:{{markMin}}:{{markSec}}
             </v-row>
@@ -28,30 +26,32 @@
 
 <!--              tag标签-->
               <v-col cols="2">
-                <v-card class="ma-0" >
-
+                <v-card
+                  class="ma-0 overflow-x-auto overflow-y-auto"
+                  :max-height="450">
                   <v-main
-                    v-for="index in $store.state.tag_category.values.length"
+                    v-for="index in $store.state.chosen_tag_category.object.tags.length"
                     :key="index">
                     <v-chip
+                      :color="$store.state.colors[index-1]"
                       class="ma-2" dark
                       @click="chooseTag(index-1)">
                       <v-avatar left
-                        v-if="currentTag && currentTag.tag_value===$store.state.tag_category.values[index-1]">
+                        v-if="currentTag &&
+                        currentTag.tag_value===$store.state.chosen_tag_category.object.tags[index-1].value">
                         <v-icon>mdi-checkbox-marked-circle</v-icon>
                       </v-avatar>
-                      {{$store.state.tag_category.showcase[$store.state.lanType===0?'en':'ch'][index-1]}}
+                      {{$store.state.chosen_tag_category.object.tags[index-1].value}}
                     </v-chip>
                   </v-main>
                 </v-card>
               </v-col>
 <!--              标签的解释-->
               <v-col cols="3">
-                <v-card >
-                  <v-main class="font-weight-black text-h6" >
-                    {{desc_chosen_tag_showcase}}
-<!--                    {{lantext.tagwords.tags[$store.state.lanType][$store.state.tagValue]}}-->
-                  </v-main>
+                <v-card>
+<!--                  chosen tag's name-->
+                  <v-main>{{currentTag ? currentTag.tag_value : '--'}}</v-main>
+<!--                  chosen tag's description-->
                   <v-virtual-scroll
                     :items="['example_one_item']"
                     :min-height="200"
@@ -59,7 +59,7 @@
                     :item-height="450">
                     <template v-slot:default="{item}">
                       <v-card height="auto">
-                        <span>{{desc}}</span>
+                        <div v-html="chosen_tag_description"></div>
                       </v-card>
                     </template>
                   </v-virtual-scroll>
@@ -68,6 +68,7 @@
 <!--              comment信息,confidence,rationale-->
               <v-col align-self="end">
                 <v-container class="pa-0" >
+<!--                  tag chosen and confidence-->
                   <v-row>
                     <v-col>
                       <v-chip class="ma-2"  text-color="white">
@@ -87,7 +88,7 @@
                     </v-col>
                     <v-col cols="3"></v-col>
                   </v-row>
-
+<!--                  info of current comment-->
                   <v-card height="400">
                     <v-main class="font-weight-black text-h6" >
                       {{lantext.words.title[$store.state.lanType]}} : {{currentComment.title||"--"}}
@@ -110,7 +111,7 @@
                       v-model="currentTag.rationale" outlined full-width>
                     </v-textarea>
                   </v-card>
-
+<!--                  ptr go left/right, save-->
                   <v-row>
                     <v-col>
                       <v-btn text :disabled="ptr<=0 || !isSaved" @click="ptr_go_left">
@@ -137,6 +138,7 @@
           </v-container>
         </v-col>
       </v-row>
+
     </v-container>
   </v-app>
 </template>
@@ -144,6 +146,7 @@
 <script>
   import lantext from "../lib/lantext";
   import defaultTag from "../lib/defaultTagCategory"
+  import default_tag_category from "../lib/defaultTagCategory";
   export default {
     name: "markplace",
     props: {
@@ -154,6 +157,9 @@
     },
     data:()=>({
       //static data
+      overlays:{
+        edit_label_category:false,
+      },
       lantext:lantext,
       defaultTag,
       tagColors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple","#9E9D24","#FFC107","#E65100","#5D4037"],
@@ -176,16 +182,26 @@
       currentComment:null,
       totalStartTime:0,
       isSaved:true,
+      first_comment_id:null,
+
+      tag_category_creating:0,
+      tag_category_finish:0,
+      new_tag_category_list:[],
+      chosen_tag_description:"",
 
       // presskey:"",
       // pressIndex:0,
     }),
     created() {
-      this.$store.state.tag_category = this.defaultTag
+      // this.$store.state.tag_category = this.defaultTag
     },
     mounted() {
       let timer = setInterval(()=>{this.totalStartTime += 1},1000);
       this.ptr = 0;
+      if (!this.$store.state.current_tag_category_saved){
+        this.save_tag_category(this.$store.state.chosen_tag_category)
+        this.$store.state.current_tag_category_saved = true
+      }
       // window.onkeypress = (event =>{
       //   if (event.key==='q'){
       //     this.$store.state.tagValue = (this.$store.state.tagValue+1) % 11;
@@ -214,26 +230,10 @@
       saveValid(){
         return ! ( this.isSaved || this.ptr<0 || this.$store.state.tagValue === -1 );
       },
-      desc_chosen_tag_showcase(){
-        if (!this.currentTag.tag_value) return ''
-        var index = this.$store.state.tag_category.values.indexOf(this.currentTag.tag_value)
-        // console.log('index', index)
-        if (index !== -1){
-          return this.$store.state.tag_category.showcase[this.$store.state.lanType === 0?'en':'ch'][index]
-        }
-        else return this.this.currentTag.tag_value
-      },
-      desc(){
-        if (!this.currentTag) return ''
-        var desc_index = this.$store.state.tag_category.values.indexOf(this.currentTag.tag_value)
-        // console.log(this.currentTag.tag_value, "index", desc_index)
-        if (desc_index === -1) return "--"
-        else {
-          return this.$store.state.tag_category.desc[this.$store.state.lanType === 0 ? 'en' : 'ch'][desc_index]
-        }
-      }
+
 
     },
+
     watch:{
       ptr:{
         handler(value){
@@ -254,11 +254,103 @@
     },
 
     methods: {
+
+      change_chosen_tag_description(){
+        if (!this.currentTag) this.chosen_tag_description = '--'
+
+        var desc_index = -1
+        this.$store.state.chosen_tag_category.object.tags.forEach((tag, index)=>{
+          if (tag.value === this.currentTag.tag_value) desc_index = index
+        })
+        // console.log(this.currentTag.tag_value, "index", desc_index)
+        if (desc_index === -1) this.chosen_tag_description = "--"
+        else {
+          this.chosen_tag_description = this.$store.state.chosen_tag_category.object.tags[desc_index]
+            .description[this.$store.state.lanType === 0 ? 'en' : 'ch']
+        }
+      },
+
+      //把所有tag_category对象都挂到dataset的第一个comment上，这样保证了每次的读取
+      /**
+       * 每个tag_category的专用标签的remark
+       * {
+       * category_name:<String>,
+       * eof:false/true
+       * str_slice:<String>
+       * }
+       */
+      save_tag_category(category){
+        let str_category = JSON.stringify(category.object)
+        let interval = 400
+        let slice_num = Math.ceil(str_category.length / interval) //至少需要几个tag来存储
+        var first_comment_id = this.$store.state.map.dataset_comment_map.get(this.$store.state.chosen_dataset_id)[0]
+        var first_comment = this.$store.state.map.comment_map.get(first_comment_id)
+        this.first_comment_id = first_comment_id
+        var first_comment_tag_id_list = [...new Set(first_comment.tag_id_list.split(','))]
+
+        //把所有tag category标注找出来
+        var tag_category_tag_list = []
+        var tag_category_tag_ptr = 0
+        first_comment_tag_id_list.forEach(tag_id =>{
+          if (tag_id){
+            var tag = this.$store.state.map.tag_map.get(tag_id)
+            if (tag && !tag.tag_value){
+              tag_category_tag_list.push(tag_id)
+            }
+          }
+        })
+
+        console.log('tag_category_tag_list', tag_category_tag_list)
+        console.log('total_list',first_comment)
+
+        // 0 -> slice_num-1
+        for (let i = 0;i<slice_num;i++){
+          var formData1 = new FormData()
+          var remarks_object = {
+            category_name : category.object.name,
+            total:slice_num,
+            no:i,
+            eof : (i >= slice_num - 1),
+            str_slice : str_category.substr(i*interval, interval)
+          }
+          console.log('remark', remarks_object)
+          formData1.append('remarks', JSON.stringify(remarks_object) )
+          formData1.append('token', this.$store.state.token);
+          formData1.append('tag_user_info', this.$store.state.currentuser)//用户信息
+          formData1.append('confidence', '5') //confidence
+
+          this.tag_category_creating++
+
+          if (tag_category_tag_ptr < tag_category_tag_list.length){
+            formData1.append('tag_id', tag_category_tag_list[tag_category_tag_ptr])
+            this.editTag(formData1, true)
+            tag_category_tag_ptr++
+          }
+          else {
+
+            this.createTag(this.finish_tag_category_creating,
+              formData1, first_comment_id, this.currentComment.dataset_id, true)
+          }
+        }
+      },
+
+      finish_tag_category_creating(tag_id){
+        this.tag_category_finish++
+        this.new_tag_category_list.push(tag_id)
+        if (this.tag_category_creating === this.tag_category_finish){
+          var str_tag_list = ""
+          for (var i =0;i<this.new_tag_category_list.length-1;i++)
+            str_tag_list += this.new_tag_category_list[i] + ','
+          str_tag_list += this.new_tag_category_list[this.new_tag_category_list.length-1]
+
+          this.addNewTagForComment(str_tag_list, this.first_comment_id, true)
+        }
+      },
+
       chooseTag(index){
-        this.currentTag.tag_value = this.$store.state.tag_category.values[index]
+        this.currentTag.tag_value = this.$store.state.chosen_tag_category.object.tags[index].value
+        this.change_chosen_tag_description()
         this.isSaved = false
-
-
       },
 
       ptr_go_left(){
@@ -284,14 +376,15 @@
 
 
         if (!this.currentTag.tag_id)
-          this.createTag(formData1, this.currentComment.comment_id, this.currentComment.dataset_id);
+          this.createTag(null, formData1, this.currentComment.comment_id, this.currentComment.dataset_id);
         else {
           formData1.append('tag_id',this.currentTag.tag_id);
           this.editTag(formData1);
         }
       },
-
-      addNewTagForComment(tag_id, comment_id){
+      //这里必须将已有的所有tag和新添加的tag做拼接
+      addNewTagForComment(tag_id, comment_id, is_tag_category){
+        console.log(tag_id, comment_id, is_tag_category)
         let formData1 = new FormData()
         let date = new Date();
         formData1.append("datetime_info", date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
@@ -300,28 +393,35 @@
         this.axios.put('/comments/', formData1).then(response => {
           console.log(response)
           if (response.data) {
-            this.$message.success("create new tag succeed");
-            this.isSaved = true;
-            var dataset_id = this.currentComment.dataset_id
-            this.get_tag_object(tag_id, comment_id, dataset_id)
-            this.ptr++;
+            console.log("create new tag succeed", tag_id);
+            if (!is_tag_category){
+              this.$message.success("create new tag succeed");
+              this.isSaved = true;
+              var dataset_id = this.currentComment.dataset_id
+              this.get_tag_object(tag_id, comment_id, dataset_id)
+              this.ptr++;
+            }
           }
           else this.$message.error("create new tag failed");
         })
         .catch(error => console.log(error))
       },
 
-      editTag(data) {
+      editTag(data, is_tag_category = false) {
         console.log(data)
         this.axios.put('/tag/', data).then(response => {
           console.log(response);
           if (response.data.Msg === "OK") {
-            this.$message.success("tag edit succeed");
-            var dataset_id = this.currentComment.dataset_id
-            var comment_id = this.currentComment.comment_id
-            var tag_id = this.currentTag.tag_id
-            this.get_tag_object(tag_id, comment_id, dataset_id)
-            this.ptr++;
+            console.log("tag edit succeed");
+            if (!is_tag_category){
+              var dataset_id = this.currentComment.dataset_id
+              var comment_id = this.currentComment.comment_id
+              this.$message.success("tag edit succeed");
+              var tag_id = this.currentTag.tag_id
+              this.get_tag_object(tag_id, comment_id, dataset_id)
+              this.ptr++;
+            }
+
           }
         })
         .catch(error => console.log(error));
@@ -363,20 +463,23 @@
         }).catch(error => console.log(error))
       },
 
-      createTag(request_data, comment_id, dataset_id) {
+      createTag(callback, request_data, comment_id, dataset_id, is_tag_category = false) {
         this.axios.post('/tag/', request_data).then(response => {
           console.log(response);
           if (response.data.Details) {
             var tag_object = response.data.Details
             var tag_id = tag_object.tag_id
 
-            this.addNewTagForComment(tag_id, comment_id)
+            this.addNewTagForComment(tag_id, comment_id, is_tag_category)
 
-            this.$store.state.list.tag_id_list.push(tag_id)
-            var temp_tag_list = this.$store.state.map.comment_tag_map.has(comment_id) ?
-              this.$store.state.map.comment_tag_map.get(comment_id) : []
-            temp_tag_list.push(tag_id)
-            this.$store.state.map.comment_tag_map.set(comment_id, temp_tag_list)
+            if (!is_tag_category){
+              this.$store.state.list.tag_id_list.push(tag_id)
+              var temp_tag_list = this.$store.state.map.comment_tag_map.has(comment_id) ?
+                this.$store.state.map.comment_tag_map.get(comment_id) : []
+              temp_tag_list.push(tag_id)
+              this.$store.state.map.comment_tag_map.set(comment_id, temp_tag_list)
+            }
+            else callback(tag_id)
           }
           else this.$message.error("create tag Failed");
         })
@@ -410,15 +513,15 @@
         this.isSaved = true;
       },
 
-      beforeRouteLeave(to, from, next) {
-        if (!this.issave){
-          if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ) {
-            this.$store.state.workstatus = false;
-            next()
-          }
-        }
-        else next()
-      }
+      // beforeRouteLeave(to, from, next) {
+      //   if (!this.issave){
+      //     if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ) {
+      //       this.$store.state.workstatus = false;
+      //       next()
+      //     }
+      //   }
+      //   else next()
+      // }
     }
 
   }

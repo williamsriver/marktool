@@ -3,28 +3,37 @@
   <v-app>
     <!--mode radio & search tab-->
     <v-container fluid>
+<!--      go back-->
       <v-row>
         <v-btn text @click="$store.state.workStatus = false">
           <v-icon>mdi-arrow-left</v-icon>
           <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
         </v-btn>
       </v-row>
+<!--select reviewing mode-->
       <v-container fluid class="ma-0 pa-0">
         <v-row align-content="center" class="ma-0 pa-0">
           <v-col cols="3">
-            <v-radio-group row v-model="viewMode">
-              <v-radio :label="lantext.words.all[$store.state.lanType]" :value="1"></v-radio>
-              <v-radio :label="lantext.words.contradictions[$store.state.lanType]" :value="2"></v-radio>
-            </v-radio-group>
+            <v-main>
+              <v-radio-group row v-model="viewMode">
+                <v-radio :label="lantext.words.all[$store.state.lanType]" :value="1"></v-radio>
+                <v-radio :label="lantext.words.contradictions[$store.state.lanType]" :value="2"></v-radio>
+              </v-radio-group>
+            </v-main>
           </v-col>
-          <v-col align-self="center" cols="1">{{lantext.words.confidence[$store.state.lanType]}}</v-col>
-          <v-col cols="1">
-            <v-select v-model="lowerVal" :items="valueTable[0]"></v-select>
+          <v-col align-self="center" cols="2">
+            <v-main>
+              {{lantext.words.confidence[$store.state.lanType]}}
+            </v-main>
           </v-col>
-          <v-col align-self="center" cols="1">——</v-col>
-          <v-col cols="1">
-            <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
+          <v-col cols="3">
+            <v-row>
+              <v-select v-model="lowerVal" :items="valueTable[0]" ></v-select>
+              <span>-</span>
+              <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
+            </v-row>
           </v-col>
+
         </v-row>
       </v-container>
 

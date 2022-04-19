@@ -6,12 +6,14 @@ const lantext={
         {text:'Dataset ID',value:'dataSetId'},
         {text: 'File Name',value: 'fileName'},
         {text: 'Labeled/Total',value: 'tagged'},
+        {text: 'Category',value: 'category'},
         {text: '',sortable:false,value: 'buttons'}
       ],
       [
         {text:'数据集编号',value:'dataSetId'},
         {text: '文件名',value: 'fileName'},
         {text: '标注进度',value: 'tagged'},
+        {text: '数据集合',value: 'category'},
         {text: '',sortable:false,value: 'buttons'}
       ],
     ],
@@ -248,7 +250,8 @@ const lantext={
         [
               { id: 2, name: '模块化：系统或计算机程序由离散组件组成的程度，以使对一个组件的更改对其他组件的影响最小。' },
               { id: 3, name: '可重用性：资产可在多个系统中或在构建其他资产中使用的程度。' },
-              { id: 4, name: '可分析性：有效性和效率的程度，可以用来评估对产品或系统的一个或多个零件的预期更改的影响，或诊断产品的缺陷或故障原因，或识别零件 被修改.' },
+              { id: 4, name: '可分析性：有效性和效率的程度，可以用来评估对产品或系统的一个或多个零件的预期更改的影响，' +
+                  '或诊断产品的缺陷或故障原因，或识别零件 被修改.' },
               { id: 5, name: '可修改性：在不引入缺陷或不降低现有产品质量的情况下，可以有效，高效地修改产品或系统的程度。' },
               { id: 6, name: '可测试性：可以为系统，产品或组件建立测试标准并进行测试以确定是否满足这些标准的有效性和效率程度.' },
         ],
@@ -263,6 +266,10 @@ const lantext={
   },
 
   words:{
+    choose:["choose", "选择"],
+    name:["name", "名称"],
+    tag_value:["Tag Value","标签值"],
+    tag_reference:["Tag Reference","标签名称"],
     mark_process:["Labeling Process", "标注进度"],
     review_process:["Reviewing process", "审阅进度"],
     review_details:["Reviewing Details","审阅详情"],
@@ -353,6 +360,10 @@ const lantext={
   },
 
   sentences:{
+    ready_to_tag:["ready to tag","准备标注"],
+    choose_tag_category:["Choose Tag Category","选择一个标签集合"],
+    current_tag_category:["Current Tag Categories","当前标签集合"],
+    edit_label_category: ['Edit Label Category','修改标签集合'],
     upload_dataset:['Upload Dataset', '上传数据集'],
     password_confirmation:['Password Confirmation', '确认密码'],
     reload_data:['Reload Data','重新加载数据'],
@@ -362,9 +373,11 @@ const lantext={
     user_duplicated:['user duplicated','用户重复'],
     passwords_different:['passwords different','密码错误'],
     least_eight_words:['at least 8 words','至少8个字符'],
-    get_dataset:["Get dataset","获取数据集"],
-    tags_distribution_chart1:["Distribution of Dataset over FR/NFR/Others","移动应用数据在需求类型中的分布情况（功能/非功能/其他）"],
-    tags_distribution_chart2:["Distribution of Dataset over NFR Types","移动应用数据在需求类型中的分布情况（8种非功能需求类型）"],
+    get_dataset:["Get Dataset","获取数据集"],
+    upload_tag_category:["Upload Tag Category","上传标签集合"],
+    get_dataset_btn:["Get","获取"],
+    tags_distribution_chart1:["Distribution of Dataset by Groups","数据根据组别的分布情况"],
+    tags_distribution_chart2:["Distribution of Dataset by Categories","数据根据类别的分布情况"],
 
   }
 }
