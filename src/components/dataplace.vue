@@ -2,17 +2,20 @@
   <v-app>
     <v-container fluid>
       <v-simple-table
-        v-if="isDataAlive">
+        style="height: 240px"
+        class="overflow-y-auto"
+        v-if="isDataAlive" >
         <template v-slot:default>
           <thead>
           <tr>
             <th class="text-left">Id</th>
             <th class="text-left">FileName</th>
+            <th class="text-left">Category</th>
             <th class="text-left">Kappa Value</th>
             <th class="text-left"></th>
           </tr>
           </thead>
-          <tbody>
+          <tbody >
           <tr v-for="item in $store.state.list.dataset_id_list" :key="item">
             <!--                Id-->
             <td>{{ item }}</td>
@@ -24,7 +27,9 @@
               　$store.state.map.dataset_map.get(item).category_name : '' }}</td>
             <!--                Kappa Value-->
             <td>
-
+              {{ $store.state.map.dataset_map.has(item) ?
+              　$store.state.map.dataset_map.get(item).kappa : '' }}
+              <v-btn text @click="updateKappa(item)">{{lantext.words.update[$store.state.lanType]}}</v-btn>
             </td>
             <!--                buttons-->
             <td>
@@ -260,6 +265,11 @@
             })
           })
 
+
+          //render
+          this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
+          this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
+
           //set names for charts
           //
           // for (let j=0;j<this.chart1_config.series[0].data.length;j++){
@@ -270,7 +280,6 @@
           //   this.chart2_config.series[0].data[j].y = 0
           //   this.chart2_config.series[0].data[j].name = lantext.tagwords.class[this.$store.state.lanType][j];
           // }
-
 
           // if (this.$store.state.user_level===0){
             //contradiction statistics clearing
@@ -340,75 +349,149 @@
           //   })
           //
           // }
-
-          //render
-          this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
-          this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
-
         },
+        // getTagValue(item){
+        //   let result = -1;
+        //   if (!item) return result;
+        //   lantext.tagwords.tags[0].forEach((prop_name,index) =>{
+        //     if (item[prop_name]) result = index;
+        //   });
+        //   return result;
+        // },
 
+        updateKappa(dataset_id){
 
-        getTagValue(item){
-          let result = -1;
-          if (!item) return result;
-          lantext.tagwords.tags[0].forEach((prop_name,index) =>{
-            if (item[prop_name]) result = index;
-          });
-          return result;
-        },
+          // let dataset = this.$store.state.map.dataset_map.get(dataset_id)
+          let comment_id_list = this.$store.state.map.dataset_comment_map.get(dataset_id)
+          // let userList = []
+          //kappa值计算取该数据集标注最多的两个用户的标注交集做相似度比较
+          let user_map = new Map() //记录所有标注者以及他们的标注数量、列表
+          // let userListTagNumber = []
 
+          //遍历某个数据集的所有评论,构建user_map
+          comment_id_list.forEach(comment_id=>{
+            // console.log(comment_id)
+            let tag_id_list = this.$store.state.map.comment_tag_map.get(comment_id)
 
-        updateKappa(dataSetIndex){
-
-          let dataSet = this.$store.state.dataTree[dataSetIndex]
-          let userList = []
-          let userListTagNumber = []
-          dataSet.commentList.comments.forEach((comment, tagIndex) =>{
-            if (comment.tagList.tags.length > 0){
-              comment.tagList.tags.forEach(tag =>{
-                let index = userList.indexOf(tag.tag_user_info);
-                if (index===-1){
-                  userList.push(tag.tag_user_info);
-                  userListTagNumber.push({
-                    userInfo:tag.tag_user_info,
-                    frequency:1,
-                    tagsIndex:[tagIndex],
-                    tagsValues:[tag.tag_value],
-                  });
+            tag_id_list.forEach(tag_id=>{
+              let tag = this.$store.state.map.tag_map.get(tag_id)
+              // console.log(tag)
+              //要注意没有tag user info的tag category标签
+              if (tag && tag.hasOwnProperty('tag_user_info')){
+                // console.log(tag)
+                if (!user_map.has(tag.tag_user_info)){
+                  user_map.set(tag.tag_user_info, {
+                    hit:1,
+                    comment_id_list:[tag.comment_id]
+                  })
                 }
-                else{
-                  userListTagNumber[index].frequency++;
-                  userListTagNumber[index].tagsValues.push(tag.tag_value);
-                  userListTagNumber[index].tagsIndex.push(tagIndex);
+                else {
+                  let obj = user_map.get(tag.tag_user_info)
+                  obj.hit++
+                  obj.comment_id_list = [... new Set(obj.comment_id_list.concat([tag.comment_id]))]
+                  user_map.set(tag.tag_user_info, obj)
                 }
-
-              })
-            }
-          })
-          userListTagNumber.sort((a,b)=> b.frequency-a.frequency);
-          console.log(userListTagNumber)
-          let kappa_1, kappa_2
-          if (userListTagNumber.length >= 2){
-            kappa_1 = userListTagNumber[0]
-            kappa_2 = userListTagNumber[1]
-            let sameNum = 0
-            let totalNum = 0
-            dataSet.commentList.comments.forEach((comment, index) =>{
-              if (kappa_1.tagsIndex.indexOf(index)!==-1 && kappa_2.tagsIndex.indexOf(index)!==-1){
-                totalNum++;
-                if (kappa_1.tagsValues[kappa_1.tagsIndex.indexOf(index)] ===
-                  kappa_2.tagsValues[kappa_2.tagsIndex.indexOf(index)]) sameNum++;
               }
             })
-            console.log(sameNum, totalNum)
-            if (totalNum>0) this.$store.state.dataTree[dataSetIndex].kappa = sameNum/totalNum
-            else this.$store.state.dataTree[dataSetIndex].kappa = "--"
-            this.isDataAlive = false
-            this.$nextTick(()=>{
-              this.isDataAlive =true
-            })
+          })
+
+          console.log(user_map.size)
+
+          //选择标注数最多的两个用户,若没有或用户数量为1，则定为空
+          if (user_map.size < 2) return
+
+          let user_list = Array.from(user_map)
+          user_list.sort((a, b)=>{
+            return -(a[1].hit - b[1].hit)
+          })
+
+          console.log(user_list)
+
+          let intersection = (arr1,arr2) =>{
+            let a1 = new Set(arr1)
+            let a2 = new Set(arr2)
+            return [...a1].filter(item => a2.has(item))
           }
-          else this.$store.state.dataTree[dataSetIndex].kappa = "--"
+
+          //两个标注最多的标注者，相同的comment列表
+          let intersection_list = intersection(user_list[0][1].comment_id_list, user_list[1][1].comment_id_list)
+
+          console.log(intersection_list)
+          let user1 = user_list[0][0], user2 = user_list[1][0] //两个标注最多标注者的名字
+          let tags1 = [], tags2 = [] //这两个标注者标注的交集的各自的标注值
+
+          if (intersection_list.length === 0) return;
+
+          let kappa = intersection_list.reduce((pre, cur)=>{
+            let tag_id_list = this.$store.state.map.comment_tag_map.get(cur)
+            let user1_val, user2_val
+            tag_id_list.forEach(tag_id =>{
+              let tag = this.$store.state.map.tag_map.get(tag_id)
+              if (tag.tag_user_info === user1) user1_val = tag.tag_value
+              if (tag.tag_user_info === user2) user2_val = tag.tag_value
+            })
+            console.log(pre, cur, user1_val, user2_val)
+            if (user1_val && user2_val) return pre + (user1_val === user2_val) ? 1 : 0
+            else return pre
+          }, 0)
+          console.log(kappa)
+
+          kappa /=  intersection_list.length
+
+          let obj = this.$store.state.map.dataset_map.get(dataset_id)
+          obj.kappa = kappa
+          this.$store.state.map.dataset_map.set(dataset_id, obj)
+          this.isDataAlive = false
+          this.$nextTick(()=>{
+            this.isDataAlive = true
+          })
+
+          // dataset.commentList.comments.forEach((comment, tagIndex) =>{
+          //   if (comment.tagList.tags.length > 0){
+          //     comment.tagList.tags.forEach(tag =>{
+          //       let index = userList.indexOf(tag.tag_user_info);
+          //       if (index===-1){
+          //         userList.push(tag.tag_user_info);
+          //         userListTagNumber.push({
+          //           userInfo:tag.tag_user_info,
+          //           frequency:1,
+          //           tagsIndex:[tagIndex],
+          //           tagsValues:[tag.tag_value],
+          //         });
+          //       }
+          //       else{
+          //         userListTagNumber[index].frequency++;
+          //         userListTagNumber[index].tagsValues.push(tag.tag_value);
+          //         userListTagNumber[index].tagsIndex.push(tagIndex);
+          //       }
+          //
+          //     })
+          //   }
+          // })
+          // userListTagNumber.sort((a,b)=> b.frequency-a.frequency);
+          // console.log(userListTagNumber)
+          // let kappa_1, kappa_2
+          // if (userListTagNumber.length >= 2){
+          //   kappa_1 = userListTagNumber[0]
+          //   kappa_2 = userListTagNumber[1]
+          //   let sameNum = 0
+          //   let totalNum = 0
+          //   dataSet.commentList.comments.forEach((comment, index) =>{
+          //     if (kappa_1.tagsIndex.indexOf(index)!==-1 && kappa_2.tagsIndex.indexOf(index)!==-1){
+          //       totalNum++;
+          //       if (kappa_1.tagsValues[kappa_1.tagsIndex.indexOf(index)] ===
+          //         kappa_2.tagsValues[kappa_2.tagsIndex.indexOf(index)]) sameNum++;
+          //     }
+          //   })
+          //   console.log(sameNum, totalNum)
+          //   if (totalNum>0) this.$store.state.dataTree[dataSetIndex].kappa = sameNum/totalNum
+          //   else this.$store.state.dataTree[dataSetIndex].kappa = "--"
+          //   this.isDataAlive = false
+          //   this.$nextTick(()=>{
+          //     this.isDataAlive =true
+          //   })
+          // }
+          // else this.$store.state.dataTree[dataSetIndex].kappa = "--"
         }
       }
     }

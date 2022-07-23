@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app v-if="$store.state.user_level === 0">
     <v-container fluid  class="pa-0">
       <v-row dense>
         <v-col class="pa-0">
@@ -7,7 +7,7 @@
 <!--            顶栏-->
             <v-row dense align="baseline">
 <!--              button[back]:go back to the 'commentlist' -->
-              <v-btn text @click="$store.state.workStatus = false, $store.state.current_tag_category_saved = false">
+              <v-btn text @click="$store.state.workStatus = false">
                 <v-icon>mdi-arrow-left</v-icon>
                 <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
               </v-btn>
@@ -41,7 +41,8 @@
                         currentTag.tag_value===$store.state.chosen_tag_category.object.tags[index-1].value">
                         <v-icon>mdi-checkbox-marked-circle</v-icon>
                       </v-avatar>
-                      {{$store.state.chosen_tag_category.object.tags[index-1].value}}
+                      {{$store.state.chosen_tag_category.object.tags[index-1]
+                      .reference[$store.state.lanType === 0?'en':'ch']}}
                     </v-chip>
                   </v-main>
                 </v-card>
@@ -150,10 +151,10 @@
   export default {
     name: "markplace",
     props: {
-      enable:{
-        type:Boolean,
-        required:true,
-      },
+      // enable:{
+      //   type:Boolean,
+      //   required:true,
+      // },
     },
     data:()=>({
       //static data
@@ -254,7 +255,6 @@
     },
 
     methods: {
-
       change_chosen_tag_description(){
         if (!this.currentTag) this.chosen_tag_description = '--'
 
@@ -284,9 +284,10 @@
         let interval = 400
         let slice_num = Math.ceil(str_category.length / interval) //至少需要几个tag来存储
         var first_comment_id = this.$store.state.map.dataset_comment_map.get(this.$store.state.chosen_dataset_id)[0]
+        // console.log(first_comment_id)
         var first_comment = this.$store.state.map.comment_map.get(first_comment_id)
         this.first_comment_id = first_comment_id
-        var first_comment_tag_id_list = [...new Set(first_comment.tag_id_list.split(','))]
+        var first_comment_tag_id_list = this.$store.state.map.comment_tag_map.get(first_comment_id)
 
         //把所有tag category标注找出来
         var tag_category_tag_list = []
@@ -301,7 +302,7 @@
         })
 
         console.log('tag_category_tag_list', tag_category_tag_list)
-        console.log('total_list',first_comment)
+        // console.log('total_list',first_comment)
 
         // 0 -> slice_num-1
         for (let i = 0;i<slice_num;i++){
@@ -320,6 +321,7 @@
           formData1.append('confidence', '5') //confidence
 
           this.tag_category_creating++
+          this.new_tag_category_list = first_comment_tag_id_list //再想加tag要在原来的基础上添加tags
 
           if (tag_category_tag_ptr < tag_category_tag_list.length){
             formData1.append('tag_id', tag_category_tag_list[tag_category_tag_ptr])
@@ -327,12 +329,13 @@
             tag_category_tag_ptr++
           }
           else {
-
             this.createTag(this.finish_tag_category_creating,
               formData1, first_comment_id, this.currentComment.dataset_id, true)
           }
         }
       },
+
+
 
       finish_tag_category_creating(tag_id){
         this.tag_category_finish++
@@ -384,7 +387,7 @@
       },
       //这里必须将已有的所有tag和新添加的tag做拼接
       addNewTagForComment(tag_id, comment_id, is_tag_category){
-        console.log(tag_id, comment_id, is_tag_category)
+        console.log('addnewTag', tag_id, comment_id, is_tag_category)
         let formData1 = new FormData()
         let date = new Date();
         formData1.append("datetime_info", date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
@@ -398,14 +401,19 @@
               this.$message.success("create new tag succeed");
               this.isSaved = true;
               var dataset_id = this.currentComment.dataset_id
-              this.get_tag_object(tag_id, comment_id, dataset_id)
+              // this.get_tag_object(tag_id, comment_id, dataset_id)
+              console.log('get comment', comment_id)
+              this.get_comment_object(comment_id, dataset_id)
               this.ptr++;
+
             }
           }
           else this.$message.error("create new tag failed");
         })
         .catch(error => console.log(error))
       },
+
+
 
       editTag(data, is_tag_category = false) {
         console.log(data)
@@ -467,17 +475,23 @@
         this.axios.post('/tag/', request_data).then(response => {
           console.log(response);
           if (response.data.Details) {
+            console.log('detail',response);
+            // console.log(is_tag_category)
             var tag_object = response.data.Details
             var tag_id = tag_object.tag_id
 
-            this.addNewTagForComment(tag_id, comment_id, is_tag_category)
-
             if (!is_tag_category){
-              this.$store.state.list.tag_id_list.push(tag_id)
-              var temp_tag_list = this.$store.state.map.comment_tag_map.has(comment_id) ?
-                this.$store.state.map.comment_tag_map.get(comment_id) : []
-              temp_tag_list.push(tag_id)
-              this.$store.state.map.comment_tag_map.set(comment_id, temp_tag_list)
+
+              //获取原来所有tag的序列加上新增tag的字符串
+              var str_tag_list = ""
+              var current_tag_id_list = [... new Set(this.$store.state.map.comment_tag_map.get(comment_id)) ]
+              for (var i =0;i<current_tag_id_list.length;i++) str_tag_list += current_tag_id_list[i] + ','
+              str_tag_list += tag_id
+
+              console.log('str_tag_list', str_tag_list, tag_id)
+
+              //更新这个comment的数据
+              this.addNewTagForComment(str_tag_list, comment_id, is_tag_category)
             }
             else callback(tag_id)
           }
@@ -508,9 +522,56 @@
         comment_tag_id_list.forEach(tag_id =>{
           var tag = this.$store.state.map.tag_map.get(tag_id)
           console.log(tag)
-          if (tag && tag.tag_user_info === this.$store.state.currentuser) this.currentTag = tag
+          if (tag && tag.tag_user_info === this.$store.state.currentuser &&
+            !tag.hasOwnProperty('category_name')) this.currentTag = tag
         })
         this.isSaved = true;
+      },
+
+      //获取comment对象
+      get_comment_object(comment_id, dataset_id){
+        if (!comment_id) return
+        // console.log("get comment object", comment_id)
+        /**
+         * comment object
+         * app_name: "Monkey"
+         * content: "- \"Add Friend\" changed to \"Follow\""
+         * datetime_info: "2019-02-07"
+         * rank_level: 1
+         * tag_id_list: ""
+         * tag_result: -1
+         * title: ""
+         * version_info: "5.1.8"
+         */
+        this.axios.get('/comments/', {
+          params: {
+            comment_id: comment_id
+          }
+        }).then(response => {
+          console.log(response)
+          if (response.data.Details) {
+            var comment_object = response.data.Details
+            comment_object["dataset_id"] = dataset_id
+            comment_object["comment_id"] = comment_id
+            this.$store.state.map.comment_map.set(comment_id, comment_object)
+            var sub_tag_id_list = [...new Set(comment_object.tag_id_list.split(','))]
+            this.$store.state.map.comment_tag_map.set(comment_id, sub_tag_id_list)
+            // callback()
+            // this.refresh_dataset_table()
+            this.$store.state.list.tag_id_list = [...new Set(this.$store.state.list.tag_id_list.concat(sub_tag_id_list))]
+            console.log(comment_id, sub_tag_id_list)
+            sub_tag_id_list.forEach((tag_id, index) =>{
+              if (tag_id){
+                // this.tag_loading_start++
+                this.get_tag_object(tag_id, comment_id, dataset_id)
+              }
+            })
+          }
+          else this.$message.error('comment acquiring error');
+        }).catch(error => {
+          callback()
+          console.log(error)
+        });
       },
 
       // beforeRouteLeave(to, from, next) {

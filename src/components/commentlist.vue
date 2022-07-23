@@ -35,7 +35,7 @@
       <!--            数据集表-->
       <v-container fluid>
         <v-card-title>
-          <v-main>Dataset List</v-main>
+          <v-main>{{lantext.words.dataset_list[$store.state.lanType]}}</v-main>
           <!--          搜索栏-->
           <v-text-field
             v-model="listSrchString"
@@ -51,10 +51,10 @@
             <template v-slot:default>
               <thead>
               <tr>
-                <th class="text-left">Id</th>
-                <th class="text-left">FileName</th>
-                <th class="text-left">Category</th>
-                <th class="text-left">Tagged</th>
+                <th class="text-left">{{lantext.words.datasetID[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.file_name[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.tag_category[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.tagged[$store.state.lanType]}}</th>
                 <th class="text-left"></th>
               </tr>
               </thead>
@@ -104,7 +104,7 @@
 
       <v-container fluid>
         <v-card-title>
-          <v-main>Tag Category List</v-main>
+          <v-main>{{lantext.words.tag_category_list[$store.state.lanType]}}</v-main>
           <!--          搜索栏-->
           <v-text-field
             v-model="listSrchString"
@@ -150,14 +150,8 @@
 
 <!--    标注/审阅界面-->
     <v-container fluid v-show="$store.state.workStatus" class="pa-0">
-      <markplace
-        v-if="$store.state.user_level===0 && $store.state.workStatus"
-        :enable="$store.state.workStatus">
-      </markplace>
-      <viewplace
-        v-if="$store.state.user_level===1 && $store.state.workStatus"
-        :enable="$store.state.workStatus">
-      </viewplace>
+      <markplace v-if="$store.state.user_level===0 && $store.state.workStatus"/>
+      <viewplace v-if="$store.state.user_level===1 && $store.state.workStatus"/>
     </v-container>
 
 
@@ -532,7 +526,10 @@
               })
             })
           }
-          catch (e) { console.log(e) }
+          catch (e) {
+            console.log(e)
+            this.$message.error(this.lantext.sentences.tag_category_upload_error[this.$store.state.lanType])
+          }
 
           if (!work_flag) return
           //检查无误后，将该读取完成的tag_category写入当前的本地变量中，同时将该tag_category中所有的标签都加入防重复的Set
@@ -574,14 +571,29 @@
 
         //选择某个数据集进行标注，打开选择tag category的界面
         choose_dataset(dataset_id){
-          this.$store.state.chosen_dataset_id = dataset_id
-          this.overlay_show.choose_tag_category = true
-          // this.$store.state.workStatus = true
+          if (this.$store.state.user_level === 0){
+            this.$store.state.chosen_dataset_id = dataset_id
+            this.overlay_show.choose_tag_category = true
+          }
+          else {
+            this.$store.state.list.chosen_dataset_tag_id_list = []
+            this.$store.state.map.tag_map.forEach((value, key)=>{
+              if (value.dataset_id === dataset_id && !value.hasOwnProperty('category_name'))
+                this.$store.state.list.chosen_dataset_tag_id_list.push(key)
+            })
+            let category_name = this.$store.state.map.dataset_map.get(dataset_id).category_name
+            if (category_name){
+              this.$store.state.chosen_tag_category = this.$store.state.map.tag_category_map.get(category_name)
+              console.log(category_name, this.$store.state.chosen_tag_category)
+            }
+            this.$store.state.workStatus = true
+          }
+
         },
 
         //分享某个数据集，打开界面
         share_dataset(dataset_id){
-          this.$store.state.to_share_dataset_id = dataset_id
+          this.temp_dataSetId = dataset_id
           this.overlay_show.dataset_share =true
         },
 
@@ -679,6 +691,7 @@
                 this.$store.state.map.dataset_map.set(dataset_id, {
                   name:response.data.name,
                   category_name:null, //所使用的tag category
+                  kappa:null, //每个数据集kappa值
                 })
                 // this.refresh_dataset_table()
                 var sub_comment_id_list = [...new Set(response.data.comment_id_list)]
@@ -723,7 +736,7 @@
               this.$store.state.map.comment_tag_map.set(comment_id, sub_tag_id_list)
               callback()
               // this.refresh_dataset_table()
-              this.$store.state.list.tag_id_list = this.$store.state.list.tag_id_list.concat(sub_tag_id_list)
+              this.$store.state.list.tag_id_list = [...new Set(this.$store.state.list.tag_id_list.concat(sub_tag_id_list))]
               console.log(comment_id, sub_tag_id_list)
               sub_tag_id_list.forEach((tag_id, index) =>{
                 if (tag_id){
@@ -808,6 +821,7 @@
                   //之前有
                   let current_category, content
                   if (t1.category_name){
+                    tag_object["category_name"] = t1.category_name
                     console.log('tag category', t1.category_name)
                     //更新对应数据集所使用的tag category
 

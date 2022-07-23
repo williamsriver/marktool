@@ -23,7 +23,8 @@ export default new Vuex.Store({
       dataset_id_list:[],
       comment_id_list:[],
       tag_id_list:[],
-      tag_category_name_list:[]
+      tag_category_name_list:[],
+      chosen_dataset_tag_id_list:[]
     },
     set:{
       tag_category_value_set:new Set()

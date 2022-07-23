@@ -1,16 +1,18 @@
 <template>
 
-  <v-app>
+  <v-app v-if="$store.state.user_level === 1">
     <!--mode radio & search tab-->
     <v-container fluid>
-<!--      go back-->
+
+      <!--      go back-->
       <v-row>
         <v-btn text @click="$store.state.workStatus = false">
           <v-icon>mdi-arrow-left</v-icon>
           <v-main>{{lantext.words.back[$store.state.lanType]}}</v-main>
         </v-btn>
       </v-row>
-<!--select reviewing mode-->
+
+      <!--select reviewing mode-->
       <v-container fluid class="ma-0 pa-0">
         <v-row align-content="center" class="ma-0 pa-0">
           <v-col cols="3">
@@ -21,52 +23,57 @@
               </v-radio-group>
             </v-main>
           </v-col>
+
           <v-col align-self="center" cols="2">
             <v-main>
               {{lantext.words.confidence[$store.state.lanType]}}
             </v-main>
           </v-col>
+
           <v-col cols="3">
             <v-row>
-              <v-select v-model="lowerVal" :items="valueTable[0]" ></v-select>
-              <span>-</span>
-              <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
+              <v-col>
+                <v-select v-model="lowerVal" :items="valueTable[0]" ></v-select>
+              </v-col>
+
+              <v-col align-self="center">-</v-col>
+              <v-col>
+                <v-select v-model="upperVal" :items="valueTable[lowerVal-1]"></v-select>
+              </v-col>
+
+
             </v-row>
           </v-col>
 
         </v-row>
       </v-container>
 
-
     </v-container>
+
     <!--comments table-->
     <v-row>
       <v-col>
         <v-container fluid>
-          <v-data-table
-            class="elevation-1"
-            :search="'no'"
-            :loading="$store.state.startLoading>$store.state.endLoading"
-            :headers="lantext.headers.viewHeaders[$store.state.lanType]"
-            :custom-filter="customfilter3"
-            :items="$store.state.commentTagValueList[dataSetIndex]"
-            v-if="tagListValid"
-            item-key="commentIndex">
-
-            <template v-slot:item="{item}">
-              <tr :style="{'background-color':item.comment_id === chosenCmtId?'#78ffd6':
-                (item.totalCommentIndex % 2===0?'#f3f3f3':'') }">
-                <td>
-                <span >
-                {{item.comment_id}}
-                </span>
-                </td>
-
-                <td>
-                  <span >
-                  {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"--"}}
-                  </span>
-                </td>
+          <!--            数据集表-->
+          <v-simple-table :height="300" v-if="$store.state.workStatus">
+            <template v-slot:default>
+              <thead>
+              <tr>
+                <th class="text-left">{{lantext.words.tag_id[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.recommended_value[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.review[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.details[$store.state.lanType]}}</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="item in
+              $store.state.list.chosen_dataset_tag_id_list" :key="item">
+                <!--                Tag Id-->
+                <td>{{ item }}</td>
+                <!--                recommended Value-->
+                <td>{{ $store.state.map.tag_map.has(item) ?
+                  　get_recommended_name($store.state.map.tag_map.get(item).tag_value) : '' }}</td>
+                <!--                View-->
                 <td>
                   <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">
                     <v-icon>mdi-pen-plus</v-icon>
@@ -74,119 +81,123 @@
                       lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>
                   </v-btn>
                 </td>
-
+                <!--                Details-->
                 <td>
-                  <!--有拓宽作用域的作用？？？-->
-                  <v-btn text @click="chosenCmt = item, chosenCmtId = item.comment_id" outlined>
+                  <v-btn text @click="chosen_comment_id = $store.state.map.tag_map.get(item).comment_id" outlined>
                     {{lantext.words.details[$store.state.lanType]}}
                   </v-btn>
                 </td>
-
               </tr>
+              </tbody>
             </template>
-
-
-
-<!--            <template v-slot:item.viewValue="{item, header, value}">-->
-<!--             {{value}}-->
-<!--              <span :style="{'background-color':item.comment_id === chosenCmtId?'green':'' }">-->
-<!--                {{lantext.tagwords.tags[$store.state.lanType][item.tag_result]||"&#45;&#45;"}}-->
-<!--              </span>-->
-
-<!--            </template>-->
-<!--            <template v-slot:item.details="{item}">-->
-<!--              {{$store.state.reviewChosenCmt}}-->
-
-<!--              &lt;!&ndash;有拓宽作用域的作用？？？&ndash;&gt;-->
-<!--              <v-btn text @click="chosenCmt = item, chosenCmtId = item.comment_id">-->
-<!--                {{lantext.words.details[$store.state.lanType]}}-->
-<!--              </v-btn>-->
-<!--            </template>-->
-<!--            <template v-slot:item.view="{item}" >-->
-<!--              <v-btn text @click="startOverlay(item)" :disabled="$store.state.startLoading!==$store.state.endLoading">-->
-<!--                <v-icon>mdi-pen-plus</v-icon>-->
-<!--                <v-main>{{tagResultModifying  && modifyPtr===item.commentIndex ?-->
-<!--                  lantext.words.finish[$store.state.lanType]:lantext.words.review[$store.state.lanType]}}</v-main>-->
-<!--              </v-btn>-->
-
-<!--            </template>-->
-          </v-data-table>
+          </v-simple-table>
         </v-container>
       </v-col>
       <v-col>
-        <v-container>
-
+        <v-container v-if="chosen_comment_id">
           <v-main class="text-h4">{{lantext.words.review_details[$store.state.lanType]}}</v-main>
           <v-main class="text-h5">
-            {{lantext.words.comment_id[$store.state.lanType]}} :
-            {{chosenCmtId}}
+            {{lantext.words.comment_id[$store.state.lanType]}} : {{chosen_comment_id}}
           </v-main>
-              <v-data-table
-                v-if="chosenCmt"
-                :search="'no'"
-                :custom-filter="customfilter1"
-                :headers="lantext.headers.viewTagHeader[$store.state.lanType]"
-                :items="chosenCmt.tagList.tags"
-                hide-default-footer>
-                <template v-slot:item.tag_value="{item}">
-                  {{lantext.tagwords.tags[$store.state.lanType][item.tag_value]}}
-                </template>
-              </v-data-table>
-        </v-container>
-        <v-container>
-              <v-textarea
-                v-if="chosenCmt"
-                outlined readonly :label="lantext.words.comment_word[$store.state.lanType]" v-model="chosenCmt.content"></v-textarea>
-        </v-container>
+<!--              <v-data-table-->
+<!--                v-if="chosen_comment_id"-->
+<!--                :search="'no'"-->
+<!--                :custom-filter="customfilter1"-->
+<!--                :headers="lantext.headers.viewTagHeader[$store.state.lanType]"-->
+<!--                :items="$store.state.map.comment_map.tagList.tags"-->
+<!--                hide-default-footer>-->
+<!--                <template v-slot:item.tag_value="{item}">-->
+<!--                  {{lantext.tagwords.tags[$store.state.lanType][item.tag_value]}}-->
+<!--                </template>-->
+<!--              </v-data-table>-->
+          <v-simple-table :height="200">
+            <template v-slot:default>
+              <thead>
+              <tr>
+                <th class="text-left">{{lantext.words.coder[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.confidence[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.tag_value[$store.state.lanType]}}</th>
+                <th class="text-left">{{lantext.words.rationale[$store.state.lanType]}}</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="item in $store.state.map.comment_tag_map.get(chosen_comment_id)" :key="item">
+                <!--                Coder-->
+                <td>{{ $store.state.map.tag_map.get(item).tag_user_info }}</td>
+                <!--                Confidence-->
+                <td>{{$store.state.map.tag_map.get(item).confidence}}</td>
+                <!--                Tag Value-->
+                <td>{{ $store.state.map.tag_map.has(item) ?
+                  　$store.state.map.tag_map.get(item).tag_value : '' }}</td>
+                <!--                Rationale-->
+                <td>{{$store.state.map.tag_map.get(item).rationale}}</td>
+              </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
 
+          <v-textarea
+            outlined readonly
+            :label="lantext.words.comment_word[$store.state.lanType]"
+            v-model="$store.state.map.comment_map.get(chosen_comment_id).content"></v-textarea>
+        </v-container>
       </v-col>
     </v-row>
 
-    <v-overlay v-show="overlayValid" color="#eeeeee">
-      <v-card  width="700"  light>
+    <v-overlay v-if="overlayValid" color="#eeeeee">
+      <v-card  width="700" height="auto"  light>
         <div>
           <v-btn @click="overlayValid = false" color="red" style="color:white;" absolute right>
             <span class="mdi mdi-close" ></span>
           </v-btn>
+          <v-sheet height="50px"></v-sheet>
+
+          <v-card-title>{{lantext.words.review_value[$store.state.lanType]}}
+            :{{review_selection ? get_recommended_name(review_selection.value) : '--'}}</v-card-title>
           <v-row>
             <v-col>
-              <v-treeview
-                dense
-                open-all
-                selectable
-                v-model="treeviewSel"
-                selected-color="red"
-                :items="tagItems[$store.state.lanType]">
-
-              </v-treeview>
+              <v-container
+                style="height: 150px"
+                class="overflow-y-auto">
+                <v-main
+                  v-for="index in $store.state.chosen_tag_category.object.tags.length"
+                  :key="index">
+                  <v-chip
+                    :color="$store.state.colors[index-1]"
+                    class="ma-2" dark
+                    @click="chooseTag(index-1)">
+                    <v-avatar left
+                              v-if="review_selection &&
+                          review_selection.tag_value===$store.state.chosen_tag_category.object.tags[index-1].value">
+                      <v-icon>mdi-checkbox-marked-circle</v-icon>
+                    </v-avatar>
+                    {{$store.state.chosen_tag_category.object.tags[index-1]
+                    .reference[$store.state.lanType === 0?'en':'ch']}}
+                  </v-chip>
+                </v-main>
+              </v-container>
             </v-col>
             <v-col>
-              <v-container>
-                <v-row>
-                  <v-col>
-                    <v-main class="font-weight-black text-h6" >
-                      {{lantext.tagwords.tags[$store.state.lanType][treeviewSel]}}
-                    </v-main>
-                    <v-virtual-scroll
-                      v-if="treeviewSel"
-                      :items="lantext.tagwords.taghelpwords[$store.state.lanType][treeviewSel]"
-                      :item-height="80"
-                      height="450">
-                      <template v-slot:default="{item}">
-                        <v-card :color="item.id%2===0?'white':'grey'" height="100">
-                          <span >{{item.name}}</span>
-                        </v-card>
-                      </template>
-                    </v-virtual-scroll>
-                  </v-col>
-
-                </v-row>
-              </v-container>
+              <v-card-text class="elevation-1">
+                <!--                  chosen tag's name-->
+                <v-main>{{review_selection ? review_selection.tag_value : '--'}}</v-main>
+                <!--                  chosen tag's description-->
+                <v-virtual-scroll
+                  :items="['example_one_item']"
+                  :height="150"
+                  :item-height="450">
+                  <template v-slot:default="{item}">
+                    <v-card height="auto">
+                      <div v-html="chosen_tag_description"></div>
+                    </v-card>
+                  </template>
+                </v-virtual-scroll>
+              </v-card-text>
             </v-col>
           </v-row>
           <v-main style="text-align: center">
               <v-spacer></v-spacer>
-              <v-btn style="justify-self: center" @click="reviewBtnClick(overlayItem)"
+              <v-btn style="justify-self: center" @click="reviewBtnClick()"
                      outlined color="primary">{{lantext.words.submit[$store.state.lanType]}}</v-btn>
               <v-spacer></v-spacer>
           </v-main>
@@ -204,13 +215,14 @@
     export default {
         name: "viewplace",
       props: {
-        enable:{
-          type:Boolean,
-          required:true,
-        }
+        // enable:{
+        //   type:Boolean,
+        //   required:true,
+        // }
       },
       data:()=>({
         //static data
+        chosen_comment_id:null,
         chosenCmtId:null,
         chosenCmt:null,
         tagItems: [
@@ -255,6 +267,10 @@
         ],
         treeviewSel:[],
 
+        review_selection:null,
+        review_index:-1,
+        chosen_tag_description:null,
+
         lantext:lantext,
         tagListValid:false,
 
@@ -297,13 +313,15 @@
         taghelp:'',
 
 
+
+
       }),
 
       watch: {
 
-        treeviewSel(value){
-          if (value.length>=2) this.treeviewSel = [this.treeviewSel[this.treeviewSel.length-1]];
-        },
+        // treeviewSel(value){
+        //   if (value.length>=2) this.treeviewSel = [this.treeviewSel[this.treeviewSel.length-1]];
+        // },
 
         enable: {
           handler(value) {
@@ -321,6 +339,38 @@
         }
       },
       methods:{
+        change_chosen_tag_description(){
+          if (!this.currentTag) this.chosen_tag_description = '--'
+
+          var desc_index = -1
+          this.$store.state.chosen_tag_category.object.tags.forEach((tag, index)=>{
+            if (tag.value === this.review_selection.value) desc_index = index
+          })
+          // console.log(this.currentTag.tag_value, "index", desc_index)
+          if (desc_index === -1) this.chosen_tag_description = "--"
+          else {
+            this.chosen_tag_description = this.$store.state.chosen_tag_category.object.tags[desc_index]
+              .description[this.$store.state.lanType === 0 ? 'en' : 'ch']
+          }
+        },
+
+        chooseTag(index){
+          this.review_selection = this.$store.state.chosen_tag_category.object.tags[index]
+          this.review_index = index
+          this.change_chosen_tag_description()
+          this.isSaved = false
+        },
+
+        get_recommended_name(tag_value){
+          let res = null;
+          this.$store.state.chosen_tag_category.object.tags.forEach((tag)=>{
+            if (tag.value === tag_value){
+              res = tag.reference[this.$store.state.lanType===0?'en':'ch'];
+            }
+          })
+          if (!res) return tag_value;
+          else return res;
+        },
 
         showTag(tag_result){
           if (tag_result===-1) return lantext.words.none[this.$store.state.lanType];
@@ -330,7 +380,7 @@
         startOverlay(item){
           this.overlayValid = true;
           this.overlayItem = item;
-          this.treeviewSel = [item.tag_result];
+          // this.treeviewSel = [item.tag_result];
         },
 
         goBack(){
@@ -367,6 +417,7 @@
           console.log(comment, tag_result)
           var date = new Date();
           let formData3 = new FormData()
+          // let tag_index = this.$store.state.
           formData3.append("datetime_info",date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate());
           formData3.append('comment_id',comment.comment_id);
           formData3.append('tag_result',tag_result);
@@ -378,8 +429,8 @@
                 this.$message.success(
                   lantext.words.view[this.$store.state.lanType] + lantext.sentences.item_success[this.$store.state.lanType]
                 );
-                this.$store.state.dataTree[comment.dataSetIndex].commentList.comments[comment.commentIndex]["tag_result"] = tag_result;
-                this.$store.state.commentTagValueList[comment.dataSetIndex][comment.totalCommentIndex].tag_result = tag_result;
+                // this.$store.state.dataTree[comment.dataSetIndex].commentList.comments[comment.commentIndex]["tag_result"] = tag_result;
+                // this.$store.state.commentTagValueList[comment.dataSetIndex][comment.totalCommentIndex].tag_result = tag_result;
               }
               else this.$message.error(
                 lantext.words.view[this.$store.state.lanType] + lantext.sentences.item_failed[this.$store.state.lanType]
@@ -388,8 +439,9 @@
           .catch(error => console.log(error));
         },
 
-        reviewBtnClick(comment){
-          this.sendView(comment, this.treeviewSel[0]);
+        reviewBtnClick(){
+          console.log(this.overlayItem)
+          this.sendView(this.$store.state.map.tag_map.get(this.overlayItem), this.review_index);
         },
 
       },
