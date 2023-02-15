@@ -12,7 +12,7 @@ import {Message} from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import 'vuetify/dist/vuetify.min.css'
 import '@mdi/font/css/materialdesignicons.css'
-
+//2023-2-15
 
 Vue.config.productionTip = false
 Vue.use(Vuetify);
@@ -20,7 +20,7 @@ Vue.use(VueAxios, axios)
 Vue.prototype.$message = Message;
 Vue.prototype.lantext = lantext;
 
-axios.defaults.baseURL = '/api'
+axios.defaults.baseURL = 'http://121.40.238.237:8080/'
 //121.40.238.237
 /* eslint-disable no-new */
 
