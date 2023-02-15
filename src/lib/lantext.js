@@ -266,6 +266,7 @@ const lantext={
   },
 
   words:{
+    support:["Find Support: ", "获取支持： "],
     coder:["coder",'标注者'],
     rationale:['rationale','注释'],
     file_name:["fileName","文件名"],

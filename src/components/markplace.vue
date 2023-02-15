@@ -20,39 +20,38 @@
 <!--              labeling time-->
               <v-icon>mdi-clock</v-icon>
               {{markHour}}:{{markMin}}:{{markSec}}
+
             </v-row>
 
             <v-row>
-
 <!--              tag标签-->
-              <v-col cols="2">
+              <v-col cols="3">
                 <v-card
                   class="ma-0 overflow-x-auto overflow-y-auto"
-                  :max-height="450">
-                  <v-main
+                  height="450">
+                  <div class="d-flex flex-nowrap align-content-center justify-start"
                     v-for="index in $store.state.chosen_tag_category.object.tags.length"
                     :key="index">
+                    <v-checkbox
+                      @change="isSaved = false"
+                      class="align-self-center"
+                      v-model="local_current_tags"
+                      :value="$store.state.chosen_tag_category.object.tags[index-1].value"
+                      ></v-checkbox>
                     <v-chip
+                      dark
                       :color="$store.state.colors[index-1]"
-                      class="ma-2" dark
-                      @click="chooseTag(index-1)">
-                      <v-avatar left
-                        v-if="currentTag &&
-                        currentTag.tag_value===$store.state.chosen_tag_category.object.tags[index-1].value">
-                        <v-icon>mdi-checkbox-marked-circle</v-icon>
-                      </v-avatar>
+                      class="align-self-center"
+                      @click="load_tag_description(index-1)">
                       {{$store.state.chosen_tag_category.object.tags[index-1]
                       .reference[$store.state.lanType === 0?'en':'ch']}}
                     </v-chip>
-                  </v-main>
+                  </div>
                 </v-card>
               </v-col>
 <!--              标签的解释-->
               <v-col cols="3">
                 <v-card>
-<!--                  chosen tag's name-->
-                  <v-main>{{currentTag ? currentTag.tag_value : '--'}}</v-main>
-<!--                  chosen tag's description-->
                   <v-virtual-scroll
                     :items="['example_one_item']"
                     :min-height="200"
@@ -68,18 +67,19 @@
               </v-col>
 <!--              comment信息,confidence,rationale-->
               <v-col align-self="end">
-                <v-container class="pa-0" >
-<!--                  tag chosen and confidence-->
+                <v-container class="pa-0">
+
+                  <v-main>
+                    <v-chip
+                      v-for="(item,index) in local_current_tags"
+                      :key="index">{{
+                      $store.state.chosen_tag_category.object.tags[value_index_map.get(item)]
+                      .reference[$store.state.lanType === 0?'en':'ch']
+                      }}
+                    </v-chip>
+                  </v-main>
+
                   <v-row>
-                    <v-col>
-                      <v-chip class="ma-2"  text-color="white">
-                        <v-avatar left
-                          v-if="currentTag">
-                          <v-icon>mdi-checkbox-marked-circle</v-icon>
-                        </v-avatar>
-                        {{currentTag?currentTag.tag_value:'--'}}
-                      </v-chip>
-                    </v-col>
                     <v-col>
                       {{lantext.words.confidence[$store.state.lanType]}}
                       <span class="text-h5 font-italic">{{currentTag.confidence}}</span>
@@ -115,13 +115,13 @@
 <!--                  ptr go left/right, save-->
                   <v-row>
                     <v-col>
-                      <v-btn text :disabled="ptr<=0 || !isSaved" @click="ptr_go_left">
+                      <v-btn text :disabled="ptr<=0" @click="ptr_go_left">
                         <v-icon>mdi-arrow-left</v-icon>
                         {{lantext.words.previous[$store.state.lanType]}}
                       </v-btn>
                     </v-col>
                     <v-col>
-                      <v-btn text @click="ptr++" :disabled="!isSaved">
+                      <v-btn text @click="ptr++" >
                         <v-icon>mdi-arrow-right</v-icon>
                         {{lantext.words.next[$store.state.lanType]}}
                       </v-btn>
@@ -151,17 +151,12 @@
   export default {
     name: "markplace",
     props: {
-      // enable:{
-      //   type:Boolean,
-      //   required:true,
-      // },
     },
     data:()=>({
-      //static data
       overlays:{
         edit_label_category:false,
       },
-      lantext:lantext,
+      lantext,
       defaultTag,
       tagColors:["teal", "green", "primary", "orange", "indigo", "red", "pink","purple","#9E9D24","#FFC107","#E65100","#5D4037"],
       tagsInfo:{
@@ -174,7 +169,7 @@
       ptr:0,
       currentTag:{
         tag_id:null,
-        tag_value:null,
+        tag_value:[],
         rationale:null,
         tag_user_info:null,
         confidence:4
@@ -185,30 +180,30 @@
       isSaved:true,
       first_comment_id:null,
 
+      local_current_tags:[],
+
       tag_category_creating:0,
       tag_category_finish:0,
       new_tag_category_list:[],
       chosen_tag_description:"",
 
-      // presskey:"",
-      // pressIndex:0,
+      value_index_map : null, //通过标签值找到其在tag_category中的index
     }),
+
     created() {
-      // this.$store.state.tag_category = this.defaultTag
+
     },
     mounted() {
-      let timer = setInterval(()=>{this.totalStartTime += 1},1000);
+      //value_index_map 初始化
+      this.value_index_map = new Map();
+      this.$store.state.chosen_tag_category.object.tags.forEach((val, index) =>{
+        this.value_index_map.set(val.value, index);
+      });
       this.ptr = 0;
-      if (!this.$store.state.current_tag_category_saved){
+      if (!this.$store.state.current_tag_category_saved && this.$store.state.userType === 0){
         this.save_tag_category(this.$store.state.chosen_tag_category)
         this.$store.state.current_tag_category_saved = true
       }
-      // window.onkeypress = (event =>{
-      //   if (event.key==='q'){
-      //     this.$store.state.tagValue = (this.$store.state.tagValue+1) % 11;
-      //     this.isSaved = false;
-      //   }
-      // });
     },
     computed:{
       markHour(){
@@ -236,6 +231,7 @@
     },
 
     watch:{
+
       ptr:{
         handler(value){
           if (value<this.$store.state.map.dataset_comment_map.get(this.$store.state.chosen_dataset_id).length
@@ -255,6 +251,10 @@
     },
 
     methods: {
+
+      /**
+       * 根据当前currentTag里面含有的标签显示对应的解释文字
+       */
       change_chosen_tag_description(){
         if (!this.currentTag) this.chosen_tag_description = '--'
 
@@ -268,6 +268,15 @@
           this.chosen_tag_description = this.$store.state.chosen_tag_category.object.tags[desc_index]
             .description[this.$store.state.lanType === 0 ? 'en' : 'ch']
         }
+      },
+
+      load_tag_description(index){
+        if (index >=0 && index < this.$store.state.chosen_tag_category.object.tags.length){
+          this.chosen_tag_description =
+            this.$store.state.chosen_tag_category.
+              object.tags[index].description[this.$store.state.lanType === 0 ? 'en' : 'ch'];
+        }
+        else this.chosen_tag_description = "--";
       },
 
       //把所有tag_category对象都挂到dataset的第一个comment上，这样保证了每次的读取
@@ -350,11 +359,6 @@
         }
       },
 
-      chooseTag(index){
-        this.currentTag.tag_value = this.$store.state.chosen_tag_category.object.tags[index].value
-        this.change_chosen_tag_description()
-        this.isSaved = false
-      },
 
       ptr_go_left(){
         //标注是从左到右的，因此左边的标注必然已经保存
@@ -369,7 +373,7 @@
         var formData1 = new FormData()
         //检查是否有合法标签值
         var remarks_object = {
-          tag_value : this.currentTag.tag_value,
+          tag_value : this.local_current_tags,
           rationale : this.currentTag.rationale
         }
         formData1.append('remarks', JSON.stringify(remarks_object) )
@@ -401,11 +405,9 @@
               this.$message.success("create new tag succeed");
               this.isSaved = true;
               var dataset_id = this.currentComment.dataset_id
-              // this.get_tag_object(tag_id, comment_id, dataset_id)
               console.log('get comment', comment_id)
               this.get_comment_object(comment_id, dataset_id)
               this.ptr++;
-
             }
           }
           else this.$message.error("create new tag failed");
@@ -422,11 +424,16 @@
           if (response.data.Msg === "OK") {
             console.log("tag edit succeed");
             if (!is_tag_category){
+              //是正常标签修改
+              console.log("是正常标签修改")
               var dataset_id = this.currentComment.dataset_id
               var comment_id = this.currentComment.comment_id
               this.$message.success("tag edit succeed");
-              var tag_id = this.currentTag.tag_id
-              this.get_tag_object(tag_id, comment_id, dataset_id)
+              var tag_id = this.currentTag.tag_id;
+              this.get_tag_object(tag_id, comment_id, dataset_id);
+              // this.$nextTick(()=>{
+              //
+              // })
               this.ptr++;
             }
 
@@ -458,17 +465,19 @@
             tag_object["dataset_id"] = dataset_id
             tag_object["comment_id"] = comment_id
             try {
+              // console.log("object remarks", tag_object.remarks);
               var t1 = JSON.parse(tag_object.remarks);
               tag_object["tag_value"] = t1.tag_value;
               tag_object["rationale"] = t1.rationale;
+              //一次标注允许有多个标签，tag_value应该为一个数组
+              if (! (t1.tag_value instanceof Array)) t1.tag_value = [t1.tag_value];
             }
             catch (e) {
               console.log(e)
             }
-            this.$store.state.map.tag_map.set(tag_id, tag_object)
+            this.$store.state.map.tag_map.set(String(tag_id), tag_object);
           } else this.$message.error('tag acquiring error');
-
-        }).catch(error => console.log(error))
+        }).catch(error => console.log(error));
       },
 
       createTag(callback, request_data, comment_id, dataset_id, is_tag_category = false) {
@@ -505,26 +514,32 @@
        */
       refreshWithPtr(value){
         console.log('refreshWithPtr',value)
+
         var comment_id = this.$store.state.map.dataset_comment_map.get(this.$store.state.chosen_dataset_id)[value]
         this.currentComment = this.$store.state.map.comment_map.get(comment_id)
         var comment_tag_id_list = this.$store.state.map.comment_tag_map.get(comment_id)
 
         console.log('list',comment_tag_id_list)
-
         this.currentTag = {
           tag_id:null,
-          tag_value:null,
+          tag_value:[],
           rationale:null,
           tag_user_info:null,
-          confidence:4
+          confidence:3
         }
 
         comment_tag_id_list.forEach(tag_id =>{
-          var tag = this.$store.state.map.tag_map.get(tag_id)
-          console.log(tag)
+          var tag = this.$store.state.map.tag_map.get(String(tag_id));
           if (tag && tag.tag_user_info === this.$store.state.currentuser &&
             !tag.hasOwnProperty('category_name')) this.currentTag = tag
         })
+        // console.log(this.currentTag)
+        if (!(this.currentTag.tag_value instanceof Array)){
+          this.currentTag.tag_value = [this.currentTag.tag_value];
+        }
+        console.log("current tag", this.currentTag);
+
+        this.local_current_tags = this.currentTag.tag_value;
         this.isSaved = true;
       },
 
@@ -562,7 +577,6 @@
             console.log(comment_id, sub_tag_id_list)
             sub_tag_id_list.forEach((tag_id, index) =>{
               if (tag_id){
-                // this.tag_loading_start++
                 this.get_tag_object(tag_id, comment_id, dataset_id)
               }
             })
@@ -572,17 +586,7 @@
           callback()
           console.log(error)
         });
-      },
-
-      // beforeRouteLeave(to, from, next) {
-      //   if (!this.issave){
-      //     if (confirm(lantext.sentences.exit_work[this.$store.state.lanType]) ) {
-      //       this.$store.state.workstatus = false;
-      //       next()
-      //     }
-      //   }
-      //   else next()
-      // }
+      }
     }
 
   }

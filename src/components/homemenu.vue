@@ -1,6 +1,10 @@
 <template>
 <v-app>
-  <v-container v-show="!$store.state.loginstatus">
+  <v-container class="login-panel" v-show="!$store.state.loginstatus">
+    <v-main class="text-h5 text-right">
+      <v-spacer></v-spacer>
+
+    </v-main>
         <v-tabs fixed-tabs v-model="MenuChoose">
           <v-tab>{{lantext.words.login[$store.state.lanType]}}</v-tab>
           <v-tab>{{lantext.words.register[$store.state.lanType]}}</v-tab>
@@ -69,6 +73,11 @@
           <v-icon>mdi-arrow-right</v-icon>
         </v-btn>
 
+
+    <footer class="info-footer">
+      <span>{{lantext.words.support[$store.state.lanType]}} 994975860@qq.com</span>
+      <a href="https://beian.miit.gov.cn">皖ICP备2021011887号-1</a>
+    </footer>
   </v-container>
 
   <v-container v-show="$store.state.loginstatus" fluid style="padding-top: 0">
@@ -100,6 +109,7 @@
       </v-col>
     </v-row>
   </v-container>
+
 
 </v-app>
 </template>
@@ -346,5 +356,17 @@
 </script>
 
 <style scoped>
+.info-footer{
+  position: absolute;
+  width: 100%;
+  bottom: 43px;
+  left: 0;
+  display: flex;
+  justify-content: space-around;
+  font-size: large;
+}
 
+  .login-panel{
+    min-height: calc(100% - 43px);
+  }
 </style>

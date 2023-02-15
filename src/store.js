@@ -24,7 +24,8 @@ export default new Vuex.Store({
       comment_id_list:[],
       tag_id_list:[],
       tag_category_name_list:[],
-      chosen_dataset_tag_id_list:[]
+      chosen_dataset_tag_id_list:[],
+      chosen_dataset_comment_id_list:[]
     },
     set:{
       tag_category_value_set:new Set()
@@ -34,7 +35,7 @@ export default new Vuex.Store({
     chosen_dataset_id:null,
     chosen_tag_category:null,
     to_share_dataset_id:null,
-    lanType:0,
+    lanType:1,
     currentuser:'',
     loginstatus:false,
     workStatus:false,

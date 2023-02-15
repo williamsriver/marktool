@@ -576,11 +576,24 @@
             this.overlay_show.choose_tag_category = true
           }
           else {
+            this.$store.state.chosen_dataset_id = dataset_id
             this.$store.state.list.chosen_dataset_tag_id_list = []
-            this.$store.state.map.tag_map.forEach((value, key)=>{
-              if (value.dataset_id === dataset_id && !value.hasOwnProperty('category_name'))
-                this.$store.state.list.chosen_dataset_tag_id_list.push(key)
+            this.$store.state.list.chosen_dataset_comment_id_list = []
+            this.$store.state.map.comment_map.forEach((value, key)=>{
+              if (value.dataset_id === dataset_id
+              && (this.$store.state.map.comment_tag_map.get(key).length > 0
+                  && this.$store.state.map.comment_tag_map.get(key)[0].length > 0)
+                ) this.$store.state.list.chosen_dataset_comment_id_list.push(key)
             })
+
+            //
+            //
+            // this.$store.state.map.tag_map.forEach((value, key)=>{
+            //   if (value.dataset_id === dataset_id && !value.hasOwnProperty('category_name'))
+            //     this.$store.state.list.chosen_dataset_tag_id_list.push(key)
+            // })
+
+
             let category_name = this.$store.state.map.dataset_map.get(dataset_id).category_name
             if (category_name){
               this.$store.state.chosen_tag_category = this.$store.state.map.tag_category_map.get(category_name)
@@ -800,7 +813,7 @@
                     tag_object["tag_value"] = t1.tag_value;
                     tag_object["rationale"] = t1.rationale;
                 }
-                else {
+                else if (t1.category_name) {
                   //tag categorg map
                   /**
                    * key : <Name>
@@ -820,7 +833,7 @@
                    */
                   //之前有
                   let current_category, content
-                  if (t1.category_name){
+
                     tag_object["category_name"] = t1.category_name
                     console.log('tag category', t1.category_name)
                     //更新对应数据集所使用的tag category
@@ -873,12 +886,21 @@
                         })
                       }
                       this.$store.state.map.tag_category_map.set(t1.category_name, current_category)
+
                     }
-                  }
                 }
               }
               catch (e) {
                 console.log(e)
+                let flag1 = false
+                //向老版本兼容，检查其内容是否支持用ISO 25010来解释
+                lantext.tagwords.tags[0].forEach( (tag_name, index) => {
+                  if (tag_object[tag_name]) {
+                    flag1 = true
+                    tag_object["tag_value"] = tag_name;
+                  }
+                });
+                if (flag1) console.log("已挽回！")
               }
               finally {
                 callback()
@@ -899,6 +921,8 @@
         find_tag_category(dataset_id){
 
         },
+
+        //
 
 
         refresh_dataset_table(){

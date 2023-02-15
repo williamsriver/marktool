@@ -197,176 +197,117 @@
 
       },
       methods:{
+        /**
+         * 画出指定数据库标签分布的饼图
+         * @param dataset_id 数据库id
+         */
         draw_chart(dataset_id){
-          // this.chart1_config.series = [{
-          //   name:"Functional",
-          //   colorByPoint: true,
-          //   data: []
-          // }]
+          /**
+           * type_map结构
+           * 包含所有type小类的Map对象
+           *
+           * group_map结构
+           * {
+           * list:当前组对应的小类(type)的序号的集合【按照文件或category对象中的定义顺序】,
+           * index:组号【按照文件或category对象中的定义顺序】,
+           * hit:被访问的次数
+           * }
+           */
+          let type_map = new Map(); //按照标签集中规定的标签种类进行统计
+          let group_map = new Map(); //按照标签中规定的标签进行统计
+          let current_category; //指定数据集使用的标签集
+          let category_name; //用于标注的标签集的名称
+          let type_group_map = new Map(); //【辅助】通过标签项找到group项的map, 标签值=>group序号
 
-          this.chart1_config.series[0].data = []
-          this.chart2_config.series[0].data = []
+          //ROBUST 如果当前没有指定名字的标签集那么直接放弃绘画
+          category_name = this.$store.state.map.dataset_map.get(dataset_id).category_name;
+          if (!this.$store.state.map.tag_category_map.has(category_name)){
+            console.log("No tag category named "+String(category_name)+" exists in local Vue Store Structure.");
+            return;
+          }
 
-          var type_map = new Map()
-          var group_map = new Map()
-          var category_name = this.$store.state.map.dataset_map.get(dataset_id).category_name
+          //图表数据结构初始化
+          this.chart1_config.series[0].data = [];
+          this.chart2_config.series[0].data = [];
 
-          if (!this.$store.state.map.tag_category_map.has(category_name)) return
+          //否则找到对应名字的标签集并读取
+          current_category = this.$store.state.map.tag_category_map.get(category_name).object;
 
-          var current_category = this.$store.state.map.tag_category_map.get(category_name).object
-          current_category.tags.forEach(tag => {
-            type_map.set(tag.value, 0)
-          })
+          //分类map type_map录入标签集中所有标签值
+          current_category.tags.forEach(tag => type_map.set(tag.value, 0));
+
+          //分组map group_map初始化
           current_category.group.forEach((group, index)=>{
             group_map.set(group.name, {
               list: group.list,
               index:index,
               hit:0
-            })
-          })
+            });
 
+            //建立辅助数组 type值=>group序号
+            group.list.forEach(val=>type_group_map.set(current_category.tags[val].value, index));
+          });
 
-          this.$store.state.map.tag_map.forEach((value, key)=>{
-            if (value.dataset_id === dataset_id && (
-              this.$store.state.user_level===0 && value.tag_user_info === this.$store.state.currentuser
-              || this.$store.state.user_level===1)){
-              if (type_map.has(value.tag_value)) {
-                var temp = type_map.get(value.tag_value)
-                type_map.set(value.tag_value, temp + 1)
-
-                var tag_index = -1
-                var group_name = ""
-                current_category.tags.forEach((tag, index)=>{
-                  if (tag.value === value.tag_value) tag_index = index
-                })
-                group_map.forEach((value, key)=>{
-                  if (value.list.indexOf(tag_index) !== -1) group_name = key
-                })
-                var hit_group = group_map.get(group_name)
-                if (hit_group){
-                  hit_group.hit++
-                  group_map.set(group_name, hit_group)
+          //遍历tag_map寻找符合条件的tag【标注】来进行统计
+          /**
+           * 对于标注者只显示自己的标注
+           * 对于审阅者显示所有有效标注
+           */
+          this.$store.state.map.tag_map.forEach(value=>{
+            if (value.dataset_id === dataset_id &&
+              !!value.tag_value &&
+              (
+                this.$store.state.user_level===0 &&
+                value.tag_user_info === this.$store.state.currentuser
+                ||
+                this.$store.state.user_level===1
+              )
+            ){
+              //注意：已经检查过标注值不为空
+              let vals; //该标注的值（可能为单个或多个）
+              //ROBUST tag_value可能为字符串或数组
+              vals = (value.tag_value instanceof Array) ? value.tag_value : [value.tag_value];
+              //对于每个标注项单个/多个值的统计
+              vals.forEach(val =>{
+                if (type_map.has(val)) {
+                  //type map统计
+                  type_map.set(val, type_map.get(val) + 1); //对应项自增
+                  //group map统计
+                  let group_name = current_category.group[type_group_map.get(val)].name;
+                  let hit_group = group_map.get(group_name); //标签值对应的组
+                  if (hit_group){
+                    hit_group.hit++;
+                    group_map.set(group_name, hit_group);
+                  }
                 }
-              }
+              });
             }
-          })
+          });
 
+          //两张饼图的数据录入
           type_map.forEach((value, key)=>{
             this.chart1_config.series[0].data.push({
               name: key,
               y:value
             })
           })
-
           group_map.forEach((value, key)=>{
+            console.log(value, key)
             this.chart2_config.series[0].data.push({
               name: key,
               y:value.hit
             })
           })
 
-
-          //render
+          //渲染
           this.chart1 = Highcharts.chart('chartshow',this.chart1_config);
           this.chart2 = Highcharts.chart('chartshow2',this.chart2_config);
-
-          //set names for charts
-          //
-          // for (let j=0;j<this.chart1_config.series[0].data.length;j++){
-          //   this.chart1_config.series[0].data[j].name = lantext.tagwords.tags[this.$store.state.lanType][j];
-          //   this.chart1_config.series[0].data[j].y = 0
-          // }
-          // for (let j=0;j<this.chart2_config.series[0].data.length;j++){
-          //   this.chart2_config.series[0].data[j].y = 0
-          //   this.chart2_config.series[0].data[j].name = lantext.tagwords.class[this.$store.state.lanType][j];
-          // }
-
-          // if (this.$store.state.user_level===0){
-            //contradiction statistics clearing
-            // this.contradictions = 0
-            // this.appeared_comments_list = []
-            // this.tags_for_every_comment_list = []
-            //
-
-            // function count(arr, item) {
-            //   return arr.reduce((prev,curr)=> curr === item ? prev+1 : prev, 0);
-            // }
-
-            // this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
-            //   if (tag.tag_user_info === this.$store.state.currentuser){
-            //     if (this.$store.state.dataTree[dataset.dataSetIndex].commentList
-            //       .comments[tag.commentIndex].tagList.tagIdList.length > 1){
-            //       this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += 1;
-            //     }
-            //     else {
-            //       let temp_num = this.getTagValue(tag);
-            //       if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
-            //       if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
-            //       else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-            //       else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
-            //     }
-            //   }
-            // });
-
-            //data from tags
-            // this.$store.state.tagsList[dataset.dataSetIndex].forEach(tag =>{
-            //   if (this.appeared_comments_list.indexOf(tag.comment_id) === -1 &&
-            //       currentuser_labeled_comment_list.indexOf(tag.comment_)){
-            //     //a new comment
-            //     this.appeared_comments_list.push(tag.comment_id)
-            //     this.tags_for_every_comment_list.push([tag])
-            //   }
-            //   else{
-            //     //contradictions, all the tags belonged to this certain comment will be classified as contradictions
-            //     this.tags_for_every_comment_list[this.appeared_comments_list.indexOf(tag.comment_id)].push(tag)
-            //   }
-            // });
-            //
-            // this.tags_for_every_comment_list.forEach(comment_unit=>{
-            //   if (comment_unit.length === 1){
-            //     let temp_num = this.getTagValue(comment_unit[0]);
-            //     if (temp_num>=1 && temp_num <=8) this.chart1_config.series[0].data[temp_num-1].y++;
-            //     if (temp_num === 0 ) this.chart2_config.series[0].data[0].y++;
-            //     else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-            //     else if (temp_num>0) this.chart2_config.series[0].data[1].y++;
-            //   }
-            //   else this.chart1_config.series[0].data[this.chart1_config.series[0].data.length-1].y += comment_unit
-            //   //只记一个人
-            // })
-          // }
-          // else{//reviewers
-          //   //data from commentTagValueList
-          //   this.reviewed_comments = 0
-          //   this.$store.state.commentTagValueList[dataset.dataSetIndex].forEach(comment => {
-          //     if (comment.tag_result !== -1) {
-          //       this.reviewed_comments++;
-          //       let temp_num = comment.tag_result;
-          //       if (temp_num >= 1 && temp_num <= 8) this.chart1_config.series[0].data[temp_num - 1].y++;
-          //       if (temp_num === 0) this.chart2_config.series[0].data[0].y++;
-          //       else if (temp_num >= 9) this.chart2_config.series[0].data[2].y++;
-          //       else if (temp_num > 0) this.chart2_config.series[0].data[1].y++;
-          //     }
-          //   })
-          //
-          // }
         },
-        // getTagValue(item){
-        //   let result = -1;
-        //   if (!item) return result;
-        //   lantext.tagwords.tags[0].forEach((prop_name,index) =>{
-        //     if (item[prop_name]) result = index;
-        //   });
-        //   return result;
-        // },
 
         updateKappa(dataset_id){
-
-          // let dataset = this.$store.state.map.dataset_map.get(dataset_id)
           let comment_id_list = this.$store.state.map.dataset_comment_map.get(dataset_id)
-          // let userList = []
           //kappa值计算取该数据集标注最多的两个用户的标注交集做相似度比较
           let user_map = new Map() //记录所有标注者以及他们的标注数量、列表
-          // let userListTagNumber = []
 
           //遍历某个数据集的所有评论,构建user_map
           comment_id_list.forEach(comment_id=>{
