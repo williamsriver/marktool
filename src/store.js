@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import lantext from "./lib/lantext";
 
 Vue.use(Vuex);
 
@@ -24,11 +23,12 @@ export default new Vuex.Store({
       comment_id_list:[],
       tag_id_list:[],
       tag_category_name_list:[],
+
       chosen_dataset_tag_id_list:[],
       chosen_dataset_comment_id_list:[]
     },
     set:{
-      tag_category_value_set:new Set()
+      tag_category_comment_id_set:new Set()
     },
 
     current_tag_category_saved:true,

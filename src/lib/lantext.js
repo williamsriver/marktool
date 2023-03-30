@@ -266,6 +266,14 @@ const lantext={
   },
 
   words:{
+    category_template:["Category Template", "标签组模板"],
+    ch_description:["chinese description", "中文描述"],
+    en_description:["english description", "英文描述"],
+    ch_reference:["chinese reference", "中文名称"],
+    en_reference:["english reference", "英文名称"],
+    tag_category_name:["Tag Category Name", "标签组名称"],
+    tag_table:["Tag Table", "标签表"],
+    group_table:["Group Table", "分组表"],
     support:["Find Support: ", "获取支持： "],
     coder:["coder",'标注者'],
     rationale:['rationale','注释'],
@@ -370,6 +378,9 @@ const lantext={
   },
 
   sentences:{
+    tags_contained:['tags contained', '所包含的标签'],
+    create_new_tag_category:['Create New Category', '创建新标签组'],
+    tag_category_edit:['Tag Category Edit', '标签组操作台'],
     tag_category_upload_error:['Tag Category Upload Error', '标签组上传错误'],
     ready_to_tag:["ready to tag","准备标注"],
     choose_tag_category:["Choose Tag Category","选择一个标签组"],
