@@ -36,6 +36,7 @@
         >
           <v-btn
             text
+            :disabled="!work_ready"
             @click="overlay_show.tag_category_edit = true"
           >
             <v-icon>
@@ -236,7 +237,10 @@
         </div>
         <v-card-title>{{lantext.sentences.upload_tag_category[$store.state.lanType]}}</v-card-title>
         <v-divider></v-divider>
-        <v-card-title>{{lantext.words.category_template[$store.state.lanType]}}</v-card-title>
+        <div class="ma-1">
+          <span class="ma-2 font-weight-bold text-h5">{{lantext.words.category_template[$store.state.lanType]}}</span>
+          <v-btn @click="inspect_category_template" text color="primary">查看</v-btn>
+        </div>
 
         <v-divider></v-divider>
         <v-row class="ma-2">
@@ -265,11 +269,32 @@
                  class="overflow-y-auto overflow-x-hidden">
 <!--            退出按钮-->
 
+<!--          所有标签的列表-->
+          <div class="ma-2 text-h4">
+            {{lantext.words.tag_table[$store.state.lanType]}}
+          </div>
+          <v-card
+            class="ma-2"
+            v-for="(tag, index) in chosen_tag_category.category_obj.tags"
+            :key="index">
+            <v-card-title class="ma-1 text-h5">
+              <!--              标签category的名称-->
+              {{chosen_tag_category.category_obj.tags[index].reference[
+              $store.state.lanType===0?'en':'ch']}}
+            </v-card-title>
+            <!--                    描述-->
+            <v-card-text class="ma-1 text-h6">
+              {{chosen_tag_category.category_obj.tags[index].description[
+              $store.state.lanType===0?'en':'ch']}}
+            </v-card-text>
+          </v-card>
+
+        <v-divider></v-divider>
 <!--            标签集合的所有组，每个组的所有标签-->
 <!--            每个组用一个段落来表示-->
           <v-card-text
             v-for="(group, index) in chosen_tag_category.category_obj.group"
-            :key="index">
+            :key="'group'+index">
 <!--              组的名称-->
             <v-main class="ma-1 text-h5">Group Name: {{group.name||'--'}}</v-main>
 <!--              根据组内的数组指定tags数组中对应的tag-->
@@ -339,11 +364,11 @@
 
         </v-container>
 
-        <v-row>
-          <v-spacer></v-spacer>
-          <v-btn color="green" @click="go_to_tag()" light>{{lantext.sentences.ready_to_tag[$store.state.lanType]}}</v-btn>
-          <v-spacer></v-spacer>
-        </v-row>
+<!--        <v-row>-->
+<!--          <v-spacer></v-spacer>-->
+<!--          <v-btn color="green" @click="go_to_tag()" light>{{lantext.sentences.ready_to_tag[$store.state.lanType]}}</v-btn>-->
+<!--          <v-spacer></v-spacer>-->
+<!--        </v-row>-->
       </v-card>
     </v-overlay>
 
@@ -358,9 +383,7 @@
 <!--        关闭按钮-->
         <div>
           <v-btn
-            text
-            absolute
-            right
+            text absolute right
             @click="overlay_show.tag_category_edit = false">
             <span class="mdi mdi-close"></span>
           </v-btn>
@@ -433,11 +456,11 @@
 
         </v-container>
 
-        <v-row>
-          <v-spacer></v-spacer>
-          <v-btn color="green" @click="go_to_tag()" light>{{lantext.sentences.ready_to_tag[$store.state.lanType]}}</v-btn>
-          <v-spacer></v-spacer>
-        </v-row>
+<!--        <v-row>-->
+<!--          <v-spacer></v-spacer>-->
+<!--          <v-btn color="green" @click="go_to_tag()" light>{{lantext.sentences.ready_to_tag[$store.state.lanType]}}</v-btn>-->
+<!--          <v-spacer></v-spacer>-->
+<!--        </v-row>-->
       </v-card>
     </v-overlay>
 
@@ -452,9 +475,7 @@
         <!--        关闭按钮-->
         <div>
           <v-btn
-            text
-            absolute
-            right
+            text absolute right
             @click="overlay_show.tag_category_create = false">
             <span class="mdi mdi-close"></span>
           </v-btn>
@@ -472,61 +493,11 @@
           :label="lantext.words.tag_category_name[$store.state.lanType]"
           >
         </v-text-field>
-<!--        标签组中的细类（分组表/group table）-->
-        <v-card-title>
-          {{ lantext.words.group_table[$store.state.lanType] }}
-          <!--          添加新的分组的按钮-->
-          <v-btn
-            text
-            color="primary"
-            @click="create_item(custom_tag_category_obj.group, {name:'', list:[]})"
-          >
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-simple-table
-          :height="150"
-          v-if="isListAlive"
-        >
-          <template v-slot:default>
-            <thead>
-              <tr>
-                <th class="text-left">{{ lantext.words.name[$store.state.lanType] }}</th>
-<!--                注：直接利用多选器完成了数据绑定，无需单独删除或添加的组件-->
-                <th class="text-left">{{ lantext.sentences.tags_contained[$store.state.lanType] }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(group, index) in custom_tag_category_obj.group" :key="index">
-                <!--                标签组名称 Group Name-->
-                <td>
-                  <v-text-field
-                    v-model="group.name"
-                  >
-                  </v-text-field>
-                </td>
-                <!--                标签组所包含的标签 Tags Contained In-->
-                <!--                注：直接利用多选器完成了数据绑定，无需单独删除或添加的组件-->
-                <td>
-<!--                  {{ group.list }}-->
-
-                  <v-select
-                    deletable-chips
-                    multiple
-                    v-model="group.list"
-                    :items="tagIdList">
-                  </v-select>
-
-                </td>
-              </tr>
-            </tbody>
-          </template>
-        </v-simple-table>
 
         <!--        标签组中的每个标签（标签表/tag table）-->
         <v-card-title>
           {{ lantext.words.tag_table[$store.state.lanType] }}
-<!--          添加标签的按钮-->
+          <!--          添加标签的按钮-->
           <v-btn
             text
             color="primary"
@@ -544,36 +515,36 @@
           <template v-slot:default>
             <thead>
             <tr>
-<!--              次序-->
+              <!--              次序-->
               <th class="text-left">ID</th>
-<!--              标签值-->
-              <th class="text-left">
-                {{ lantext.words.value[$store.state.lanType] }}
-              </th>
-<!--              标签名称-->
+              <!--              标签值-->
+<!--              <th class="text-left">-->
+<!--                {{ lantext.words.value[$store.state.lanType] }}-->
+<!--              </th>-->
+              <!--              标签名称-->
               <th class="text-left">
                 {{ lantext.words.tag_reference[$store.state.lanType] }}
               </th>
-<!--              标签描述-->
+              <!--              标签描述-->
               <th>
                 {{ lantext.words.tag_description[$store.state.lanType] }}
               </th>
-<!--              按钮操作区-->
+              <!--              按钮操作区-->
             </tr>
             </thead>
             <tbody>
             <tr v-for="(tag, index) in custom_tag_category_obj.tags" :key="index">
-<!--              次序ID-->
+              <!--              次序ID-->
               <td>
-                {{index}}
+                {{index+1}}
               </td>
               <!--                标签值 Tag Value-->
-              <td>
-                <v-text-field
-                  v-model="tag.value"
-                >
-                </v-text-field>
-              </td>
+<!--              <td>-->
+<!--                <v-text-field-->
+<!--                  v-model="tag.value"-->
+<!--                >-->
+<!--                </v-text-field>-->
+<!--              </td>-->
               <!--                标签的中英名称 Tag Reference-->
               <td>
                 <!--              注：为了表格的紧凑性，控制每行的高度-->
@@ -585,14 +556,14 @@
                   flat
                   class="overflow-y-auto pa-2"
                   height="100">
-<!--                中文名称-->
+                  <!--                中文名称-->
                   <v-text-field
                     outlined
                     :label="lantext.words.ch_reference[$store.state.lanType]"
                     v-model="tag.reference.ch"
                   >
                   </v-text-field>
-  <!--                英文名称-->
+                  <!--                英文名称-->
                   <v-text-field
                     outlined
                     :label="lantext.words.en_reference[$store.state.lanType]"
@@ -604,9 +575,9 @@
               <!--                标签的中英描述 Tag Description-->
               <td>
                 <!--              注：为了表格的紧凑性，控制每行的高度-->
-<!--                为了控制高度，在【描述textarea】外面套上【v-card】-->
-<!--                将内容包含在【v-card】中，并设置一定间隔让内容相对清爽-->
-<!--                让【v-card】与表格融为一体，让其透明-->
+                <!--                为了控制高度，在【描述textarea】外面套上【v-card】-->
+                <!--                将内容包含在【v-card】中，并设置一定间隔让内容相对清爽-->
+                <!--                让【v-card】与表格融为一体，让其透明-->
                 <v-card
                   color="transparent"
                   flat
@@ -649,6 +620,66 @@
           </template>
         </v-simple-table>
 
+
+        <!--        标签组中的细类（分组表/group table）-->
+        <v-card-title>
+          {{ lantext.words.group_table[$store.state.lanType] }}
+          <!--          添加新的分组的按钮-->
+          <v-btn
+            text
+            color="primary"
+            @click="create_item(custom_tag_category_obj.group, {name:'', list:[]})"
+          >
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-simple-table
+          :height="150"
+          v-if="isListAlive"
+        >
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-left">{{ lantext.words.name[$store.state.lanType] }}</th>
+<!--                注：直接利用多选器完成了数据绑定，无需单独删除或添加的组件-->
+                <th class="text-left">{{ lantext.sentences.tags_contained[$store.state.lanType] }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(group, index) in custom_tag_category_obj.group" :key="index">
+                <!--                标签组名称 Group Name-->
+                <td>
+                  <v-text-field
+                    v-model="group.name"
+                  >
+                  </v-text-field>
+                </td>
+                <!--                标签组所包含的标签 Tags Contained In-->
+                <!--                注：直接利用多选器完成了数据绑定，无需单独删除或添加的组件-->
+                <td>
+                  <v-select
+                    deletable-chips
+                    multiple
+                    v-model="group.list"
+                    :items="tagIdList">
+                  </v-select>
+                </td>
+                <td>
+                  <!--                    删除这个group, 删除标签组分组-->
+                  <v-btn
+                    text
+                    color="primary"
+                    @click="delete_item(custom_tag_category_obj.group, index)">
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+
+
 <!--        提交按钮-->
         <div
         style="text-align: center">
@@ -660,6 +691,31 @@
         </div>
 
       </v-card>
+    </v-overlay>
+<!--让用户查看category模板-->
+    <v-overlay v-show="overlay_show.inspect_category_template" color="#111111" z-index="15">
+      <v-card
+        color="transparent"
+        flat
+        width="800"
+        height="500"
+      >
+        <v-btn @click="overlay_show.inspect_category_template = false"
+               dark text right absolute>
+          <span class="mdi mdi-close"></span>
+        </v-btn>
+
+        <v-card
+          light
+          width="700"
+          height="500"
+          class="overflow-y-auto overflow-x-hidden">
+          <!--        关闭按钮-->
+
+          {{defaultTagCategory}}
+        </v-card>
+      </v-card>
+
     </v-overlay>
   </v-app>
 </template>
@@ -701,10 +757,6 @@
         custom_tag_category_obj:{
           name:"--",
           group:[
-            {
-              name:"Default Group",
-              list:[0]
-            },
           ],
           tags:[
             {
@@ -723,6 +775,7 @@
         },
 
         overlay_show:{
+          inspect_category_template:false,
           dataset_share:false,
           upload_dataset:false,
           get_dataset:false,
@@ -805,15 +858,38 @@
           })
         },
 
+        /**
+         * 上传category
+         * 和默认的category不同，用户自定义category时需要隐藏值
+         *
+         */
         submit_tag_category() {
-          let o = new TagCategory(this.custom_tag_category_obj, null)
-          let index = this.$store.state.list.tag_category_name_list.length
-          let list = [...this.$store.state.set.tag_category_comment_id_set]
-          console.log("list list", list)
-          o.save(null, o.dataset_id, list[index])
-          this.$store.state.list.tag_category_name_list.push(o.category_obj.name)
-          this.$store.state.map.tag_category_map.set(o.category_obj.name, o)
-          this.$message.success('ok')
+          try{
+            // 生成value属性阶段
+            this.custom_tag_category_obj.tags.forEach(tag =>{
+              tag.value = String((new Date()).getTime())
+            })
+
+            // 存储阶段
+            // 生成TagCategory对象
+            let o = new TagCategory(this.custom_tag_category_obj, null)
+
+            // 决定存在category数据集的哪个标注当中，利用当前的列表长度向后确定
+            let index = this.$store.state.list.tag_category_name_list.length
+            let list = [...this.$store.state.set.tag_category_comment_id_set]
+            o.save(null, o.dataset_id, list[index])
+
+            // 名称集合和category对象集合都存储
+            this.$store.state.list.tag_category_name_list.push(o.category_obj.name)
+            this.$store.state.map.tag_category_map.set(o.category_obj.name, o)
+
+            //成功
+            this.overlay_show.tag_category_create = false
+            this.$message.success('ok')
+          }
+          catch (e) {
+            this.$message.error(e)
+          }
         },
 
 
@@ -1180,7 +1256,13 @@
           this.$nextTick(() => {
             this.isListAlive = true
           })
+        },
 
+        /**
+         * 用户查看并下载标签组的模板
+         */
+        inspect_category_template(){
+          this.overlay_show.inspect_category_template = true
         },
 
         //分享数据集：将某个数据集与某一位用户（手动输入，绑定为temp_username）相关联
@@ -1224,6 +1306,27 @@
               })
             }
           }).catch(error => console.log(error))
+        },
+
+        /**
+         * 下载数据集
+         */
+        download_data(data, fileName){
+            const reader = new FileReader()
+            // 传入被读取的blob对象
+            reader.readAsDataURL(data)
+            // 读取完成的回调事件
+            reader.onload = (e) => {
+              let a = document.createElement('a')
+              a.download = fileName
+              a.style.display = 'none'
+              // 生成的base64编码
+              let url = reader.result
+              a.href = url
+              document.body.appendChild(a)
+              a.click()
+              document.body.removeChild(a)
+            }
         },
 
         /**
