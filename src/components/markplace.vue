@@ -30,20 +30,21 @@
                   class="ma-0 overflow-x-auto overflow-y-auto"
                   height="450">
                   <div class="d-flex flex-nowrap align-content-center justify-start"
-                    v-for="index in $store.state.chosen_tag_category.object.tags.length"
+                    v-for="index in $store.state.chosen_tag_category.category_obj.tags.length"
                     :key="index">
+
                     <v-checkbox
                       @change="isSaved = false"
                       class="align-self-center"
                       v-model="local_current_tags"
-                      :value="$store.state.chosen_tag_category.object.tags[index-1].value"
+                      :value="$store.state.chosen_tag_category.category_obj.tags[index-1].value"
                       ></v-checkbox>
                     <v-chip
                       dark
                       :color="$store.state.colors[index-1]"
                       class="align-self-center"
                       @click="load_tag_description(index-1)">
-                      {{$store.state.chosen_tag_category.object.tags[index-1]
+                      {{$store.state.chosen_tag_category.category_obj.tags[index-1]
                       .reference[$store.state.lanType === 0?'en':'ch']}}
                     </v-chip>
                   </div>
@@ -68,13 +69,16 @@
 <!--              comment信息,confidence,rationale-->
               <v-col align-self="end">
                 <v-container class="pa-0">
-
-                  <v-main>
+                  <v-main >
                     <v-chip
-                      v-for="(item,index) in local_current_tags"
-                      :key="index">{{
-                      $store.state.chosen_tag_category.object.tags[value_index_map.get(item)]
-                      .reference[$store.state.lanType === 0?'en':'ch']
+                      v-if="local_current_tags !== undefined"
+                      v-for="(tag ,index) in local_current_tags"
+                      :key="index">
+                      {{
+                          value_index_map.get(tag) !== undefined ?
+                            $store.state.chosen_tag_category.category_obj.tags[value_index_map.get(tag)]
+                        .reference[$store.state.lanType === 0?'en':'ch'] :
+                          lantext.words.unsupported_value[$store.state.lanType]
                       }}
                     </v-chip>
                   </v-main>
@@ -191,14 +195,17 @@
     }),
 
     created() {
-
-    },
-    mounted() {
       //value_index_map 初始化
       this.value_index_map = new Map();
-      this.$store.state.chosen_tag_category.object.tags.forEach((val, index) =>{
-        this.value_index_map.set(val.value, index);
+      this.obj_index_map = new Map();
+    },
+    mounted() {
+      this.$store.state.chosen_tag_category.category_obj.tags.forEach((tag, index) =>{
+        this.value_index_map.set(tag.value, index);
+        // this.obj_index_map.set(tag, index)
+        // console.log("value add : ", tag.value)
       });
+
       this.ptr = 0;
       if (!this.$store.state.current_tag_category_saved && this.$store.state.userType === 0){
         this.save_tag_category(this.$store.state.chosen_tag_category)
@@ -259,22 +266,22 @@
         if (!this.currentTag) this.chosen_tag_description = '--'
 
         var desc_index = -1
-        this.$store.state.chosen_tag_category.object.tags.forEach((tag, index)=>{
+        this.$store.state.chosen_tag_category.category_obj.tags.forEach((tag, index)=>{
           if (tag.value === this.currentTag.tag_value) desc_index = index
         })
         // console.log(this.currentTag.tag_value, "index", desc_index)
         if (desc_index === -1) this.chosen_tag_description = "--"
         else {
-          this.chosen_tag_description = this.$store.state.chosen_tag_category.object.tags[desc_index]
+          this.chosen_tag_description = this.$store.state.chosen_tag_category.category_obj.tags[desc_index]
             .description[this.$store.state.lanType === 0 ? 'en' : 'ch']
         }
       },
 
       load_tag_description(index){
-        if (index >=0 && index < this.$store.state.chosen_tag_category.object.tags.length){
+        if (index >=0 && index < this.$store.state.chosen_tag_category.category_obj.tags.length){
           this.chosen_tag_description =
             this.$store.state.chosen_tag_category.
-              object.tags[index].description[this.$store.state.lanType === 0 ? 'en' : 'ch'];
+              category_obj.tags[index].description[this.$store.state.lanType === 0 ? 'en' : 'ch'];
         }
         else this.chosen_tag_description = "--";
       },
@@ -371,11 +378,13 @@
        */
       saveMark() {
         var formData1 = new FormData()
-        //检查是否有合法标签值
+
+
         var remarks_object = {
           tag_value : this.local_current_tags,
           rationale : this.currentTag.rationale
         }
+        // 注：stringify和String是两码事，前者是转换成特殊的字符串
         formData1.append('remarks', JSON.stringify(remarks_object) )
         formData1.append('token', this.$store.state.token);
         formData1.append('tag_user_info', this.$store.state.currentuser)//用户信息
@@ -470,7 +479,8 @@
               tag_object["tag_value"] = t1.tag_value;
               tag_object["rationale"] = t1.rationale;
               //一次标注允许有多个标签，tag_value应该为一个数组
-              if (! (t1.tag_value instanceof Array)) t1.tag_value = [t1.tag_value];
+              if (!!t1.tag_value &&
+                ! (t1.tag_value instanceof Array)) t1.tag_value = [t1.tag_value];
             }
             catch (e) {
               console.log(e)
@@ -530,16 +540,24 @@
 
         comment_tag_id_list.forEach(tag_id =>{
           var tag = this.$store.state.map.tag_map.get(String(tag_id));
+          // 当前tag是否满足条件
           if (tag && tag.tag_user_info === this.$store.state.currentuser &&
             !tag.hasOwnProperty('category_name')) this.currentTag = tag
         })
         // console.log(this.currentTag)
-        if (!(this.currentTag.tag_value instanceof Array)){
+        //鲁棒，如果tag_value属性是单个元素且不是undefined则用数组包装
+        //如果标注值藏在remarks属性里面则提取出来【commentlist中已经完成】
+        if (!!this.currentTag.tag_value &&
+          !(this.currentTag.tag_value instanceof Array) ){
           this.currentTag.tag_value = [this.currentTag.tag_value];
         }
-        console.log("current tag", this.currentTag);
 
-        this.local_current_tags = this.currentTag.tag_value;
+        console.log("current tag", this.currentTag);
+        this.$nextTick(()=>{
+          this.local_current_tags = this.currentTag.tag_value || [];
+        })
+
+
         this.isSaved = true;
       },
 

@@ -1144,15 +1144,25 @@
               callback()
               this.$store.state.map.tag_map.set(tag_id, tag_object)
 
+              //将包装的remarks属性解开，但是只有部分数据有这种格式，因此要加try
+              try{
+                let t1 = JSON.parse(tag_object.remarks);
+                // console.log('all tags', t1)
+                //有两种情况：（1）正常标注tag（2）tag_category tag
+                //正常tag
+                if (t1.tag_value) {
+                  tag_object["tag_value"] = t1.tag_value;
+                  tag_object["rationale"] = t1.rationale;
+                }
+              }
+              catch (e){
+                console.log("format is not suitable for this piece", e)
+              }
+
               // try {
-              //   var t1 = JSON.parse(tag_object.remarks);
-              //   console.log('all tags', t1)
-              //   //有两种情况：（1）正常标注tag（2）tag_category tag
-              //   //正常tag
-              //   if (t1.tag_value) {
-              //     tag_object["tag_value"] = t1.tag_value;
-              //     tag_object["rationale"] = t1.rationale;
-              //   } else if (t1.category_name) {
+
+              //
+              //   else if (t1.category_name) {
                   //tag categorg map
                   /**
                    * key : <Name>

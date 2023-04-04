@@ -266,6 +266,7 @@ const lantext={
   },
 
   words:{
+    unsupported_value:["Unsupported Value", "不被支持的值"],
     category_template:["Category Template", "标签组模板"],
     ch_description:["chinese description", "中文描述"],
     en_description:["english description", "英文描述"],
