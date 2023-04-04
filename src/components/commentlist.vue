@@ -277,15 +277,16 @@
             class="ma-2"
             v-for="(tag, index) in chosen_tag_category.category_obj.tags"
             :key="index">
+            <v-card-title>
+              {{tag.value}}
+            </v-card-title>
             <v-card-title class="ma-1 text-h5">
               <!--              标签category的名称-->
-              {{chosen_tag_category.category_obj.tags[index].reference[
-              $store.state.lanType===0?'en':'ch']}}
+              {{tag.reference[$store.state.lanType===0?'en':'ch']}}
             </v-card-title>
             <!--                    描述-->
             <v-card-text class="ma-1 text-h6">
-              {{chosen_tag_category.category_obj.tags[index].description[
-              $store.state.lanType===0?'en':'ch']}}
+              {{tag.description[$store.state.lanType===0?'en':'ch']}}
             </v-card-text>
           </v-card>
 
@@ -866,8 +867,12 @@
         submit_tag_category() {
           try{
             // 生成value属性阶段
-            this.custom_tag_category_obj.tags.forEach(tag =>{
-              tag.value = String((new Date()).getTime())
+            /**
+             * 原有的category用时间戳来封装值的做法，由于采用了非延时的for循环，
+             * 因此所有标签的值都相同，无法区分。因此，在原时间戳的后面再加上标签自身的index加以区分。
+             */
+            this.custom_tag_category_obj.tags.forEach( (tag,index) =>{
+              tag.value = String((new Date()).getTime()) + String(index)
             })
 
             // 存储阶段
